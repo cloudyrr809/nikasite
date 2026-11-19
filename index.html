@@ -165,6 +165,12 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 /* her floor shadow reaches past the screen's bottom: let it show over the footer instead of being cut in a straight line */
 #values{overflow-x:clip;overflow-y:visible}
 #values .design{margin:0 auto}
+/* on a phone the screen stands still while the page scrolls past it, and every point of the drum is a place the page
+   snaps to and stops at (scroll-snap-stop): one swipe turns exactly one point, however hard the flick.
+   The standing part is a plain wrapper (#vStick): sticky on the zoomed screen itself made it shake on phones */
+#vSnaps{position:absolute;left:0;top:0;width:1px;height:0;pointer-events:none}
+#vSnaps i{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start;scroll-snap-stop:always}
+html.vsnap{scroll-snap-type:y proximity}
 .vkick{position:absolute;font-weight:600;color:var(--accent);z-index:2;line-height:.8;letter-spacing:-.065em;white-space:nowrap}
 .vbig{position:absolute;font-weight:800;line-height:.8;letter-spacing:-.05em;white-space:nowrap;z-index:1}
 #vLead{position:absolute;margin:0;font-weight:600;font-size:15px;line-height:1.35;z-index:3;pointer-events:none;white-space:nowrap}
@@ -238,19 +244,22 @@ html.m .fig-img{left:50%!important;top:0!important;width:calc(var(--dw)*.672)!im
 html.m .fig-el{left:calc(50% - var(--dw)*.305)!important;top:calc(var(--dw)*1.134)!important;width:calc(var(--dw)*.65)!important;height:calc(var(--dw)*.092)!important}
 html.m .fig-sh{display:none}
 html.m #floorClip{display:none}
-/* her name on the floor: two rows lying back in perspective, ROYSE nearer; scrolling slides them apart (see drawFloor) */
+/* her name on the floor: two rows lying back in perspective and turned on the floor at an angle, as on the wide screen
+   (VERONIKA farther, ROYSE nearer, running up to the right under her feet); scrolling slides them apart (see drawFloor) */
 #floorM{display:none}
-html.m #floorM{display:block;position:absolute;left:-22px;right:-22px;top:calc(var(--dw)*1.0);height:calc(var(--dw)*.46);
-  perspective:calc(var(--dw)*.85);perspective-origin:50% -10%;overflow:hidden;
-  -webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
-html.m #floorM .pl{position:absolute;left:0;right:0;top:0;transform-origin:50% 0;transform:rotateX(61deg);
+html.m #floorM{display:block;position:absolute;left:-22px;right:-22px;top:calc(var(--dw)*.9);height:calc(var(--dw)*.6);
+  perspective:calc(var(--dw)*1.1);perspective-origin:45% -30%;overflow:hidden;
+  -webkit-mask-image:linear-gradient(#000 80%,transparent);mask-image:linear-gradient(#000 80%,transparent)}
+html.m #floorM .pl{position:absolute;left:-40%;right:-40%;top:6%;transform-origin:50% 0;transform:rotateX(57deg) rotateZ(-12deg);
   display:flex;flex-direction:column;align-items:center}
 html.m #floorM span{display:block;font-weight:800;font-size:calc(var(--dw)*.2);line-height:.86;letter-spacing:-.02em;color:#111;white-space:nowrap;will-change:transform}
+html.m #floorM span:first-child{margin-left:-14%}
+html.m #floorM span:last-child{margin-left:12%}
 html.m .h-txt{order:6;width:auto!important;margin-top:4px;display:contents!important}
 html.m .h-txt h1{order:7;white-space:normal!important;font-size:19px!important;line-height:1.32!important;margin-top:2px!important}
-html.m .h-txt p{order:9;white-space:normal!important;font-size:15px!important;line-height:1.45!important;margin-top:30px!important;color:var(--ink-soft)}
+html.m .h-txt p{order:8;white-space:normal!important;font-size:15px!important;line-height:1.45!important;margin-top:30px!important;color:var(--ink-soft)}
 html.m .h-txt br:not(.k){display:none}
-html.m .h-cta{order:8;margin-top:24px;align-self:flex-start;font-size:24px!important}
+html.m .h-cta{order:9;margin-top:28px;align-self:flex-start;font-size:24px!important}
 html.m .h-soc{order:10;margin-top:30px;align-self:flex-start;gap:26px!important}
 html.m .h-soc svg{width:26px;height:26px}
 /* process: the drawn line runs top to bottom down the left of the column, the steps stand to its right */
@@ -266,6 +275,19 @@ html.m .lab::before{content:attr(data-n);display:block;margin-bottom:4px;font-si
 html.m .lab.seen::before{opacity:1}
 /* album */
 html.m #hint{font-size:15px;gap:10px;white-space:nowrap}
+/* on an upright phone the album lies sideways (html.rot): its own landscape grid, turned a quarter round, so the open spread
+   runs along the phone's long side and is big. Turning the phone makes it read the right way up; a badge over it says so */
+#rotHint{display:none}
+html.rot #rotHint{display:flex;position:absolute;left:0;right:0;top:14px;z-index:4;align-items:center;justify-content:center;gap:12px;
+  font:600 14px/1.25 var(--font);color:var(--ink-soft);pointer-events:none}
+html.rot #rotHint svg{flex:none;color:var(--accent);overflow:visible}
+html.rot #rotHint .ph{transform-origin:32px 30px;animation:rotPh 3.2s cubic-bezier(.6,0,.3,1) infinite}
+html.rot #rotHint .ar{opacity:0;animation:rotAr 3.2s ease infinite}
+html.rot #rotHint .ar2{animation-delay:.08s}
+@keyframes rotPh{0%,22%{transform:rotate(0)}48%,78%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@keyframes rotAr{0%,10%{opacity:0}22%,48%{opacity:1}60%,100%{opacity:0}}
+html.rot #album .design{position:absolute;left:0;top:0;margin:0;transform-origin:0 0}
+@media (prefers-reduced-motion: reduce){html.rot #rotHint .ph,html.rot #rotHint .ar{animation:none;opacity:1}}
 html.m #book,html.m #bookGL{transition:translate .75s cubic-bezier(.3,.7,.2,1)}
 @media (prefers-reduced-motion: reduce){html.m #book,html.m #bookGL{transition:none}}
 /* the two album formats on a phone: the top of the pencil scribbles, two tabs, the chosen format, the bottom of the
@@ -317,7 +339,10 @@ html.m #contacts .ideas ul{font-size:16px;gap:8px;line-height:1.4}
 html.m #contacts .bar{margin-top:60px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 12px}
 html.m #contacts .bar .nm{grid-column:1;grid-row:1}
 html.m #contacts .bar .mid{grid-column:1;grid-row:2;font-size:12px}
-html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-size:14px;gap:8px}
+/* on a phone "наверх" is a clear button of its own: an outlined pill, no arrow */
+html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;align-self:center;font-size:16px;gap:0;padding:13px 22px;border:1.5px solid var(--ink);border-radius:999px;line-height:1;-webkit-tap-highlight-color:transparent}
+html.m #contacts .bar a .up{display:none}
+html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 </style>
 
 <div id="backdrop" aria-hidden="true"></div>
@@ -396,6 +421,7 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
 
 <!-- ===== SCREEN 3: the album ===== -->
 <section class="screen" id="album" aria-label="Альбом">
+<div id="rotHint" aria-hidden="true"><svg viewBox="0 0 64 64" width="46" height="46"><g class="ph"><rect x="22" y="12" width="20" height="36" rx="4" fill="none" stroke="currentColor" stroke-width="2.6"/><line x1="29" y1="43" x2="35" y2="43" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></g><path class="ar" d="M50 22 A20 20 0 0 0 30 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path class="ar" d="M33.5 3.5 L29.5 8 L34 11.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path class="ar ar2" d="M14 42 A20 20 0 0 0 34 56" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path class="ar ar2" d="M30.5 60.5 L34.5 56 L30 52.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Поверните телефон,<br>чтобы листать альбом</span></div>
 <div class="design">
 <canvas id="bookGL" aria-hidden="true"></canvas>
 <div id="book" role="group" aria-label="Выпускной альбом, листайте"></div>
@@ -462,6 +488,8 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
 
 <!-- ===== SCREEN 5: what matters to Veronika, on a turning drum ===== -->
 <section class="screen" id="values" aria-label="Что для меня важно">
+<div id="vSnaps" aria-hidden="true"></div>
+<div id="vStick">
 <div class="design">
 <div class="vkick" id="vKick" aria-hidden="true">what</div>
 <div class="vbig" id="vBig" aria-hidden="true">MATTERS</div>
@@ -481,6 +509,7 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
 <div id="vFig"><div class="floor"></div><img src="veronika_cam.png" alt="Veronika Royse с фотоаппаратом"></div>
 <a class="cta" id="vCta" href="https://t.me/vichinks">получить альбом <span class="arr ha a1" aria-hidden="true"></span></a>
 </div>
+</div>
 </section>
 
 <!-- ===== FOOTER: contacts ===== -->
@@ -496,7 +525,7 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
 </div>
 <!-- "and the main thing": the hand-written line with the heart, and under the heart what can be added to an album -->
 <section class="main" aria-label="Ну и самое главное">
-<svg class="hand" id="hand" viewBox="0 0 805 285" preserveAspectRatio="none" role="img" aria-label="Ну и самое главное"><defs><filter id="pencil3" filterUnits="userSpaceOnUse" x="0" y="0" width="805" height="285" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain3" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter><mask id="handMask" maskUnits="userSpaceOnUse" x="-10" y="-10" width="825" height="305"><g id="handPen" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"></g></mask></defs><g id="handInk"><image href="hand2.png" x="0" y="0" width="805" height="285" preserveAspectRatio="none" filter="url(#pencil3)"/></g></svg>
+<svg class="hand" id="hand" viewBox="0 0 805 285" preserveAspectRatio="none" role="img" aria-label="Ну и самое главное"><defs><filter id="pencil3" filterUnits="userSpaceOnUse" x="0" y="0" width="805" height="285" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain3" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter><mask id="handMask" maskUnits="userSpaceOnUse" x="-10" y="-10" width="825" height="305"><g id="handPen" fill="none" stroke="#fff" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round"></g></mask></defs><g id="handInk"><image href="hand2.png" x="0" y="0" width="805" height="285" preserveAspectRatio="none" filter="url(#pencil3)"/></g></svg>
 <div class="ideas sel">
 <p class="h">Мы можем реализовать любые идеи</p>
 <ul>
@@ -507,7 +536,7 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
 </ul>
 </div>
 </section>
-<div class="bar"><span class="nm">Veronika Royse</span><span class="mid">фотограф выпускных альбомов · 2027</span><a class="cta" href="#hero" data-totop>на главную <span class="arr ha a6 up" aria-hidden="true"></span></a></div>
+<div class="bar"><span class="nm">Veronika Royse</span><span class="mid">фотограф выпускных альбомов · 2027</span><a class="cta" href="#hero" data-totop>наверх <span class="arr ha a6 up" aria-hidden="true"></span></a></div>
 </div>
 </footer>
 
@@ -526,9 +555,13 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
   // Zooming IN (a higher pixel ratio) leaves the layout as it is, so the browser simply shows it bigger.
   // Zooming OUT below the reference never shrinks the page: it becomes the new reference and the page re-fits the window.
   // Nothing is blocked and nothing is remembered, so the page cannot get stuck whatever zoom it was opened at.
-  window.VREF={w:root.clientWidth||window.innerWidth, h:window.innerHeight, dpr:window.devicePixelRatio||1};
+  // the window's height. Right after a phone is turned upright again the page is still laid out for the wide screen, so the
+  // phone shows it zoomed out and reports a window twice as tall as the screen; the visual viewport times its zoom is the
+  // real height (the page then took that height for one screen, and the album and every screen came out twice as tall)
+  function winH(){ var v=window.visualViewport; return (v&&v.scale>0&&v.scale<0.98)?Math.round(v.height*v.scale):window.innerHeight; }
+  window.VREF={w:root.clientWidth||window.innerWidth, h:winH(), dpr:window.devicePixelRatio||1};
   function zoomed(){ return (window.devicePixelRatio||1)>VREF.dpr+0.001; }
-  function takeRef(){ VREF.w=root.clientWidth||window.innerWidth; VREF.h=window.innerHeight; VREF.dpr=window.devicePixelRatio||1; }
+  function takeRef(){ VREF.w=root.clientWidth||window.innerWidth; VREF.h=winH(); VREF.dpr=window.devicePixelRatio||1; }
   window.vrZoomed=zoomed; window.vrTakeRef=takeRef;          // the What-matters script uses the same rule
   // Ctrl+wheel: the browser zooms towards the page's top-left corner; right after, the page is moved so that
   // the point that was under the cursor is under it again. The zoom itself stays the browser's own (sharp, no lag)
@@ -554,7 +587,9 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
   function isMob(w,h){ return w<768 || (h>w*1.15 && w<1100); }
   // on a phone the address bar comes and goes while scrolling, which only changes the window's height:
   // that must not lay the whole page out again (everything would jump)
-  window.vrSkipResize=function(){ return MOB && isMob(root.clientWidth||window.innerWidth,window.innerHeight) && Math.abs((root.clientWidth||window.innerWidth)-VREF.w)<2; };
+  // (but a change between upright and lying is always laid out again, even if the width came first and the height after)
+  window.vrSkipResize=function(){ var w=root.clientWidth||window.innerWidth, h=window.innerHeight;
+    return MOB && isMob(w,h) && Math.abs(w-VREF.w)<2 && (h>w*1.15)===(VREF.h>VREF.w*1.15); };
   function fit(){
     var w=VREF.w,h=VREF.h, mob=isMob(w,h), dw;
     if(mob!==MOB){ MOB=mob; root.classList.toggle('m',mob); }
@@ -845,7 +880,18 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
         var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+pw+'" height="'+ph+'" viewBox="0 0 1366 768" preserveAspectRatio="none"><defs>'+flt+'</defs>'+
           '<image href="'+data+'" x="0" y="0" width="1366" height="768" preserveAspectRatio="none" filter="url(#pencil)"/></svg>';
         var im=new Image();
-        im.onload=function(){ var c=document.createElement('canvas'); c.width=pw; c.height=ph; c.getContext('2d').drawImage(im,0,0,pw,ph); URL.revokeObjectURL(im.src); ok(c); };
+        im.onload=function(){
+          // Safari paints an SVG that holds a picture onto a canvas as an empty sheet (the picture inside is not ready yet):
+          // the line was then hidden and the blank canvas shown in its place, so on an iPhone the line was gone.
+          // The baked copy is used only if it really holds the line; otherwise the line is drawn live through its mask
+          setTimeout(function(){
+            var c=document.createElement('canvas'); c.width=pw; c.height=ph; var x=c.getContext('2d'); x.drawImage(im,0,0,pw,ph);
+            URL.revokeObjectURL(im.src);
+            var t=document.createElement('canvas'); t.width=96; t.height=54; var tx=t.getContext('2d'); tx.drawImage(c,0,0,96,54);
+            var d=tx.getImageData(0,0,96,54).data, n=0; for(var i=3;i<d.length;i+=4) if(d[i]>20) n++;
+            if(n<40) no(); else ok(c);
+          },60);
+        };
         im.onerror=no;
         im.src=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));
       }).catch(no);
@@ -930,7 +976,12 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
      Scrolling back up leaves what is drawn as it is */
   function scrubIntro(st){
     var ink=null, cur=0, goalF=0, reach=0, q=0, busy=false, raf2=0, done=false;
-    var MXP=[], m=0; for(var i=0;i<LP.length;i++){ if(LP[i][0]>m) m=LP[i][0]; MXP.push(m); }
+    /* where the pen is along its route for a given depth down the screen. Before, the pen went as far as it could without
+       passing that depth: where the line turns back up (its big rounding) the whole bend had the same depth, so it was
+       uncovered in one go and seemed to appear on both sides at once. Now the route's own length counts half: a bend that
+       turns back is drawn bit by bit as the page scrolls on, always as one line from its start */
+    var LT=LEN[LEN.length-1], MP=[], m=0;
+    for(var i=0;i<LP.length;i++){ if(LP[i][0]>m) m=LP[i][0]; MP.push(.5*m/1366+.5*LEN[i]/LT); }
     var band=document.getElementById('band');
     function tryType(){
       if(busy || q>=st.items.length) return;
@@ -941,14 +992,16 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
     function aim(){
       var r=band.getBoundingClientRect(), y=(window.innerHeight*.72-r.top)/s-MLT, f=Math.max(0,Math.min(1,y/ML));
       if(f>reach){ reach=f; }
-      // the pen goes as far along its route as it can without passing that height
-      var lim=reach*1366, lo=0, hi=LP.length-1;
-      if(reach>=1) lo=hi; else while(hi-lo>1){ var mid=(lo+hi)>>1; if(MXP[mid]<=lim) lo=mid; else hi=mid; }
-      goalF=LEN[lo]/LEN[LEN.length-1];
+      var lo=0, hi=LP.length-1;
+      if(reach>=1){ goalF=1; return; }
+      while(hi-lo>1){ var mid=(lo+hi)>>1; if(MP[mid]<=reach) lo=mid; else hi=mid; }
+      var t=(reach-MP[lo])/((MP[hi]-MP[lo])||1);
+      goalF=(LEN[lo]+(LEN[hi]-LEN[lo])*Math.max(0,Math.min(1,t)))/LT;
     }
     function step(){
       raf2=0; aim();
-      cur+=(goalF-cur)*.18; if(goalF-cur<.0008) cur=goalF;
+      // the pen eases after the scroll, and never runs faster than a hand would (a quick fling does not flash the line in)
+      cur+=Math.min((goalF-cur)*.18, 16/LT); if(goalF-cur<.0008) cur=goalF;
       st.pen.style.strokeDashoffset=(1-cur).toFixed(4);
       for(var k=0;k<st.dabs.length;k++){ var dk=st.dabs[k]; if(!dk.on && cur>=dk.f-0.004){ dk.on=true; dk.el.setAttribute('opacity','1'); } }
       for(var b2=0;b2<st.blks.length;b2++){ var bk=st.blks[b2]; if(!bk.on && cur>=bk.f){ bk.on=true; bk.el.setAttribute('opacity','0'); } }
@@ -1022,29 +1075,56 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
     var g=document.getElementById('pencilGrain3');
     if(g) g.setAttribute('baseFrequency',(PENCIL_F*w/805).toFixed(3));
   }
-  /* "Ну и самое главное" is written by the pencil stroke after stroke, like the process line: the picture's strokes were
-     traced once (their centre lines, in writing order: the heart, then word by word); a mask uncovers the grained picture
-     along them, one after another, at the speed of a hand. At the end the mask is dropped and the plain picture stays */
-  var HAND=["M48 135 L48 133 L47 131 L45 131 L43 129 L41 127 L39 126 L37 126 L35 126 L33 126 L31 126 L29 127 L27 127 L25 128 L23 129 L21 129 L19 130 L17 132 L15 134 L13 136 L11 138 L10 140 L9 142 L9 144 L8 146 L8 148 L8 150 L8 152 L9 154 L10 156 L11 158 L12 160 L14 162 L16 162 L18 163 L20 164 L22 165 L24 165 L26 165 L28 165 L30 165 L32 165 L34 165 L36 165 L38 165 L40 165 L42 165 L44 165 L46 165 L48 165 L50 165 L52 165 L54 165 L56 165 L58 165 L60 166 L62 166 L64 166 L66 164 L68 162 L70 160 L72 158 L72 156 L74 154 L76 152 L78 150 L80 148 L80 146 L81 144 L82 142 L83 140 L83 138 L84 136 L84 134 L85 132 L85 130 L85 128 L85 126 L85 124 L84 122 L83 120 L81 118 L79 116 L77 114 L75 113 L73 112 L71 112 L69 112 L67 112 L65 112 L63 114 L61 114 L59 116 L57 118 L55 120 L53 122 L52 124 L51 126 L50 128 L49 130 L49 131","M51 126 L53 124","M53 123 L55 121 L57 119 L59 117 L61 115","M78 115 L80 116 L82 118 L83 119","M78 150 L77 152 L75 154 L73 156","M72 157 L70 159 L69 160","M68 162 L67 164 L66 165","M12 137 L13 135 L15 133 L17 131","M41 127 L43 128","M287 49 L289 48 L291 47 L293 46 L295 45 L297 44 L299 42 L301 41 L303 40 L305 39 L307 37 L309 36 L311 35 L313 33 L315 32 L317 31 L319 30 L321 29 L323 29 L325 28 L326 26 L328 24 L330 22 L330 20 L332 18 L333 16 L334 14 L335 12","M324 29 L324 31 L324 33 L323 35 L322 37 L321 39 L319 41 L318 43 L317 45 L316 47 L316 49 L316 51 L315 53 L313 55 L311 57 L309 58 L307 58 L305 58 L303 58 L301 59 L299 59 L297 60 L295 61 L293 61 L291 62 L289 63 L287 63 L285 65 L283 65 L281 67 L279 68 L277 70 L275 72 L273 73 L271 75 L269 77 L267 79 L265 81 L264 83 L263 85 L263 87 L263 89 L265 91 L267 92 L269 93 L271 94 L273 95 L275 95 L277 94 L279 94 L281 93 L283 92 L285 91 L287 90 L289 89 L291 88 L293 86 L295 85 L297 83 L299 81 L300 79 L301 77 L303 75 L304 73 L305 71 L306 69 L308 67 L308 65 L309 63 L310 61 L310 59","M304 73 L302 75","M302 76 L301 78","M300 79 L298 81 L296 83","M294 86 L292 88","M291 88 L289 90","M264 83 L266 81","M268 78 L269 76 L271 74","M274 72 L276 70 L277 69","M279 68 L281 66","M311 57 L313 56 L315 54 L317 53 L319 53 L321 52 L323 52 L325 52 L327 51 L329 51 L331 50 L333 49 L335 47 L337 46 L339 44 L341 43 L343 42 L343 40 L344 38 L345 36 L347 34 L349 32 L351 30 L353 28 L355 26 L357 24 L359 23 L361 23 L362 24 L363 26 L363 28 L362 30 L361 32 L359 34 L357 36 L355 38 L353 38 L351 40 L349 41 L347 42 L345 42 L344 42","M351 40 L353 39","M354 38 L356 36","M357 36 L359 35 L361 33","M358 23 L356 24 L354 26 L352 28 L350 30 L348 32 L346 34","M330 51 L329 53 L329 55 L328 57 L326 59 L325 61 L324 63 L323 65 L321 67 L320 69 L319 71 L318 73 L317 75 L316 77 L315 79 L314 81 L313 83 L312 85 L311 87 L310 89 L309 91 L308 93 L308 95 L307 97","M321 68 L323 66","M324 63 L326 61","M326 60 L328 58","M317 31 L315 33","M314 33 L312 35","M354 58 L353 60 L352 62 L351 64 L350 66 L349 68 L348 70 L348 72 L347 74 L347 76 L346 78 L346 80 L346 82 L347 84 L349 84 L351 83 L353 83 L355 82 L357 81 L359 80 L361 79 L363 78 L365 78 L367 77 L369 75 L371 73 L373 71 L374 69 L374 68","M370 74 L369 76 L367 78 L367 80 L367 82 L366 84 L365 86 L364 88 L363 90 L362 92 L361 94 L360 96 L359 98 L359 100 L358 102 L356 104 L354 106 L352 107 L350 108 L348 107 L346 107 L344 107 L342 108 L340 109 L338 109 L336 110 L334 110 L332 112 L330 112 L328 113 L326 114 L324 114 L322 115 L320 116 L318 117 L316 117 L314 119 L312 119 L310 121 L308 122 L306 123 L304 124 L302 126 L300 127 L298 129 L296 131 L294 133 L294 135 L294 137 L294 139 L295 141 L297 141 L299 143 L301 143 L303 144 L305 145 L307 145 L309 145 L311 145 L313 145 L315 145 L317 144 L319 144 L321 143 L323 142 L325 141 L327 140 L329 138 L331 137 L333 135 L335 133 L337 131 L339 129 L341 127 L343 125 L344 123 L346 121 L347 119 L349 117 L350 115 L351 113 L352 111 L351 109 L349 109 L349 108","M347 119 L345 121","M344 123 L342 125 L340 127","M338 130 L337 132 L335 134 L333 136","M331 137 L329 139","M296 131 L297 129 L299 127","M301 126 L303 124","M356 104 L358 103 L360 103 L362 103 L364 102 L366 102 L368 101 L370 101 L372 101 L374 100 L376 100 L378 99 L380 99 L382 98 L384 98 L385 98","M427 75 L426 77 L425 79 L424 81 L423 83 L423 85 L422 87 L422 89 L422 91 L422 93 L422 95 L423 97 L425 99 L427 99 L429 99 L431 99 L433 98 L435 97 L437 96 L439 94 L441 93 L443 91 L445 89 L447 88 L449 87 L451 86 L453 85 L454 83 L455 81 L456 79","M453 85 L454 87 L454 89 L454 91 L453 93 L453 95 L453 97 L453 99 L452 101 L452 103","M449 87 L447 89","M446 89 L444 91 L442 93","M441 93 L439 95 L438 96","M437 96 L435 98","M425 79 L427 77","M528 118 L526 119 L524 120 L522 120 L520 121 L518 121 L516 121 L514 121 L512 121 L510 120 L508 120 L506 119 L504 118 L502 116 L500 114 L499 112 L499 110 L499 108 L500 106 L501 104 L502 102 L503 100 L505 98 L507 96 L509 94 L511 92 L513 91 L515 90 L517 89 L519 89 L521 89 L523 89 L525 89 L527 90 L529 92 L530 94","M528 91 L526 90","M512 92 L510 94","M506 97 L505 99 L503 101","M500 114 L501 116 L503 118 L504 119","M578 131 L578 129 L578 127 L579 125 L579 123 L579 121 L578 119 L579 117 L579 115 L578 113 L578 111 L578 109 L577 107 L576 105 L574 104 L572 104 L570 104 L568 105 L566 105 L564 107 L562 107 L560 109 L558 111 L556 113 L554 113 L552 115 L551 117 L549 119 L548 121 L548 123 L548 125 L548 127 L549 129 L551 130 L553 130 L555 130 L557 129 L559 129 L561 127 L563 126 L565 125 L567 124 L569 123 L571 122 L573 121 L575 121 L577 120","M549 120 L551 118 L552 117","M552 116 L554 114","M555 113 L557 111 L559 109","M560 109 L562 108","M579 114 L581 113 L583 112 L585 110","M584 111 L583 113","M590 133 L592 133 L594 132 L596 132 L598 131 L600 130 L602 130 L604 129 L606 127 L608 125 L609 123 L610 121 L611 119 L612 117 L614 115 L614 113","M606 127 L605 129 L606 131 L605 133 L605 135 L605 137 L606 139 L608 139 L610 138 L612 138 L614 137 L616 137 L618 136 L620 134 L621 132 L622 130 L624 128 L624 126 L626 124 L627 122 L628 121","M620 134 L619 136 L619 138 L619 140 L619 142 L619 144","M637 136 L637 134 L639 132 L641 130 L643 128 L645 126 L647 124 L649 124 L651 124 L653 124 L653 126 L654 128 L654 130 L655 132 L656 134 L656 136 L656 138 L656 140 L655 142 L654 144 L653 146 L651 148 L649 148 L647 149 L645 150 L643 149 L641 147 L641 145","M652 147 L654 146","M646 125 L644 126 L642 128 L640 130 L638 132","M706 160 L704 160 L702 160 L700 160 L698 160 L696 160 L694 160 L692 160 L690 160 L688 160 L686 160 L684 160 L682 160 L680 160 L678 160 L676 160 L674 160 L672 160 L670 159 L668 157 L668 155 L668 153 L668 151 L670 149 L671 147 L673 145 L674 143 L674 141 L676 139 L678 138 L680 136 L682 135 L684 134 L686 133 L688 133 L690 132 L692 132 L694 132 L696 132 L697 134 L697 136 L697 138 L696 140 L694 142 L692 143 L690 144 L688 144 L686 145 L684 145 L682 146 L680 146 L678 146 L676 146 L674 146","M694 142 L696 141","M681 136 L679 138","M677 139 L675 141","M668 157 L669 159","M575 216 L576 214 L576 212 L577 210 L578 208 L578 206 L579 204 L580 202 L581 200 L582 198 L582 196 L583 194 L585 192 L587 192 L589 192 L591 192 L593 193 L595 193 L597 193 L599 194 L601 194 L602 194","M599 223 L601 223 L603 224 L605 224 L607 223 L609 222 L611 220 L613 219 L615 217 L617 216 L619 215 L621 214 L621 212 L622 210 L623 208 L624 206 L624 204 L625 202 L625 201","M621 214 L621 216 L621 218 L621 220 L621 222 L620 224 L620 225","M616 216 L614 217","M655 241 L655 239 L654 237 L653 235 L653 233 L653 231 L653 229 L655 227 L656 225 L658 223 L660 221 L660 219 L660 217 L659 215 L657 213 L655 212 L653 212 L651 212 L649 212 L647 213 L645 213 L643 214 L641 215 L639 216 L637 218 L635 220 L634 222 L633 224 L633 226 L633 228 L633 230 L635 231 L637 231 L639 232 L641 232 L643 232 L645 231 L647 231 L649 231 L651 231","M635 221 L637 219 L639 217 L640 216","M654 228 L653 230","M669 241 L670 239 L671 237 L671 235 L672 233 L674 231 L676 229 L678 229 L680 227 L679 225 L679 223 L680 221 L680 219 L682 217 L682 215 L684 213 L686 211 L687 209 L689 207 L691 205 L693 203 L695 201 L697 200 L699 199 L701 198 L703 197 L705 197 L707 197 L709 199 L710 201 L711 203 L711 205 L710 207 L709 209 L707 211 L705 213 L703 214 L701 216 L699 217 L697 218 L695 219 L693 220 L691 221 L689 221 L687 222 L685 224 L684 226 L682 227 L681 227","M683 227 L685 226 L686 227 L684 228","M685 228 L687 229 L689 229 L691 229 L693 230 L694 232 L694 234 L694 236 L693 238 L692 240 L690 242 L688 243 L686 243 L684 244 L682 244 L680 245 L678 245 L676 245 L674 246 L672 246 L670 247 L669 245 L669 243 L670 241","M694 232 L692 230","M706 212 L708 211 L710 209","M696 201 L694 203","M687 209 L685 211","M684 213 L683 215","M676 229 L674 230 L673 231","M702 251 L703 249 L704 247 L705 245 L706 243 L708 241 L709 239 L709 237 L709 235 L711 233 L711 231 L713 229 L713 227","M708 241 L709 242 L711 242 L713 242 L715 242 L717 242 L719 242 L721 244 L720 246 L720 248 L719 250 L718 252 L718 254 L717 256 L717 258 L717 259","M721 244 L722 242 L724 240 L725 238 L726 236 L727 234 L727 233","M736 256 L737 254 L737 252 L737 250 L738 248 L739 246 L741 244 L743 242 L745 240 L747 239 L749 239 L751 239 L753 240 L753 242 L754 244 L754 246 L754 248 L754 250 L754 252 L753 254 L753 256 L752 258 L751 260 L749 262 L747 263 L745 264 L743 264 L741 265 L739 264 L737 262 L736 260 L736 258 L736 257","M793 273 L791 273 L789 273 L787 273 L785 273 L783 272 L781 272 L779 272 L777 271 L775 271 L773 270 L771 270 L769 269 L767 269 L765 267 L763 265 L763 263 L763 261 L763 259 L765 257 L765 255 L766 253 L768 251 L770 249 L772 248 L774 248 L776 247 L778 247 L780 246 L782 246 L784 246 L786 246 L788 248 L789 250 L790 252 L789 254 L788 256 L786 258 L784 259 L782 260 L780 260 L778 260 L776 261 L774 261 L772 261 L770 260 L768 259 L766 259 L765 258","M786 258 L788 257 L789 256","M789 249 L788 247","M771 249 L769 251","M763 265 L764 267 L765 268"];
+  /* "Ну и самое главное" is written the way a hand writes it. Every letter is ONE continuous movement of the pencil along
+     its own centre line, traced from the picture in writing order and direction (x, y, and 1 where the line runs back over
+     ink already laid down: the stem of "а", the arms of "у" — there the pencil slides back quickly without lifting).
+     The pencil slows in tight turns and as a letter starts, pauses a breath between letters and longer between words.
+     A mask uncovers the grained picture along that route; at the end the mask is dropped and the plain picture stays */
+  var HAND=[[48,131,0,45,131,0,43,128,0,40,126,0,30,126,0,17,131,0,17,132,0,12,136,0,8,145,0,8,152,0,11,159,0,12,159,0,14,162,0,16,162,0,22,165,0,58,165,0,59,166,0,64,166,0,66,165,0,69,160,0,72,158,0,72,156,0,78,151,0,79,148,0,80,148,0,80,146,0,81,146,0,85,133,0,85,124,0,84,121,0,83,121,0,83,119,0,82,119,0,79,115,0,77,115,0,77,114,0,75,114,0,75,113,0,73,113,0,73,112,0,65,112,0,63,113,0,63,114,0,61,114,0,61,115,0,53,122,0,53,124,0,51,125,0,51,127,0,50,127,0,50,129,0,49,129,0,49,131,0,48,131,0],[335,12,0,334,15,0,332,18,0,331,18,0,330,22,0,329,22,0,326,27,0,325,27,0,324,29,0,324,34,0,316,47,0,315,54,0,314,54,0,312,57,0,299,59,0,287,63,0,287,64,0,285,64,0,285,65,0,283,65,0,283,66,0,281,66,0,279,69,0,277,69,0,275,72,0,271,74,0,266,81,0,264,82,0,264,84,0,263,84,0,263,89,0,264,89,0,266,92,0,273,95,0,280,94,0,280,93,0,289,90,0,290,88,0,292,88,0,292,87,0,300,80,0,300,78,0,301,78,0,302,75,0,304,74,0,305,70,0,306,70,0,307,67,0,308,67,0,308,65,0,309,65,0,310,58,0,312,57,1,315,53,1,330,51,0,335,47,0,337,47,0,339,44,0,341,44,0,341,43,0,343,42,0,350,41,0,350,40,0,352,40,0,353,38,0,355,38,0,356,36,0,358,36,0,363,29,0,363,25,0,362,23,0,357,23,0,357,24,0,346,34,0,344,37,0,343,42,0,341,43,1,341,44,1,339,44,1,337,47,1,335,47,1,332,50,1,329,51,1,328,58,0,326,59,0,326,61,0,324,62,0,323,66,0,321,67,0,321,69,0,320,69,0,319,72,0,318,72,0,318,74,0,317,74,0,317,76,0,316,76,0,316,78,0,315,78,0,314,82,0,313,82,0,313,84,0,312,84,0,312,86,0,311,86,0,311,88,0,310,88,0,307,97,0,310,88,1,311,88,1,311,86,1,312,86,1,312,84,1,313,84,1,313,82,1,314,82,1,314,80,1,315,78,1,316,78,1,318,72,1,319,72,1,320,69,1,321,69,1,321,67,1,323,66,1,324,62,1,326,61,1,326,59,1,328,58,1,329,55,1,329,51,1,321,52,1,320,53,1,315,53,1,316,47,1,324,34,1,324,29,1,321,29,0,318,30,0,318,31,0,316,31,0,316,32,0,313,33,0,312,35,0,310,35,0,310,36,0,307,37,0,307,38,0,299,42,0,294,46,0,287,49,0],[354,58,0,354,60,0,353,60,0,353,62,0,352,62,0,352,64,0,351,64,0,351,66,0,350,66,0,350,68,0,349,68,0,349,70,0,348,70,0,348,73,0,346,77,0,346,83,0,347,84,0,350,84,0,356,82,0,356,81,0,358,81,0,358,80,0,360,80,0,360,79,0,362,78,0,368,77,0,368,76,0,372,73,0,374,70,0,374,68,0,374,70,1,372,73,1,367,77,1,366,85,0,365,85,0,365,87,0,364,87,0,364,89,0,363,89,0,363,91,0,362,91,0,362,93,0,361,93,0,361,95,0,360,95,0,360,97,0,359,97,0,358,103,0,351,108,0,351,110,0,352,110,0,351,114,0,350,114,0,347,120,0,345,121,0,344,124,0,340,127,0,338,131,0,337,131,0,333,136,0,330,137,0,330,138,0,326,140,0,326,141,0,320,143,0,320,144,0,316,144,0,316,145,0,305,145,0,294,140,0,294,133,0,295,133,0,296,130,0,297,130,0,299,127,0,302,126,0,303,124,0,307,123,0,307,122,0,310,121,0,310,120,0,312,120,0,312,119,0,314,119,0,314,118,0,316,118,0,316,117,0,329,113,0,329,112,0,332,112,0,332,111,0,334,111,0,334,110,0,344,108,0,344,107,0,349,107,0,349,108,0,353,107,1,353,106,1,358,103,1,362,103,0,363,102,0,367,102,0,368,101,0,385,98,0],[427,75,0,427,77,0,426,77,0,425,80,0,424,80,0,422,87,0,422,96,0,423,96,0,423,98,0,425,98,0,425,99,0,433,99,0,433,98,0,435,98,0,435,97,0,438,96,0,440,93,0,442,93,0,445,89,0,447,89,0,448,87,0,453,86,0,456,79,0,453,86,1,454,87,0,454,91,0,453,92,0,452,103,0],[530,94,0,526,89,0,516,89,0,516,90,0,514,90,0,514,91,0,511,92,0,511,93,0,502,101,0,502,103,0,501,103,0,501,105,0,500,105,0,499,108,0,499,113,0,500,113,0,500,115,0,501,115,0,504,119,0,506,119,0,506,120,0,521,121,0,528,118,0],[585,110,0,583,113,0,579,114,0,578,120,0,572,121,0,572,122,0,569,123,0,569,124,0,567,124,0,567,125,0,565,125,0,565,126,0,563,126,0,563,127,0,561,127,0,561,128,0,559,129,0,551,130,0,548,128,0,549,119,0,550,119,0,550,118,0,552,117,0,552,115,0,553,115,0,554,113,0,556,113,0,559,109,0,561,109,0,561,108,0,564,107,0,564,106,0,566,106,0,566,105,0,569,104,0,575,104,0,578,108,0,578,113,0,579,114,0,578,120,1,579,120,0,578,131,0],[590,133,0,593,133,0,599,131,0,599,130,0,605,129,0,613,115,0,614,115,0,614,113,0,614,115,1,613,115,1,605,129,1,606,130,0,606,139,0,609,139,0,613,137,0,617,137,0,620,135,0,623,128,0,624,128,0,624,126,0,625,126,0,628,121,0,625,126,1,624,126,1,624,128,1,623,128,1,619,136,1,619,144,0],[637,136,0,638,132,0,639,132,0,645,125,0,647,125,0,647,124,0,653,124,0,654,130,0,655,130,0,655,133,0,656,134,0,656,141,0,655,144,0,654,144,0,654,146,0,651,147,0,651,148,0,649,148,0,649,149,0,646,149,0,645,150,0,642,149,0,641,145,0],[673,145,0,674,146,0,683,146,0,695,142,0,697,138,0,696,132,0,686,133,0,686,134,0,684,134,0,682,135,0,682,136,0,680,136,0,679,138,0,676,139,0,676,140,0,674,141,0,674,144,0,670,149,0,669,149,0,669,151,0,668,151,0,668,158,0,672,160,0,706,160,0],[575,216,0,578,206,0,579,206,0,580,201,0,581,201,0,581,198,0,584,192,0,592,192,0,593,193,0,602,194,0],[599,223,0,602,224,0,608,223,0,608,222,0,611,221,0,615,216,0,621,215,0,621,212,0,622,212,0,625,201,0,622,212,1,621,212,1,621,215,1,620,225,0],[653,230,0,651,231,0,645,231,0,644,232,0,638,232,0,633,230,0,633,224,0,634,224,0,635,220,0,636,220,0,640,215,0,642,215,0,642,214,0,648,212,0,656,212,0,656,213,0,660,216,0,660,221,0,658,224,0,655,226,0,654,229,0,653,229,0,653,235,0,654,238,0,655,238,0,655,241,0],[684,226,0,684,224,0,687,222,0,698,218,0,698,217,0,701,216,0,701,215,0,704,214,0,704,213,0,707,212,0,707,211,0,710,209,0,711,206,0,710,200,0,709,200,0,707,197,0,702,197,0,702,198,0,700,198,0,695,201,0,695,202,0,685,211,0,684,214,0,682,215,0,682,217,0,681,217,0,680,219,0,680,222,0,679,223,0,680,227,0,678,229,0,675,229,0,675,230,0,673,231,0,672,235,0,671,235,0,671,238,0,670,238,0,670,241,0,669,241,0,669,247,0,671,247,0,676,245,0,686,244,0,686,243,0,690,242,0,690,241,0,694,238,0,694,231,0,693,231,0,692,229,0,686,229,0,686,228,0,684,227,0,680,227,0],[713,227,0,713,229,0,712,229,0,712,231,0,711,231,0,711,233,0,710,233,0,710,235,0,709,235,0,709,240,0,708,242,0,705,244,0,705,246,0,704,246,0,702,251,0,704,246,1,705,246,1,705,244,1,708,242,1,719,242,0,722,243,0,727,234,0,726,237,1,724,240,1,723,240,1,722,243,1,721,243,1,720,249,0,719,249,0,719,252,0,718,252,0,718,255,0,717,255,0,717,259,0],[753,242,0,752,239,0,747,239,0,738,247,0,737,255,0,736,256,0,736,260,0,737,260,0,738,264,0,740,265,0,746,264,0,746,263,0,748,263,0,748,262,0,752,259,0,753,254,0,754,254,0,754,243,0,753,243,0,753,242,0],[765,258,0,772,261,0,783,260,0,789,256,0,790,251,0,788,247,0,786,246,0,779,246,0,770,249,0,770,250,0,765,254,0,765,258,0,763,259,0,763,266,0,767,269,0,770,269,0,770,270,0,773,270,0,774,271,0,784,272,0,785,273,0,793,273,0]];
+  // pause before each letter, ms: ♡ | Н у | и | с а м о е | г л а в н о е
+  var HAND_GAP=[0,300,80,200,200,60,60,60,60,260,60,60,60,60,60,60];
   function setupHand(){
     var h=document.getElementById('hand'), pen=document.getElementById('handPen'), ink=document.getElementById('handInk');
     if(!h||!pen||!ink||reduce) return;
-    var NS='http://www.w3.org/2000/svg', ps=[], total=0;
-    HAND.forEach(function(d){
-      var p=document.createElementNS(NS,'path'); p.setAttribute('d',d); pen.appendChild(p);
-      var L=p.getTotalLength()||1; p.style.strokeDasharray=L+' '+(L+20); p.style.strokeDashoffset=L;
-      ps.push({el:p,L:L,t0:total}); total+=L+(L>40?55:4);        // a short lift of the pencil after each longer stroke
+    var NS='http://www.w3.org/2000/svg', V=700, letters=[], T=0;
+    HAND.forEach(function(a,li){
+      var P=[], d='';
+      for(var i=0;i<a.length;i+=3){ P.push([a[i],a[i+1],a[i+2]]); d+=(i?' L':'M')+a[i]+' '+a[i+1]; }
+      var el=document.createElementNS(NS,'path'); el.setAttribute('d',d); pen.appendChild(el);
+      var len=[0], seg=[0], k=[0], i;
+      for(i=1;i<P.length;i++){ seg.push(Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1])||.01); len.push(len[i-1]+seg[i]); }
+      // how sharply the line bends at each point (radians per px), softened over the neighbours
+      for(i=1;i<P.length;i++){
+        if(i+1>=P.length){ k.push(0); continue; }
+        var a1=Math.atan2(P[i][1]-P[i-1][1],P[i][0]-P[i-1][0]), a2=Math.atan2(P[i+1][1]-P[i][1],P[i+1][0]-P[i][0]);
+        k.push(Math.abs(Math.atan2(Math.sin(a2-a1),Math.cos(a2-a1)))/((seg[i]+seg[i+1])/2));
+      }
+      var tm=[0];
+      for(i=1;i<P.length;i++){
+        var kk=Math.max(k[i-1]||0,k[i]||0), v=P[i][2]?V*3.5:V/(1+2.2*kk);
+        v*=.4+.6*Math.min(1,(len[i-1]+seg[i]/2)/22);            // the hand sets off softly at a letter's start
+        tm.push(tm[i-1]+seg[i]/v*1000);
+      }
+      var L=len[len.length-1];
+      el.style.strokeDasharray=L+' '+(L+40); el.style.strokeDashoffset=L;
+      T+=HAND_GAP[li]||0;
+      letters.push({el:el,len:len,tm:tm,L:L,t0:T,dur:tm[tm.length-1],done:false}); T+=tm[tm.length-1];
     });
     ink.setAttribute('mask','url(#handMask)');
     function write(){
-      var V=780, t0=0, i=0;                                    // design px per second along the strokes
+      var t0=0, i=0;
       (function step(now){
         if(!t0) t0=now;
-        var at=(now-t0)/1000*V;
-        while(i<ps.length&&at>=ps[i].t0+ps[i].L){ ps[i].el.style.strokeDashoffset=0; i++; }
-        if(i<ps.length&&at>ps[i].t0) ps[i].el.style.strokeDashoffset=(ps[i].L-(at-ps[i].t0)).toFixed(1);
-        if(i<ps.length) requestAnimationFrame(step);
-        else setTimeout(function(){ ink.removeAttribute('mask'); },120);   // done: the whole picture, nothing missed at a joint
+        var t=now-t0;
+        while(i<letters.length&&t>=letters[i].t0+letters[i].dur){ letters[i].el.style.strokeDashoffset=0; i++; }
+        if(i<letters.length&&t>letters[i].t0){
+          var Lt=letters[i], u=t-Lt.t0, lo=0, hi=Lt.tm.length-1;
+          while(hi-lo>1){ var m=(lo+hi)>>1; if(Lt.tm[m]<=u) lo=m; else hi=m; }
+          var f=(u-Lt.tm[lo])/((Lt.tm[hi]-Lt.tm[lo])||1), at=Lt.len[lo]+(Lt.len[hi]-Lt.len[lo])*Math.min(1,f);
+          Lt.el.style.strokeDashoffset=(Lt.L-at).toFixed(2);
+        }
+        if(i<letters.length) requestAnimationFrame(step);
+        else setTimeout(function(){ ink.removeAttribute('mask'); },150);   // done: the whole picture, nothing missed at a joint
       })(performance.now());
     }
     // checked on every scroll (cheap: one box) and once after load, so it also starts when the page opens right at the footer
@@ -1173,7 +1253,8 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
     road.style.transform=''; road.style.transformOrigin='';
     document.querySelectorAll('.lab').forEach(function(el){ el.style.width=''; el.style.transform=''; el.style.textAlign=''; });
     document.getElementById('floorClip').style.cssText=''; document.getElementById('plane').style.left='';
-    albumSec.style.height=''; albumSec.querySelector('.design').style.height='';
+    albumSec.style.height=''; var ad=albumSec.querySelector('.design'); ad.style.height=''; ad.style.width=''; ad.style.transform='';
+    ROT=false; AM=false; root.classList.remove('rot'); pager.style.bottom='';
     hint.style.left=''; hint.style.transform=''; endCta.style.transform='';
   }
 
@@ -1278,13 +1359,26 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
   var aoBuf=new Uint8Array(256), VB=new Float32Array(650000), vn=0, IB=new Uint16Array(200000), ni=0, ibo=null;
   for(var k0=0;k0<=LAST;k0++) leaves.push({a:0,af:0,from:0,to:0,t0:null,dur:1,moving:false,g:0,dir:1});
 
+  // ROT: an upright phone shows the album sideways, on its own landscape grid turned a quarter round (see the CSS);
+  // AM: the album is read page by page (an upright tablet, where it stays upright)
+  var ROT=false, AM=false, ROT_TOP=64;
   function placeAlbum(dw,vh){
+    ROT=MOB&&VREF.h>VREF.w*1.15&&VREF.w<600; AM=MOB&&!ROT; root.classList.toggle('rot',ROT);
+    var des=albumSec.querySelector('.design');
+    if(ROT){
+      // the grid: as long as the screen is tall (under the badge), as wide as the column; the spread fills it
+      var A=Math.round(vh-ROT_TOP), B=dw;
+      albumSec.style.height=(vh*s).toFixed(1)+'px';
+      des.style.width=A+'px'; des.style.height=B+'px';
+      des.style.transform='translate('+B+'px,'+ROT_TOP+'px) rotate(90deg)';
+      dw=A; vh=B;
+    } else { des.style.width=''; des.style.transform=''; }
     // on a phone the open spread takes the whole width of the screen; the screen is only as tall as the album needs
-    var S=MOB?Math.floor(Math.min(dw-50,460)):Math.floor(Math.min(0.6*vh,(dw-200)/2,(vh-130)/1.36)); BS=S;
+    var S=AM?Math.floor(Math.min(dw-50,460)):ROT?Math.floor(Math.min(vh-104,(dw-40)/2)):Math.floor(Math.min(0.6*vh,(dw-200)/2,(vh-130)/1.36)); BS=S;
     M=Math.max(10,Math.round(S*0.058)); MY=Math.max(5,Math.round(S*0.02)); T=Math.max(3,Math.round(S*0.009)); WP=S-M; HB=Math.max(Math.round(24*SHK),Math.round(S*0.1*SHK)); WS=Math.max(10,Math.round(S*0.036));
     XR=Math.round(S*1.3); YT=Math.round(S*0.6); YB=Math.round(S*0.6);
-    var cy=Math.max(S*0.86,(vh-110)/2+16);
-    if(MOB){
+    var cy=ROT?Math.round((vh-74)/2+8):Math.max(S*0.86,(vh-110)/2+16);
+    if(AM){
       cy=Math.round(S*0.5+60);
       var AH=Math.round(cy+S/2+120);
       albumSec.style.height=(AH*s).toFixed(1)+'px'; albumSec.querySelector('.design').style.height=AH+'px';
@@ -1294,10 +1388,13 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
     hint.style.right=(dw/2+Math.min(80,S*0.15))+'px'; hint.style.top=cy+'px';
     endCta.style.left=(dw/2+Math.round(S*0.32))+'px'; endCta.style.top=cy+'px';   // right of the closed album, with clear air between them
     pager.style.left=(dw/2)+'px';
-    if(MOB){
+    // a finger opens the album with a tap (also a phone on its side, which gets the wide layout)
+    var coarse=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches, ht=(MOB||coarse)?'Нажмите, чтобы открыть':'Потяните страницу, чтобы открыть';
+    if(hint.firstChild.textContent!==ht){ hint.firstChild.textContent=ht; hint.setAttribute('aria-label',ht); }
+    if(ROT){ pager.style.bottom='22px'; } else pager.style.bottom='';
+    if(AM){
       // the hint and the closing button stand centred under the album
       var hy=Math.round(cy+S/2+48);
-      hint.firstChild.textContent='Нажмите, чтобы открыть'; hint.setAttribute('aria-label','Нажмите, чтобы открыть');
       hint.style.right='auto'; hint.style.left=(dw/2)+'px'; hint.style.top=hy+'px'; hint.style.transform='translate(-50%,-50%)';
       endCta.style.left=(dw/2)+'px'; endCta.style.top=hy+'px'; endCta.style.transform='translate(-50%,-50%)';
     }
@@ -2571,8 +2668,8 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
   /* on a phone a page is as wide as the screen, so the album is read page by page: forward first slides from the left page
      of the spread to the right one, and only then turns the sheet (the view follows it to the next left page); back the same */
   var mView='R';
-  function mFwd(){ if(MOB&&committed>0&&committed<MAXC&&mView==='L'){ mView='R'; refresh(); return; } next(); }
-  function mBack(){ if(MOB&&committed>0&&committed<MAXC&&mView==='R'){ mView='L'; refresh(); return; } prev(); }
+  function mFwd(){ if(AM&&committed>0&&committed<MAXC&&mView==='L'){ mView='R'; refresh(); return; } next(); }
+  function mBack(){ if(AM&&committed>0&&committed<MAXC&&mView==='R'){ mView='L'; refresh(); return; } prev(); }
   var bookShift=0;
   function refresh(){
     pgPrefetch();
@@ -2582,7 +2679,7 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
     pager.classList.toggle('show',committed>0);
     // on a phone the closed album lies in the middle of the screen; opened, it slides so its spine is the middle
     // (one page fills the screen: the view shows the left or the right page of the open spread, see mFwd)
-    var sh=MOB?(committed<=0?-BS/2:committed>=MAXC?BS/2:(mView==='R'?-BS/2:BS/2)):0;
+    var sh=AM?(committed<=0?-BS/2:committed>=MAXC?BS/2:(mView==='R'?-BS/2:BS/2)):0;
     if(sh!==bookShift){ bookShift=sh; book.style.translate=glc.style.translate=sh?sh+'px 0':''; }
     // the hint is there whenever the closed album is on screen, also after it was opened and closed again
     hint.classList.toggle('show',committed===0 && inView && leaves[0].a<20 && !leaves[0].moving && !drag);
@@ -2602,7 +2699,11 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
   /* drag a page by its edge like a real sheet: the point you hold stays under the finger, the paper bends after it.
      A short quick flick turns the page as well as a long pull. */
   var lastLand=-1e9;   // when the last sheet came to rest
-  function local(ev){ var r=book.getBoundingClientRect(); return [(ev.clientX-r.left)/r.width*2*BS-BS,(ev.clientY-r.top)/r.height*BS]; }
+  // a point under the finger, on the album's own grid (turned a quarter round on an upright phone, see placeAlbum)
+  function local(ev){ var r=book.getBoundingClientRect();
+    if(ROT) return [(ev.clientY-r.top)/r.height*2*BS-BS,(r.right-ev.clientX)/r.width*BS];
+    return [(ev.clientX-r.left)/r.width*2*BS-BS,(ev.clientY-r.top)/r.height*BS]; }
+  function ux(ev){ return ROT?ev.clientY:ev.clientX; }
   function onDown(ev){
     if(ev.button>0||drag) return;
     var p=local(ev), x=p[0], k, fwd=x>=0, only=false, now0=performance.now();
@@ -2623,7 +2724,7 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
     if(!drag||drag.only) return;
     var p=local(ev), x=p[0], now=performance.now();
     if(!drag.moved){
-      if(Math.abs(ev.clientX-drag.cx0)<8) return;
+      if(Math.abs(ux(ev)-(ROT?drag.cy0:drag.cx0))<8) return;
       drag.moved=true; peek=null; hintOn=false;
       var L=leaves[drag.k]; L.moving=false;
       if(!drag.fwd) committed=drag.k;          // the sheet is in the hand, not yet decided
@@ -2645,7 +2746,7 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
     if(!d.moved){
       if(ev.type==='pointerup'){
         // on a phone: a tap on the left third of the screen goes back, anywhere else forward
-        if(MOB){ if(ev.clientX<window.innerWidth*.3) mBack(); else mFwd(); }
+        if(AM){ if(ev.clientX<window.innerWidth*.3) mBack(); else mFwd(); }
         else if(d.fwd) next(); else prev();
       }
       return;
@@ -2726,7 +2827,26 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
       document.addEventListener('click',onLink);
       window.vrPageMoving=pageMoving;
     }
-    window.addEventListener('resize',function(){ if(zoomed()||window.vrSkipResize()) return; takeRef(); fit(); drawn=-1; drawFloor(lp); });
+    /* turning the phone lays the whole page out anew (upright: one column, the album sideways; on its side: the wide page),
+       so every screen moves. The screen that was in the middle of the window stays there: the visitor who turned the phone
+       to look at the album lands on the album, not somewhere above it */
+    var SECS=['hero','process','album','choice','values','contacts'].map(function(id){ return document.getElementById(id); });
+    function anchor(){
+      var H=VREF.h, mid=H/2;                                    // the screen as it was laid out before the turn
+      for(var i=0;i<SECS.length;i++){ var r=SECS[i].getBoundingClientRect(); if(r.top<=mid&&r.bottom>mid) return {el:SECS[i], f:(mid-r.top)/r.height, top:Math.abs(r.top)<H*.3}; }
+      return null;
+    }
+    function reanchor(a){
+      if(!a) return;
+      var r=a.el.getBoundingClientRect(), y=window.scrollY+r.top+(a.el.id==='album'||a.top?0:a.f*r.height-VREF.h/2);
+      stopAuto(); gliding=false; window.scrollTo(0,Math.max(0,y)); sy=ty=tg=window.scrollY; sv=0;
+    }
+    window.addEventListener('resize',function(){
+      if(zoomed()||window.vrSkipResize()) return;
+      var w0=VREF.w, a=anchor();
+      takeRef(); fit(); drawn=-1; drawFloor(lp);
+      if(Math.abs(VREF.w-w0)>40){ reanchor(a); setTimeout(function(){ reanchor(a); },260); }   // again once "what MATTERS" has rebuilt itself
+    });
   }
   fit();
   var go=function(){ (document.fonts&&document.fonts.load?document.fonts.load(FONT,'VERONIKA'):Promise.resolve()).then(start,start); };
@@ -2950,15 +3070,31 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
   // scrub mode: the arrows scroll the page to that point's place, and the scroll turns the drum
   function scrubTo(i){
     i=Math.max(0,Math.min(N-1,i));
-    var y=sec.getBoundingClientRect().top+window.scrollY+i*STEP+2;
+    var y=sec.getBoundingClientRect().top+window.scrollY+i*STEP;
     window.scrollTo({top:y,behavior:reduce?'auto':'smooth'});
   }
+  /* one swipe, one point: the snap places stop a flick at the next point, and a long pull of the finger is held to one point
+     as well — while the finger is down (and the page coasts after it) the drum turns at most one point from where the swipe
+     began, and once the page has come to rest it is brought to that point's place */
+  var gStart=null, touching=false, restT=0;
   function onScrub(){
     if(!SCRUB||!strip) return;
-    var p=-sec.getBoundingClientRect().top/STEP, i=Math.max(0,Math.min(N-1,Math.round(p-.15)));
-    if(i!==goal) go(i,.7);
+    var p=-sec.getBoundingClientRect().top/STEP, i=Math.max(0,Math.min(N-1,Math.round(p)));
+    if(gStart!=null) i=Math.max(gStart-1,Math.min(gStart+1,i));
+    if(i!==goal) go(i,1);                                              // settles without a bounce: nothing wobbles on a phone
+    clearTimeout(restT); restT=setTimeout(atRest,180);
+  }
+  function atRest(){
+    if(touching||!SCRUB||gStart==null) return;
+    var top=-sec.getBoundingClientRect().top, p=top/STEP; gStart=null;
+    if(p<-.05||p>N-1+.05) return;                                      // the page has left the drum: nothing to hold
+    var want=goal*STEP;
+    if(Math.abs(top-want)>3) window.scrollTo({top:window.scrollY+(want-top),behavior:reduce?'auto':'smooth'});
   }
   window.addEventListener('scroll',onScrub,{passive:true});
+  sec.addEventListener('touchstart',function(){ if(!SCRUB) return; touching=true; if(gStart==null) gStart=goal; },{passive:true});
+  function tEnd(){ if(!touching) return; touching=false; clearTimeout(restT); restT=setTimeout(atRest,180); }
+  sec.addEventListener('touchend',tEnd,{passive:true}); sec.addEventListener('touchcancel',tEnd,{passive:true});
   $('vPv').addEventListener('click',function(){ if(SCRUB) scrubTo(goal-1); else go(goal-1); });
   $('vNx').addEventListener('click',function(){ if(SCRUB) scrubTo(goal+1); else go(goal+1); });
 
@@ -3071,14 +3207,22 @@ html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;font-si
     if(!root.clientWidth||!window.innerHeight) return;               // a hidden tab: build once it has a size
     layout(); sizeCanvas(); buildStrip();
     SCRUB=portrait&&!!window.vrMobile;
+    var stick=$('vStick'), snaps=$('vSnaps');
+    snaps.textContent='';
     if(SCRUB){
-      STEP=Math.round(VREF.h*.24);
-      sec.style.height=(VREF.h+(N-1)*STEP+Math.round(STEP*.7))+'px';   // a little dwell on the last point before the page goes on
-      des.style.position='sticky'; des.style.top='0px';
+      STEP=Math.round(VREF.h*.34);
+      sec.style.height=(VREF.h+(N-1)*STEP+Math.round(STEP*.5))+'px';   // a little dwell on the last point before the page goes on
+      stick.style.position='sticky'; stick.style.top='0px'; stick.style.height=VREF.h+'px';
+      // one snap place per point, where the scroll shows that point (see onScrub)
+      for(var si=0;si<N;si++){ var m=document.createElement('i'); m.style.top=(si*STEP)+'px'; snaps.appendChild(m); }
+      // and one where the screen ends, so a swipe on the last point goes straight on to the footer (not back onto that point)
+      var me=document.createElement('i'); me.style.top=((N-1)*STEP+Math.round(STEP*.5)+VREF.h)+'px'; snaps.appendChild(me);
+      root.classList.add('vsnap');
       hit.style.touchAction='pan-y'; hit.style.cursor='default';
       intro=true;                                                       // no roll-in: the scroll drives the drum
     } else {
-      sec.style.height=''; des.style.position=''; des.style.top='';
+      sec.style.height=''; stick.style.position=''; stick.style.top=''; stick.style.height='';
+      root.classList.remove('vsnap');
       hit.style.touchAction=''; hit.style.cursor='';
     }
     if(portrait){
