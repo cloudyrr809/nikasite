@@ -3080,11 +3080,10 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   function onScrub(){
     if(!SCRUB||!strip) return;
     var p=-sec.getBoundingClientRect().top/STEP, i=Math.max(0,Math.min(N-1,Math.round(p)));
-    if(gStart!=null) i=Math.max(gStart-1,Math.min(gStart+1,i));
     if(i!==goal) go(i,1);                                              // settles without a bounce: nothing wobbles on a phone
-    clearTimeout(restT); restT=setTimeout(atRest,180);
   }
   function atRest(){
+    return;                                                            // the page is never pulled back: it stays where the finger left it
     if(touching||!SCRUB||gStart==null) return;
     var top=-sec.getBoundingClientRect().top, p=top/STEP; gStart=null;
     if(p<-.05||p>N-1+.05) return;                                      // the page has left the drum: nothing to hold
@@ -3217,7 +3216,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
       for(var si=0;si<N;si++){ var m=document.createElement('i'); m.style.top=(si*STEP)+'px'; snaps.appendChild(m); }
       // and one where the screen ends, so a swipe on the last point goes straight on to the footer (not back onto that point)
       var me=document.createElement('i'); me.style.top=((N-1)*STEP+Math.round(STEP*.5)+VREF.h)+'px'; snaps.appendChild(me);
-      root.classList.add('vsnap');
+      // no snap places: a phone scrolls freely and smoothly past the drum (the snaps made every flick stop short)
       hit.style.touchAction='pan-y'; hit.style.cursor='default';
       intro=true;                                                       // no roll-in: the scroll drives the drum
     } else {

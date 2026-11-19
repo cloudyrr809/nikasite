@@ -224,56 +224,59 @@ html.m{--mw:calc(var(--dw) - 44px)}
 html.m .screen{height:auto}
 html.m .design{height:auto}
 html.m .sel br.k{display:inline}
-/* hero on a phone, variant B ("out of the frame"): one screen, no scrolling. Behind Veronika stands a tilted photo print;
-   "EDITION" lies across it, and she steps out of the print in front of both, down onto the wide screen's own floor.
-   Layers, back to front: floor, print, EDITION, Veronika, the words. The words stand in a narrow column to her left,
-   the button is a dark pill with a soft shadow, the links stand at the bottom right.
+/* hero on a phone, variant B ("open top"): one screen, no scrolling. A one-line header: the "in my FRAME" mark on the left,
+   the sections on the right. "grad EDITION" with a short 2027 rule; Veronika on the right, stepping in front of the end
+   of EDITION; the words in a column to her left, running up to her (a letter may slip behind her); her name lies on the
+   floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:clip;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(218px + var(--ex)*.3);--il:calc(var(--dw) - 4px - var(--iw));--it:calc(128px + var(--ex)*.3);--flk:.48;--flx:-165;--fly:30}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 8px - var(--iw));--it:calc(150px + var(--ex)*.25)}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:260px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
+html.m #floorClip{display:none}
 /* header: the "in my FRAME" mark in one line on the left, the sections on the right */
-html.m #hero .h-nav{left:22px!important;right:22px!important;top:18px!important;display:flex!important;flex-direction:row!important;align-items:baseline!important;
+html.m #hero .h-nav{left:22px!important;right:22px!important;top:22px!important;display:flex!important;flex-direction:row!important;align-items:baseline!important;
   justify-content:space-between;gap:10px!important}
 html.m #hero .nav-frame{flex-direction:row!important;align-items:baseline!important;gap:.26em;font-size:17px!important;line-height:1!important}
 html.m #hero .nav-frame span{margin-top:0!important}
 html.m #hero .nav-name{display:none}
 html.m #hero .nav-links{flex-direction:row!important;align-items:baseline!important;gap:14px!important;font-size:12.5px!important}
 html.m #hero .nav-links a{padding:10px 0;margin:-10px 0}
-/* the title: "grad" over "EDITION" at the left; EDITION runs onto the print, under her */
-html.m #hero .h-grad{left:20px!important;top:calc(70px + var(--ex)*.1)!important;font-size:64px!important;z-index:3}
-html.m #hero .h-ed{left:18px!important;top:calc(112px + var(--ex)*.1)!important;font-size:76px!important;z-index:1}
-/* the print: a light studio card with a white edge, tilted a little, lifted off the page by a soft shadow */
-html.m #figure{left:0!important;top:0!important;width:100%!important;height:100%!important}
-html.m #hero #figure::before{content:"";position:absolute;z-index:0;left:calc(var(--il) + var(--iw)*.06);top:calc(var(--it) - 34px);
-  width:calc(var(--iw)*.9);height:calc(var(--iw)*1.18 + 34px);box-sizing:border-box;border:6px solid #fff;
-  background:radial-gradient(ellipse 85% 75% at 45% 35%,#EDEDED 0%,#D9D9D9 55%,#C4C4C4 100%);
-  box-shadow:0 26px 40px -14px rgba(0,0,0,.30),0 3px 8px rgba(0,0,0,.08);transform:rotate(-3deg);transform-origin:50% 100%}
-/* the year: a small rule and 2027 right of "grad", running onto the print behind her head */
-html.m #hero .h-year{left:168px!important;top:calc(94px + var(--ex)*.1)!important;width:auto!important;font-size:12px!important;gap:8px!important;z-index:1}
+/* the title: "grad" over "EDITION" at the left, a short rule and 2027 right of "grad" */
+html.m #hero .h-grad{left:20px!important;top:calc(78px + var(--ex)*.08)!important;font-size:64px!important;z-index:2}
+html.m #hero .h-ed{left:18px!important;top:calc(120px + var(--ex)*.08)!important;font-size:76px!important;z-index:0;text-shadow:0 14px 20px rgba(0,0,0,.14)}
+html.m #hero .h-year{left:181px!important;top:calc(102px + var(--ex)*.08)!important;width:auto!important;font-size:12px!important;gap:8px!important;z-index:0}
 html.m #hero .h-year span:last-child{width:40px;flex:none!important}
-/* Veronika, in front of everything but the words; her floor shadows follow her (sizes from the wide screen) */
-html.m #hero .fig-img{z-index:2;left:var(--il)!important;top:var(--it)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;
-  filter:drop-shadow(-8px 12px 14px rgba(0,0,0,.18))}
-html.m #hero .fig-el{z-index:1;left:calc(var(--il) + var(--iw)*.0458)!important;top:calc(var(--it) + var(--iw)*1.687)!important;width:calc(var(--iw)*.967)!important;height:calc(var(--iw)*.1374)!important}
+/* Veronika: on the right; her soft floor shadow and her long cast shadow follow her (sizes from the wide screen) */
+html.m #figure{left:0!important;top:0!important;width:100%!important;height:100%!important;z-index:1}
+html.m #hero .fig-img{left:var(--il)!important;top:var(--it)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;
+  filter:drop-shadow(-10px 14px 18px rgba(0,0,0,.16))}
+html.m #hero .fig-el{left:calc(var(--il) + var(--iw)*.0458)!important;top:calc(var(--it) + var(--iw)*1.687)!important;width:calc(var(--iw)*.967)!important;height:calc(var(--iw)*.1374)!important}
 html.m #hero .fig-sh{left:calc(var(--il) + var(--iw)*.127)!important;top:calc(var(--it) + var(--iw)*1.771)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;filter:brightness(0) blur(9px)!important}
-/* the words: a narrow column left of her; the quote keeps its first and last sentence on a phone */
-html.m #hero .h-txt{left:22px!important;top:calc(226px + var(--ex)*.34)!important;width:184px!important;gap:14px!important;z-index:3}
-html.m #hero .h-txt h1{white-space:normal!important;font-size:15px!important;line-height:1.3!important}
-html.m #hero .h-txt p{white-space:normal!important;font-size:13px!important;line-height:1.42!important;color:var(--ink-soft)}
+/* the words: a column left of her, running up to her; they stand behind her, so a letter that reaches her slips behind */
+html.m #hero .h-txt{left:22px!important;top:calc(236px + var(--ex)*.32)!important;width:var(--tw,242px)!important;gap:14px!important;z-index:0}
+html.m #hero .h-txt h1{white-space:normal!important;font-size:13.5px!important;line-height:1.32!important}
+html.m #hero .h-txt p{white-space:normal!important;font-size:12.5px!important;line-height:1.42!important;color:var(--ink-soft)}
 html.m #hero .h-txt br:not(.k){display:none}
 html.m #hero .h-txt .mx,html.m #hero .h-txt .mx2,html.m #hero .h-txt .mx3,html.m #hero .h-txt br.k{display:none}
-/* the button: a dark pill lifted off the floor */
-html.m #hero .h-cta{left:22px!important;top:auto!important;bottom:24px!important;font-size:16px!important;gap:12px!important;z-index:3;
-  padding:15px 22px 15px 24px;border-radius:999px;background:var(--ink);color:#fff;box-shadow:0 14px 26px -10px rgba(0,0,0,.45),0 2px 4px rgba(0,0,0,.12);
-  -webkit-tap-highlight-color:transparent}
-html.m #hero .h-cta:active{background:var(--accent)}
-html.m #hero .h-cta .ha{width:40px;height:10px}
-html.m #hero .h-soc{left:auto!important;right:12px!important;top:auto!important;bottom:24px!important;gap:0!important;z-index:3}
-html.m #hero .h-soc a{width:40px;height:48px;align-items:center;justify-content:center}
+/* her name on the floor, under her feet: two words lying back in perspective and turned a little, as on the wide screen
+   (VERONIKA farther, ROYSE nearer). One plain element, no per-letter pictures: it shows whole on every phone.
+   Scrolling slides the words apart (see drawFloor) */
+#floorM{display:none}
+html.m #floorM{display:block;position:absolute;left:0;right:0;top:calc(var(--it) + var(--iw)*1.70);height:calc(var(--iw)*.72);z-index:0;
+  perspective:calc(var(--dw)*1.1);perspective-origin:60% -80%;overflow:hidden;pointer-events:none}
+html.m #floorM .pl{position:absolute;left:-30%;right:-30%;top:0;transform-origin:50% 0;transform:rotateX(60deg) rotateZ(-11deg);
+  display:flex;flex-direction:column;align-items:center}
+html.m #floorM span{display:block;font-weight:800;font-size:calc(var(--dw)*.135);line-height:.9;letter-spacing:-.02em;color:#111;white-space:nowrap}
+html.m #floorM span:first-child{margin-left:-6%}
+html.m #floorM span:last-child{margin-left:22%}
+/* the bottom row: the links on the left, the button on the right */
+html.m #hero .h-soc{left:10px!important;right:auto!important;top:auto!important;bottom:16px!important;gap:0!important;z-index:3}
+html.m #hero .h-soc a{width:40px;height:44px;align-items:center;justify-content:center}
 html.m #hero .h-soc svg{width:21px;height:21px}
+html.m #hero .h-cta{left:auto!important;right:22px!important;top:auto!important;bottom:26px!important;font-size:19px!important;gap:10px!important;z-index:3;padding:10px 0;margin:-10px 0}
+html.m #hero .h-cta .ha{width:48px;height:12px}
 /* process: the drawn line runs top to bottom down the left of the column, the steps stand to its right */
 html.m #process .design{padding:64px 22px 30px;box-sizing:border-box}
 html.m .p-kick,html.m .p-big,html.m .p-sub{position:relative!important;left:auto!important;top:auto!important}
@@ -366,6 +369,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 <div class="design">
 
 <div id="floorClip" aria-hidden="true"><div id="plane"><div id="floor"></div></div></div>
+<div id="floorM" aria-hidden="true"><div class="pl"><span>VERONIKA</span><span>ROYSE</span></div></div>
 <span class="sr">Veronika Royse</span>
 
 <div aria-hidden="true" class="abs h-fade" style="left:0;right:0;top:0;height:520px;background:linear-gradient(180deg,rgba(220,220,220,.9) 0%,rgba(232,232,232,.6) 45%,rgba(240,240,240,0) 100%)"></div>
@@ -690,9 +694,16 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     rows=[top,bot];
     makeSprites();
   }
-  var SHIFT=650, FK=1;
+  var SHIFT=650, FK=1, fmS=null;
   function drawFloor(e){
     if(Math.abs(e-drawn)<0.0002) return; drawn=e;
+    // on a phone the floor is one plain element (#floorM): the two words only slide apart as the page scrolls on
+    if(MOB){
+      if(!fmS) fmS=[].slice.call(document.querySelectorAll('#floorM span'));
+      var sh=(parseFloat(getComputedStyle(root).getPropertyValue('--dw'))||430)*.32*e;
+      if(fmS[0]){ fmS[0].style.transform='translateX('+(-sh).toFixed(1)+'px)'; fmS[1].style.transform='translateX('+sh.toFixed(1)+'px)'; }
+      return;
+    }
     for(var r=0;r<rows.length;r++){
       var row=rows[r], shift=row.dir*SHIFT*e;
       if(!row.sp) continue;
@@ -1246,6 +1257,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
      Everything keeps the wide screen's relation to the photo (her feet stand on the same spot of the words);
      --flk on #hero makes the words bigger or smaller around her feet, --flx/--fly move them */
   function placeFloorM(dw){
+    if(document.getElementById('floorM')){ FK=1; return; }      // the phone has its own floor (#floorM), laid out by CSS
     var fc=document.getElementById('floorClip'), img=hero.querySelector('.fig-img');
     var cs=getComputedStyle(img), hs=getComputedStyle(hero);
     var il=parseFloat(cs.left)||0, it=parseFloat(cs.top)||0, iw=parseFloat(cs.width)||200, ih=parseFloat(cs.height)||351;
@@ -3088,11 +3100,10 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   function onScrub(){
     if(!SCRUB||!strip) return;
     var p=-sec.getBoundingClientRect().top/STEP, i=Math.max(0,Math.min(N-1,Math.round(p)));
-    if(gStart!=null) i=Math.max(gStart-1,Math.min(gStart+1,i));
     if(i!==goal) go(i,1);                                              // settles without a bounce: nothing wobbles on a phone
-    clearTimeout(restT); restT=setTimeout(atRest,180);
   }
   function atRest(){
+    return;                                                            // the page is never pulled back: it stays where the finger left it
     if(touching||!SCRUB||gStart==null) return;
     var top=-sec.getBoundingClientRect().top, p=top/STEP; gStart=null;
     if(p<-.05||p>N-1+.05) return;                                      // the page has left the drum: nothing to hold
@@ -3225,7 +3236,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
       for(var si=0;si<N;si++){ var m=document.createElement('i'); m.style.top=(si*STEP)+'px'; snaps.appendChild(m); }
       // and one where the screen ends, so a swipe on the last point goes straight on to the footer (not back onto that point)
       var me=document.createElement('i'); me.style.top=((N-1)*STEP+Math.round(STEP*.5)+VREF.h)+'px'; snaps.appendChild(me);
-      root.classList.add('vsnap');
+      // no snap places: a phone scrolls freely and smoothly past the drum (the snaps made every flick stop short)
       hit.style.touchAction='pan-y'; hit.style.cursor='default';
       intro=true;                                                       // no roll-in: the scroll drives the drum
     } else {
