@@ -230,7 +230,7 @@ html.m .sel br.k{display:inline}
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 8px - var(--iw));--it:calc(154px + var(--ex)*.25);--flk:.52;--flx:-175;--fly:34;--fls:8;--flv:450}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 8px - var(--iw));--it:calc(154px + var(--ex)*.25);--flk:.7;--flx:-140;--fly:34;--fls:0;--flv:450;--flb:1.2;--flr:.2;--flsp:1.12}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
@@ -253,7 +253,7 @@ html.m #figure{left:0!important;top:0!important;width:100%!important;height:100%
 html.m #hero .fig-img{left:var(--il)!important;top:var(--it)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;
   filter:drop-shadow(-10px 14px 18px rgba(0,0,0,.16))}
 html.m #hero .fig-el{left:calc(var(--il) + var(--iw)*.0458)!important;top:calc(var(--it) + var(--iw)*1.687)!important;width:calc(var(--iw)*.967)!important;height:calc(var(--iw)*.1374)!important}
-html.m #hero .fig-sh{left:calc(var(--il) + var(--iw)*.127)!important;top:calc(var(--it) + var(--iw)*1.771)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;filter:brightness(0) blur(9px)!important}
+html.m #hero .fig-sh{left:calc(var(--il) + var(--iw)*.127)!important;top:calc(var(--it) + var(--iw)*1.771)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;filter:brightness(0) blur(9px)!important;transform:scaleY(-.3) skewX(-58deg)!important}
 /* the words: a column left of her, running up to her; they stand behind her, so a letter that reaches her slips behind */
 html.m #hero .h-txt{left:22px!important;top:calc(166px + var(--ex)*.1)!important;width:var(--tw,268px)!important;gap:12px!important;z-index:0}
 html.m #hero .h-txt h1{white-space:normal!important;font-size:11px!important;line-height:1.32!important}
@@ -649,9 +649,23 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   var flm=document.getElementById('floorM'), spM=null, FPB=null, FPT=new DOMMatrix('perspective(1000px) rotateX(62deg) rotateZ(-13deg) rotateY(-9deg)');
   function phBase(){
     // #plane: left -380, top 400, origin 40% 40% of 2200×1000 = (880,400); #floor at (-500,-800) inside it
-    FPB=new DOMMatrix().translate(FTX,FTY).scale(FK).translate(FLP[0],FLP[1]).rotate(-FLS).translate(-FLP[0],-FLP[1])
-      .translate(-380+880,400+400).multiply(FPT).translate(-880-500,-400-800);
+    var P=new DOMMatrix().translate(-380+880,400+400).multiply(FPT).translate(-880-500,-400-800);
+    // the floor's own slant on the screen is levelled first: the curve below sets the whole rise of the lines
+    var a=P.transformPoint(new DOMPoint(OX+800,OY+ROWH)), b=P.transformPoint(new DOMPoint(OX+1800,OY+ROWH));
+    var a0=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;
+    FPB=new DOMMatrix().translate(FTX,FTY).scale(FK).translate(FLP[0],FLP[1]).rotate(-a0-FLS).translate(-FLP[0],-FLP[1]).multiply(P);
+    FUF=(FTX+FK*FLP[0])/FDW; FG1=flG(1);
+    // the place on the floor right under her feet: the letters spread apart from there (--flsp)
+    var x0=OX, x1=OX+2000, y=OY+ROWH, px=FTX+FK*FLP[0], q0=FPB.transformPoint(new DOMPoint(x0,y)).x, q1=FPB.transformPoint(new DOMPoint(x1,y)).x;
+    for(var n=0;n<6&&Math.abs(q1-q0)>1e-6;n++){ var x2=x1+(px-q1)*(x1-x0)/(q1-q0); x0=x1; q0=q1; x1=x2; q1=FPB.transformPoint(new DOMPoint(x1,y)).x; }
+    FXC=x1;
   }
+  /* the line of the words on the phone (as drawn by hand): almost flat at the left, rising ever steeper to the right;
+     g(u)=u/(b(b-u)), u = place across the screen (0 left edge, 1 right edge). --flb: how sharp the end is (smaller = sharper),
+     --flr: how high the right edge is above the left one, in screen widths. Past the right edge it goes on straight */
+  var FDW=430, FCB=1.2, FCR=0.2, FUF=0.7, FG1=1, FUM=1.04;
+  function flG(u){ if(u>FUM) return flG(FUM)+(u-FUM)/((FCB-FUM)*(FCB-FUM)); return u/(FCB*(FCB-u)); }
+  function flD(u){ if(u>FUM) u=FUM; return 1/((FCB-u)*(FCB-u)); }
   function makeSprites(){
     fl.textContent=''; flm.textContent=''; spM=MOB;
     if(!rows.length||!R) return;
@@ -693,7 +707,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     rows=[top,bot];
     makeSprites();
   }
-  var SHIFT=650, FK=1, FTX=0, FTY=0, FLS=0, FLP=[0,0], FMV=0;
+  var SHIFT=650, FSP=1, FXC=0, FK=1, FTX=0, FTY=0, FLS=0, FLP=[0,0], FMV=0;
   function drawFloor(e){
     if(Math.abs(e-drawn)<0.0002) return; drawn=e;
     for(var r=0;r<rows.length;r++){
@@ -704,7 +718,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
         var left=row.base+row.xs[i]+shift, w=row.ws[i];
         var x=left+w/2-0.5*adv;
         var th=Math.max(0,(x-row.bend)*k-0.117), ty=-4.9*th*th;
-        if(MOB){ phLetter(sp, OX+left+w/2+(r?0:FMV), OY+row.top+ROWH+ty, -th); continue; }
+        if(MOB){ if(!FPB) phBase(); var X=OX+left+w/2+(r?0:FMV); phLetter(sp, FXC+(X-FXC)*FSP, OY+row.top+ROWH+ty, -th); continue; }
         var on=!(left>CW-OX||left+w<-OX||ty<-OY-300);
         if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
         if(!on) continue;
@@ -717,8 +731,16 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   // near or behind the eye of the perspective (it could not be drawn right there anyway)
   function phLetter(sp,X,Y,deg){
     if(!FPB) phBase();
-    var M=FPB.translate(X,Y).rotate(deg).translate(sp.x0,sp.y0), on=true;
-    for(var c=0;c<4;c++){ var px=c&1?sp.w:0, py=c&2?sp.h:0; if(M.m14*px+M.m24*py+M.m44<0.05){ on=false; break; } }
+    // the letter's foot point on the screen is lifted onto the curve (her feet stay put); the letter turns on the floor
+    // itself (so it still lies flat, in perspective) just so far that on the screen it runs along the curve
+    var P=FPB.transformPoint(new DOMPoint(X,Y)), u=P.x/FDW;
+    var lift=FCR*FDW*(flG(u)-flG(FUF))/FG1, sl=FCR*flD(u)/FG1;
+    var Px=FPB.transformPoint(new DOMPoint(X+1,Y)), Py=FPB.transformPoint(new DOMPoint(X,Y+1));
+    var a=Px.x-P.x, b=Py.x-P.x, c=Px.y-P.y, d=Py.y-P.y;          // the floor-to-screen stretch at this spot
+    var fx=d+b*sl, fy=-c-a*sl;                                   // floor direction that shows as (1,-sl) on the screen
+    var sg=a*d-b*c<0?-1:1, phi=Math.atan2(sg*fy,sg*fx)*180/Math.PI;
+    var M=new DOMMatrix().translate(0,-lift).multiply(FPB).translate(X,Y).rotate(deg+phi).translate(sp.x0,sp.y0), on=true;
+    if(u>1.3) on=false; else for(var c=0;c<4;c++){ var px=c&1?sp.w:0, py=c&2?sp.h:0; if(M.m14*px+M.m24*py+M.m44<0.05){ on=false; break; } }
     if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
     if(!on) return;
     var a=M.toFloat64Array(), tf='matrix3d(';
@@ -1272,6 +1294,8 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     FTX=+(fx-660*k).toFixed(1); FTY=+(fy-745*k).toFixed(1);
     // the slope turns the words around the spot under her feet (in #floorClip's own px)
     FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FLP=[660,745]; FPB=null; drawn=-1;
+    FDW=dw||430; FCB=parseFloat(hs.getPropertyValue('--flb'))||1.2; FCR=parseFloat(hs.getPropertyValue('--flr'))||0.2;
+    FSP=parseFloat(hs.getPropertyValue('--flsp'))||1;   // --flsp: the letters set wider apart on the phone
     fc.style.transformOrigin='0 0';
     fc.style.transform='translate('+FTX+'px,'+FTY+'px) scale('+k.toFixed(4)+')';
   }
