@@ -229,17 +229,17 @@ html.m .sel br.k{display:inline}
    the end of EDITION; the words in a column to her left, running up to her (and a letter may slip behind her);
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
-html.m #hero{overflow:clip;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 8px - var(--iw));--it:calc(154px + var(--ex)*.25)}
+html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 8px - var(--iw));--it:calc(154px + var(--ex)*.25);--flk:.44;--flx:-175;--fly:34}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
-html.m #floorClip{display:none}
-/* the mark: "in / my / FRAME" at the right, FRAME on EDITION's baseline */
-html.m #hero .h-nav{left:auto!important;right:22px!important;top:calc(90px + var(--ex)*.08)!important;display:block!important}
-html.m #hero .nav-frame{font-size:21px!important;line-height:.9!important}
-html.m #hero .nav-frame span{margin-top:0!important}
-html.m #hero .nav-name,html.m #hero .nav-links,html.m #hero .h-year{display:none!important}
+/* the floor: no clipping box anywhere on the phone (Safari cut letters off at such boxes); #page still clips the sides */
+html.m #floor{overflow:visible}
+/* right of "grad", at its height: 2027, a thin rule to the right edge, and "in my FRAME" on the rule's end */
+html.m #hero .h-nav{display:none!important}
+html.m #hero .h-year{left:178px!important;right:18px!important;top:calc(68px + var(--ex)*.08)!important;font-size:12px!important;gap:8px!important;z-index:2}
+html.m #hero .h-year .yf{display:inline!important;font-size:14px;letter-spacing:-.02em;white-space:nowrap}
 /* the title: "grad" over "EDITION", the same overlap as on the wide screen */
 html.m #hero .h-grad{left:20px!important;top:calc(48px + var(--ex)*.08)!important;font-size:68px!important}
 html.m #hero .h-ed{left:18px!important;top:calc(92px + var(--ex)*.08)!important;font-size:74px!important;z-index:0;text-shadow:0 14px 20px rgba(0,0,0,.14)}
@@ -251,27 +251,16 @@ html.m #hero .fig-el{left:calc(var(--il) + var(--iw)*.0458)!important;top:calc(v
 html.m #hero .fig-sh{left:calc(var(--il) + var(--iw)*.127)!important;top:calc(var(--it) + var(--iw)*1.771)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;filter:brightness(0) blur(9px)!important}
 /* the words: a column left of her, running up to her; they stand behind her, so a letter that reaches her slips behind */
 html.m #hero .h-txt{left:22px!important;top:calc(236px + var(--ex)*.32)!important;width:var(--tw,242px)!important;gap:14px!important;z-index:0}
-html.m #hero .h-txt h1{white-space:normal!important;font-size:13.5px!important;line-height:1.32!important}
-html.m #hero .h-txt p{white-space:normal!important;font-size:12.5px!important;line-height:1.42!important;color:var(--ink-soft)}
+html.m #hero .h-txt h1{white-space:normal!important;font-size:12px!important;line-height:1.32!important}
+html.m #hero .h-txt p{white-space:normal!important;font-size:11px!important;line-height:1.42!important;color:var(--ink-soft)}
 html.m #hero .h-txt br:not(.k){display:none}
 html.m #hero .h-txt .mx,html.m #hero .h-txt .mx2{display:none}
-/* her name on the floor, under her feet: two words lying back in perspective and turned a little, as on the wide screen
-   (VERONIKA farther, ROYSE nearer). One plain element, no per-letter pictures: it shows whole on every phone.
-   Scrolling slides the words apart (see drawFloor) */
-#floorM{display:none}
-html.m #floorM{display:block;position:absolute;left:0;right:0;top:calc(var(--it) + var(--iw)*1.70);height:calc(var(--iw)*.72);z-index:0;
-  perspective:calc(var(--dw)*1.1);perspective-origin:60% -80%;overflow:hidden;pointer-events:none}
-html.m #floorM .pl{position:absolute;left:-30%;right:-30%;top:0;transform-origin:50% 0;transform:rotateX(60deg) rotateZ(-11deg);
-  display:flex;flex-direction:column;align-items:center}
-html.m #floorM span{display:block;font-weight:800;font-size:calc(var(--dw)*.135);line-height:.9;letter-spacing:-.02em;color:#111;white-space:nowrap}
-html.m #floorM span:first-child{margin-left:-6%}
-html.m #floorM span:last-child{margin-left:22%}
 /* the bottom row: the links on the left, the button on the right */
 html.m #hero .h-soc{left:10px!important;right:auto!important;top:auto!important;bottom:16px!important;gap:0!important;z-index:3}
 html.m #hero .h-soc a{width:40px;height:44px;align-items:center;justify-content:center}
 html.m #hero .h-soc svg{width:21px;height:21px}
-html.m #hero .h-cta{left:auto!important;right:22px!important;top:auto!important;bottom:26px!important;font-size:19px!important;gap:10px!important;z-index:3;padding:10px 0;margin:-10px 0}
-html.m #hero .h-cta .ha{width:48px;height:12px}
+html.m #hero .h-cta{left:auto!important;right:22px!important;top:auto!important;bottom:16px!important;height:44px;font-size:15px!important;gap:8px!important;z-index:3;padding:0;margin:0}
+html.m #hero .h-cta .ha{width:38px;height:9.4px}
 /* process: the drawn line runs top to bottom down the left of the column, the steps stand to its right */
 html.m #process .design{padding:64px 22px 30px;box-sizing:border-box}
 html.m .p-kick,html.m .p-big,html.m .p-sub{position:relative!important;left:auto!important;top:auto!important}
@@ -364,7 +353,6 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 <div class="design">
 
 <div id="floorClip" aria-hidden="true"><div id="plane"><div id="floor"></div></div></div>
-<div id="floorM" aria-hidden="true"><div class="pl"><span>VERONIKA</span><span>ROYSE</span></div></div>
 <span class="sr">Veronika Royse</span>
 
 <div aria-hidden="true" class="abs h-fade" style="left:0;right:0;top:0;height:520px;background:linear-gradient(180deg,rgba(220,220,220,.9) 0%,rgba(232,232,232,.6) 45%,rgba(240,240,240,0) 100%)"></div>
@@ -373,7 +361,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 <div aria-hidden="true" class="abs h-ed" style="left:40px;top:172px;font-weight:800;font-size:160px;line-height:.8;letter-spacing:-.05em;white-space:nowrap">EDITION</div>
 
 <div class="abs h-year" style="left:572px;top:92px;right:250px;display:flex;align-items:center;gap:14px;font-weight:700;font-size:15px">
-<span>2027</span><span aria-hidden="true" style="flex:1;height:1.5px;background:var(--ink)"></span>
+<span>2027</span><span aria-hidden="true" style="flex:1;height:1.5px;background:var(--ink)"></span><span class="yf" aria-hidden="true" style="display:none"><span style="color:var(--accent)">in</span> my FRAME</span>
 </div>
 
 <div class="abs sel h-txt" style="left:44px;top:352px;width:640px;display:flex;flex-direction:column;gap:18px">
@@ -666,7 +654,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
         c.width=Math.ceil((x1-x0)*R); c.height=Math.ceil((y1-y0)*R);
         var g=c.getContext('2d'); g.setTransform(R,0,0,R,-x0*R,-y0*R); g.font=FONT; g.fillStyle='#111111';
         g.fillText(ch,-w/2,BASE-ROWH);
-        c.style.cssText='position:absolute;will-change:transform;left:'+(x0+OX)+'px;top:'+(y0+OY)+'px;width:'+(x1-x0)+'px;height:'+(y1-y0)+'px;transform-origin:'+(-x0)+'px '+(-y0)+'px';
+        c.style.cssText='position:absolute;'+(MOB?'':'will-change:transform;')+'left:'+(x0+OX)+'px;top:'+(y0+OY)+'px;width:'+(x1-x0)+'px;height:'+(y1-y0)+'px;transform-origin:'+(-x0)+'px '+(-y0)+'px';
         fl.appendChild(c); row.sp.push({el:c, on:true, tf:''});
       }
     });
@@ -689,16 +677,9 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     rows=[top,bot];
     makeSprites();
   }
-  var SHIFT=650, FK=1, fmS=null;
+  var SHIFT=650, FK=1;
   function drawFloor(e){
     if(Math.abs(e-drawn)<0.0002) return; drawn=e;
-    // on a phone the floor is one plain element (#floorM): the two words only slide apart as the page scrolls on
-    if(MOB){
-      if(!fmS) fmS=[].slice.call(document.querySelectorAll('#floorM span'));
-      var sh=(parseFloat(getComputedStyle(root).getPropertyValue('--dw'))||430)*.32*e;
-      if(fmS[0]){ fmS[0].style.transform='translateX('+(-sh).toFixed(1)+'px)'; fmS[1].style.transform='translateX('+sh.toFixed(1)+'px)'; }
-      return;
-    }
     for(var r=0;r<rows.length;r++){
       var row=rows[r], shift=row.dir*SHIFT*e;
       if(!row.sp) continue;
@@ -707,7 +688,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
         var left=row.base+row.xs[i]+shift, w=row.ws[i];
         var x=left+w/2-0.5*adv;
         var th=Math.max(0,(x-row.bend)*k-0.117), ty=-4.9*th*th;
-        var on=!(left>CW-OX||left+w<-OX||ty<-OY-300);
+        var on=MOB||!(left>CW-OX||left+w<-OX||ty<-OY-300);   // the phone hides no letter
         if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
         if(!on) continue;
         var tf='translate('+(left+w/2).toFixed(2)+'px,'+(row.top+ROWH+ty).toFixed(2)+'px) rotate('+(-th).toFixed(3)+'deg)';
@@ -1252,7 +1233,6 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
      Everything keeps the wide screen's relation to the photo (her feet stand on the same spot of the words);
      --flk on #hero makes the words bigger or smaller around her feet, --flx/--fly move them */
   function placeFloorM(dw){
-    if(document.getElementById('floorM')){ FK=1; return; }      // the phone has its own floor (#floorM), laid out by CSS
     var fc=document.getElementById('floorClip'), img=hero.querySelector('.fig-img');
     var cs=getComputedStyle(img), hs=getComputedStyle(hero);
     var il=parseFloat(cs.left)||0, it=parseFloat(cs.top)||0, iw=parseFloat(cs.width)||200, ih=parseFloat(cs.height)||351;
