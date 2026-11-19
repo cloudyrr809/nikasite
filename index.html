@@ -230,7 +230,7 @@ html.m .sel br.k{display:inline}
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 8px - var(--iw));--it:calc(154px + var(--ex)*.25);--flk:.7;--flx:-140;--fly:34;--fls:0;--flv:450;--flb:1.2;--flr:.2;--flsp:1.12}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.52;--flx:-175;--fly:14;--fls:0;--flv:450;--flb:1.35;--flr:.55;--flw:1.4;--flsp:1;--flh:1.3}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
@@ -663,7 +663,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   /* the line of the words on the phone (as drawn by hand): almost flat at the left, rising ever steeper to the right;
      g(u)=u/(b(b-u)), u = place across the screen (0 left edge, 1 right edge). --flb: how sharp the end is (smaller = sharper),
      --flr: how high the right edge is above the left one, in screen widths. Past the right edge it goes on straight */
-  var FDW=430, FCB=1.2, FCR=0.2, FUF=0.7, FG1=1, FUM=1.04;
+  var FSW=430, FDW=430, FCB=1.2, FCR=0.2, FUF=0.7, FG1=1, FUM=1.04;
   function flG(u){ if(u>FUM) return flG(FUM)+(u-FUM)/((FCB-FUM)*(FCB-FUM)); return u/(FCB*(FCB-u)); }
   function flD(u){ if(u>FUM) u=FUM; return 1/((FCB-u)*(FCB-u)); }
   function makeSprites(){
@@ -707,7 +707,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     rows=[top,bot];
     makeSprites();
   }
-  var SHIFT=650, FSP=1, FXC=0, FK=1, FTX=0, FTY=0, FLS=0, FLP=[0,0], FMV=0;
+  var SHIFT=650, FHY=1, FSP=1, FXC=0, FK=1, FTX=0, FTY=0, FLS=0, FLP=[0,0], FMV=0;
   function drawFloor(e){
     if(Math.abs(e-drawn)<0.0002) return; drawn=e;
     for(var r=0;r<rows.length;r++){
@@ -718,7 +718,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
         var left=row.base+row.xs[i]+shift, w=row.ws[i];
         var x=left+w/2-0.5*adv;
         var th=Math.max(0,(x-row.bend)*k-0.117), ty=-4.9*th*th;
-        if(MOB){ if(!FPB) phBase(); var X=OX+left+w/2+(r?0:FMV); phLetter(sp, FXC+(X-FXC)*FSP, OY+row.top+ROWH+ty, -th); continue; }
+        if(MOB){ if(!FPB) phBase(); var X=OX+left+w/2+(r?0:FMV); phLetter(sp, FXC+(X-FXC)*FSP, OY+row.top*FHY+ROWH+ty, -th); continue; }
         var on=!(left>CW-OX||left+w<-OX||ty<-OY-300);
         if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
         if(!on) continue;
@@ -734,13 +734,13 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     // the letter's foot point on the screen is lifted onto the curve (her feet stay put); the letter turns on the floor
     // itself (so it still lies flat, in perspective) just so far that on the screen it runs along the curve
     var P=FPB.transformPoint(new DOMPoint(X,Y)), u=P.x/FDW;
-    var lift=FCR*FDW*(flG(u)-flG(FUF))/FG1, sl=FCR*flD(u)/FG1;
+    var lift=FCR*FDW*(flG(u)-flG(FUF))/FG1, sl=Math.min(FCR*flD(u)/FG1,0.8);   // the turn stops at ~40°: steeper, a lying letter turns into a sliver
     var Px=FPB.transformPoint(new DOMPoint(X+1,Y)), Py=FPB.transformPoint(new DOMPoint(X,Y+1));
     var a=Px.x-P.x, b=Py.x-P.x, c=Px.y-P.y, d=Py.y-P.y;          // the floor-to-screen stretch at this spot
     var fx=d+b*sl, fy=-c-a*sl;                                   // floor direction that shows as (1,-sl) on the screen
     var sg=a*d-b*c<0?-1:1, phi=Math.atan2(sg*fy,sg*fx)*180/Math.PI;
-    var M=new DOMMatrix().translate(0,-lift).multiply(FPB).translate(X,Y).rotate(deg+phi).translate(sp.x0,sp.y0), on=true;
-    if(u>1.3) on=false; else for(var c=0;c<4;c++){ var px=c&1?sp.w:0, py=c&2?sp.h:0; if(M.m14*px+M.m24*py+M.m44<0.05){ on=false; break; } }
+    var M=new DOMMatrix().translate(0,-lift).multiply(FPB).translate(X,Y).rotate(deg+phi).scale(1,FHY).translate(sp.x0,sp.y0), on=true;
+    if(P.x>FSW+40) on=false; else for(var c=0;c<4;c++){ var px=c&1?sp.w:0, py=c&2?sp.h:0; if(M.m14*px+M.m24*py+M.m44<0.05){ on=false; break; } }
     if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
     if(!on) return;
     var a=M.toFloat64Array(), tf='matrix3d(';
@@ -1294,8 +1294,9 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     FTX=+(fx-660*k).toFixed(1); FTY=+(fy-745*k).toFixed(1);
     // the slope turns the words around the spot under her feet (in #floorClip's own px)
     FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FLP=[660,745]; FPB=null; drawn=-1;
-    FDW=dw||430; FCB=parseFloat(hs.getPropertyValue('--flb'))||1.2; FCR=parseFloat(hs.getPropertyValue('--flr'))||0.2;
-    FSP=parseFloat(hs.getPropertyValue('--flsp'))||1;   // --flsp: the letters set wider apart on the phone
+    FSW=dw||430; FDW=FSW*(parseFloat(hs.getPropertyValue('--flw'))||1);   // --flw: the curve's length, in screen widths
+    FCB=parseFloat(hs.getPropertyValue('--flb'))||1.2; FCR=parseFloat(hs.getPropertyValue('--flr'))||0.2;
+    FSP=parseFloat(hs.getPropertyValue('--flsp'))||1; FHY=parseFloat(hs.getPropertyValue('--flh'))||1;   // --flh: letters taller   // --flsp: the letters set wider apart on the phone
     fc.style.transformOrigin='0 0';
     fc.style.transform='translate('+FTX+'px,'+FTY+'px) scale('+k.toFixed(4)+')';
   }
