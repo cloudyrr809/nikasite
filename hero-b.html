@@ -129,7 +129,7 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 #contacts .hand{position:absolute;left:59px;top:40px;width:849px;height:300px;overflow:visible;user-select:none;-webkit-user-select:none;pointer-events:none}
 #contacts .ideas{position:absolute;left:44px;top:262px;width:600px}
 #contacts .ideas .h{margin:0 0 22px;font-weight:700;font-size:22px;line-height:1.2;letter-spacing:-.01em}
-#contacts .ideas ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:0;font-weight:600;font-size:17px;line-height:1.35}
+#contacts .ideas ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:0;font-weight:600;font-size:15px;line-height:1.35}
 #contacts .ideas b{font-weight:700;color:var(--accent)}
 #contacts .k,#contacts .b{user-select:none;-webkit-user-select:none}
 #contacts .k{position:absolute;left:42px;top:90px;z-index:2;font-weight:600;font-size:104px;color:var(--accent);line-height:.8;letter-spacing:-.065em;white-space:nowrap}
@@ -143,7 +143,12 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 #contacts .bar{position:absolute;left:44px;right:44px;bottom:30px;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:13px}
 #contacts .bar .nm{font-weight:800;font-size:17px;letter-spacing:.01em;text-transform:uppercase}
 #contacts .bar .mid{color:var(--ink-soft)}
-#contacts .bar a{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;text-decoration:none}
+#contacts .bar a{position:relative;display:inline-block;padding:0 2px 6px;font-weight:700;font-size:21px;line-height:1;letter-spacing:-.01em;text-decoration:none}
+/* "наверх": underlined by hand — a crooked pencil stroke, thin on the left, heavier to the right, flicked up at the end; drawn again on hover */
+#contacts .totop .ul{position:absolute;left:-4px;bottom:-8px;width:calc(100% + 14px);height:16px;overflow:visible;fill:currentColor;pointer-events:none}
+#contacts .totop:hover .ul{animation:ulDraw .6s ease}
+@keyframes ulDraw{from{clip-path:inset(-4px 100% -4px 0)}to{clip-path:inset(-4px 0 -4px 0)}}
+@media (prefers-reduced-motion: reduce){#contacts .totop:hover .ul{animation:none}}
 #contacts .up{transform:rotate(-90deg);width:18px;height:7.1px}
 #contacts .cta:hover .up{transform:rotate(-90deg) translateX(6px)}
 #scrib{position:absolute;left:0;top:0;width:1440px;height:900px;max-width:none;pointer-events:none}
@@ -350,14 +355,14 @@ html.m #contacts .main{width:auto;height:auto;margin-top:56px}
 html.m #contacts .hand{width:100%;height:auto}
 html.m #contacts .ideas{width:auto;margin-top:18px}
 html.m #contacts .ideas .h{font-size:20px;margin-bottom:16px}
-html.m #contacts .ideas ul{font-size:16px;gap:8px;line-height:1.4}
+html.m #contacts .ideas ul{gap:8px}
 html.m #contacts .bar{margin-top:60px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 12px}
 html.m #contacts .bar .nm{grid-column:1;grid-row:1}
 html.m #contacts .bar .mid{grid-column:1;grid-row:2;font-size:12px}
-/* on a phone "наверх" is a clear button of its own: an outlined pill, no arrow */
-html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;align-self:center;font-size:16px;gap:0;padding:13px 22px;border:1.5px solid var(--ink);border-radius:999px;line-height:1;-webkit-tap-highlight-color:transparent}
-html.m #contacts .bar a .up{display:none}
-html.m #contacts .bar a:active{background:var(--ink);color:#fff}
+/* on a phone "наверх" stands on the right, across both lines of the name; a big enough spot to tap */
+html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;align-self:center;font-size:19px;padding:10px 4px 12px;-webkit-tap-highlight-color:transparent}
+html.m #contacts .totop .ul{bottom:-2px}
+html.m #contacts .bar a:active{color:var(--accent)}
 </style>
 
 <div id="backdrop" aria-hidden="true"></div>
@@ -551,7 +556,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 </ul>
 </div>
 </section>
-<div class="bar"><span class="nm">Veronika Royse</span><span class="mid">фотограф выпускных альбомов · 2027</span><a class="cta" href="#hero" data-totop>наверх <span class="arr ha a6 up" aria-hidden="true"></span></a></div>
+<div class="bar"><span class="nm">Veronika Royse</span><span class="mid">фотограф выпускных альбомов · 2027</span><a class="cta totop" href="#hero" data-totop>наверх<svg class="ul" viewBox="0 0 120 16" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="pencilUl" filterUnits="userSpaceOnUse" x="0" y="0" width="120" height="16" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="8" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><path filter="url(#pencilUl)" d="M2 8.6C16 9.8 30 11.4 46 11.2C64 11 84 9.2 104 5.6C109 4.7 113.5 3.2 118.5 1.2C116.6 4.6 113 6.8 108.6 8.4C88 13.6 66 15.6 46 15.4C28 15.2 14 12.8 2.2 10.2Z"/></svg></a></div>
 </div>
 </footer>
 
@@ -1097,7 +1102,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
      A pixel belongs to the first pass of the pen that covers it, so crossings and lines the pen runs back over never show
      up early. Here each map is thresholded against the letter's clock (one colour matrix per letter, no redrawing).
      HAND_T: map box x, y, w, h (picture px), the letter's start and length (ms) */
-var HAND_T=[[3,106,89,68,0,615],[258,6,112,99,935,984],[288,51,104,101,2009,699],[417,64,45,47,2929,279],[494,83,43,45,3428,285],[543,98,49,41,3784,343],[584,107,51,45,4197,271],[631,118,32,39,4537,273],[663,126,50,41,4881,378],[569,186,41,37,5558,174],[593,195,39,37,5803,198],[627,206,43,43,6071,331],[662,192,56,62,6472,518],[696,221,38,45,7059,217],[731,233,30,39,7346,301],[757,240,43,40,7717,359]];
+  var HAND_T=[[4,107,87,66,0,367],[259,7,110,97,587,571],[289,52,102,99,1218,431],[418,65,43,45,1799,166],[495,84,41,43,2115,163],[544,99,47,39,2322,202],[584,108,50,43,2569,167],[632,119,30,37,2781,151],[664,127,48,39,2978,218],[570,187,39,35,3396,97],[594,196,37,35,3538,115],[628,207,41,41,3698,188],[664,193,53,60,3931,303],[697,222,36,43,4279,135],[732,234,28,37,4459,168],[758,241,41,38,4672,206]];
   function setupHand(){
     var h=document.getElementById('hand'), ink=document.getElementById('handInk'), mask=document.getElementById('handMask');
     if(!h||!ink||!mask) return;

@@ -2,10 +2,12 @@
 
 Each map belongs to one letter. For every ink pixel of hand2.png it holds
   grey  = when the pen passes that pixel (0 = the letter's first moment, 255 = its last),
-  alpha = how much of the pixel is left after the pencil's pressure (lighter press = thinner, paler line).
-A pixel belongs to ONE pass of the pen (the first one that covers it), so at crossings and where the pen runs
-back over itself nothing shows up before the pen gets there.
+  alpha = how much of the pixel the pencil's pressure leaves (pressed lightly: a thinner, paler line; never wider
+          than the drawing's own line, so nothing grows after it is written).
+A pixel belongs only to the pass of the pen whose line it lies on; where two lines really overlap, to the first pass.
+So at crossings and where the pen runs back over itself nothing shows up before the pen gets there.
 
+The route (tools/hand_route.json): one list per letter of x, y, f — f = 1 where the pen slides back over its own ink.
 Run from the site folder:  python tools/make_hand_t.py .
 It prints the HAND_T line for index.html (box of each map, start and length of each letter, ms)."""
 import json, sys, os
@@ -17,10 +19,11 @@ from scipy.spatial import cKDTree
 root = sys.argv[1] if len(sys.argv) > 1 else '.'
 HAND = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'hand_route.json')))
 # pause before each letter, ms: ♡ | Н у | и | с а м о е | г л а в н о е
-GAP = [0, 320, 90, 220, 220, 70, 70, 70, 70, 300, 70, 70, 70, 70, 70, 70]
+GAP = [0, 220, 60, 150, 150, 45, 45, 45, 45, 200, 45, 45, 45, 45, 45, 45]
 
-V = 520.0      # pen speed on straight runs, px/s
+V = 820.0      # pen speed on straight runs, px/s
 STEP = 0.5     # route sampling, px
+INK = 3.0      # half-width of the drawing's line (measured ~2.8) — a pixel further than this from a pass is not its ink
 
 
 def smooth(a, r, passes):
@@ -47,28 +50,28 @@ def letter(a):
         n = max(1, int(np.ceil(np.hypot(*(P[i, :2] - P[i - 1, :2])) / STEP)))
         for j in range(1, n + 1):
             pts.append(P[i - 1, :2] + (P[i, :2] - P[i - 1, :2]) * j / n); fl.append(P[i, 2])
-    pts = smooth(np.array(pts), 5, 3)            # irons out the 1-px staircase of the tracing
-    fl = np.array(fl)
+    pts = np.array(pts); fl = np.array(fl)
+    ps = np.r_[0, np.cumsum(np.diff(fl) != 0)]                    # pass number: a new pass where the pen turns back
+    # iron out the 1-px staircase of the tracing, pass by pass (so the turning points keep their tips)
+    for p in np.unique(ps):
+        m = np.nonzero(ps == p)[0]; lo = max(0, m[0] - 1)             # shares its first point with the pass before
+        pts[lo:m[-1] + 1] = smooth(pts[lo:m[-1] + 1], 5, 3)
     seg = np.r_[0, np.hypot(*np.diff(pts, axis=0).T)]; s = np.cumsum(seg); L = s[-1]; n = len(pts)
-    # bend: change of direction over ±4 px of route
-    bend = np.zeros(n)
+    bend = np.zeros(n)                                            # change of direction over ±4 px of route
     for i in range(n):
         a0 = np.searchsorted(s, s[i] - 4); a1 = min(n - 1, np.searchsorted(s, s[i] + 4))
         if a0 >= i or a1 <= i: continue
         d1 = pts[i] - pts[a0]; d2 = pts[a1] - pts[i]
         bend[i] = abs(np.arctan2(d1[0] * d2[1] - d1[1] * d2[0], d1 @ d2)) / max(1e-3, s[a1] - s[a0]) * 2
-    v = V / (1 + 7 * bend)
-    v = np.where(fl > 0, V * 2.2, v)                              # sliding back over its own ink: quicker
-    ei = np.clip(s / 30, 0, 1); ei = ei * ei * (3 - 2 * ei)       # sets off softly
-    eo = np.clip((L - s) / 22, 0, 1); eo = eo * eo * (3 - 2 * eo)  # and eases at the end
-    v = v * (.3 + .7 * ei) * (.55 + .45 * eo)
+    v = V / (1 + 6 * bend)
+    v = np.where(fl > 0, V * 2.0, v)                              # sliding back over its own ink: quicker
+    ei = np.clip(s / 26, 0, 1); ei = ei * ei * (3 - 2 * ei)       # sets off softly
+    eo = np.clip((L - s) / 20, 0, 1); eo = eo * eo * (3 - 2 * eo)  # and eases at the end
+    v = v * (.35 + .65 * ei) * (.6 + .4 * eo)
     v = smooth(v, max(1, int(round(12 / STEP))), 2)               # the hand changes speed gently
     tm = np.r_[0, np.cumsum(seg[1:] / ((v[1:] + v[:-1]) / 2) * 1000)]
-    # tangent, for telling the two edges of the line apart
     tg = np.gradient(pts, axis=0); tg /= np.maximum(1e-6, np.hypot(*tg.T))[:, None]
-    # pass number: a new pass starts where the pen turns back on itself
-    ps = np.r_[0, np.cumsum(np.abs(np.diff(fl)) > 0)]
-    return dict(p=pts, tm=tm, s=s, L=L, tg=tg, ps=ps, v=v)
+    return dict(p=pts, tm=tm, s=s, L=L, tg=tg, ps=ps)
 
 
 letters = [letter(a) for a in HAND]
@@ -86,38 +89,53 @@ for li, l in enumerate(letters):
 C = {k: np.concatenate(v) if k not in ('p', 'tg') else np.vstack(v) for k, v in cols.items()}
 tree = cKDTree(C['p'])
 
-# ---- pressure along the route: lighter press = a thinner line (each edge wanders on its own) and a paler one ----
+# ---- pressure along the route: pressed lightly = a thinner line (each edge wanders on its own) and a paler one.
+#      The line is only ever worn thinner than the drawing's own, never made wider ----
 d = C['s']
 pr = press(d) / 1.75                                              # about -1..1
-taper = np.minimum(np.clip(C['lsn'] / 14, 0, 1), np.clip(C['lse'] / 18, 0, 1))
+taper = np.minimum(np.clip(C['lsn'] / 12, 0, 1), np.clip(C['lse'] / 16, 0, 1))
 taper = .5 + .5 * taper * taper * (3 - 2 * taper)                # the pencil lands and lifts lightly
-hw = 2.75 * (1 + .42 * pr) * taper                                # half-width, px (the drawing's own line is ~2.8)
-HWL = np.clip(hw * (1 + .55 * edge(d, .4)), .9, 6)
-HWR = np.clip(hw * (1 + .55 * edge(d, 2.6)), .9, 6)
-SH = .62 + .38 * np.clip(.5 + .5 * pr, 0, 1) * (.55 + .45 * taper)
-
+hw = 2.45 * (1 + .36 * pr) * taper
 alpha = np.array(Image.open(os.path.join(root, 'hand2.png')).convert('RGBA'))[:, :, 3].astype(float) / 255
-area = nd.binary_dilation(alpha > 0, iterations=2)               # the grain filter's soft edge spills ~1 px
+# the drawing's own half-width along the route, read away from crossings (where two lines make the ink look wider):
+# depth of the ink at the route, the lower part of it over ±10 px of route
+inside = nd.distance_transform_edt(alpha > .5)
+rp = np.clip(np.round(C['p']).astype(int), 0, [alpha.shape[1] - 1, alpha.shape[0] - 1])
+wl = nd.percentile_filter(inside[rp[:, 1], rp[:, 0]], 25, size=41, mode='nearest')
+cap = np.clip(wl + .2, 1.5, INK)
+HWL = np.clip(hw * (1 + .4 * edge(d, .4)), .9, cap)
+HWR = np.clip(hw * (1 + .4 * edge(d, 2.6)), .9, cap)
+SH = .64 + .36 * np.clip(.5 + .5 * pr, 0, 1) * (.55 + .45 * taper)
+
+area = nd.binary_dilation(alpha > 0, iterations=1)
 ys, xs = np.nonzero(area); q = np.c_[xs, ys].astype(float)
 _, own = tree.query(q)
 A = np.zeros(len(q))
-gap_pts = int(2 * 6 / STEP) + 4
-for k, cand in enumerate(tree.query_ball_point(q, 6.0)):
+gap_pts = int(2 * (INK + 2) / STEP) + 4
+for k, cand in enumerate(tree.query_ball_point(q, INK + 1.5)):
     if not cand: continue
     c = np.sort(np.array(cand))
     # the nearby route points fall into passes of the pen (runs of neighbouring points); in each pass the nearest point
     # says how far the pixel is from that pass's centre line and when the pen is there
     br = np.r_[0, np.nonzero((np.diff(c) > gap_pts) | (np.diff(C['ps'][c]) != 0))[0] + 1, len(c)]
-    best_t, cov_all, sh = None, 0.0, 1.0
+    runs = []
     for i in range(len(br) - 1):
         r = c[br[i]:br[i + 1]]
-        dd = np.hypot(*(C['p'][r] - q[k]).T); j = r[np.argmin(dd)]; dist = dd.min()
+        dd = np.hypot(*(C['p'][r] - q[k]).T); runs.append((dd.min(), r[np.argmin(dd)]))
+    dmin = min(r[0] for r in runs)
+    # the pixel is ink of the pass it lies on; of a second pass only if it lies well inside that one too (a real overlap)
+    mine = [r for r in runs if r[0] <= max(dmin + 1.0, 2.0)]
+    got = []
+    for dist, j in mine:
         side = (q[k, 0] - C['p'][j, 0]) * C['tg'][j, 1] - (q[k, 1] - C['p'][j, 1]) * C['tg'][j, 0]
-        cov = np.clip((HWL[j] if side >= 0 else HWR[j]) - dist + .7, 0, 1)
-        if cov <= .02: continue
-        if cov > cov_all: cov_all, sh = cov, SH[j]
-        if best_t is None or C['t'][j] < best_t: best_t, own[k] = C['t'][j], j   # the pen's first pass over it
-    A[k] = cov_all * sh
+        cov = np.clip((HWL[j] if side >= 0 else HWR[j]) - dist + .6, 0, 1)
+        if cov > .02: got.append((C['t'][j], cov, j))
+    if not got: own[k] = min(runs)[1]; continue
+    got.sort()
+    # the first pass over it takes it if that pass really paints it; a pixel only grazed by the first pass waits for
+    # the pass that paints it most — so the second line never shows up at a crossing with the first
+    t_, cov, j = got[0] if got[0][1] >= .5 else max(got, key=lambda g: g[1])
+    own[k] = j; A[k] = cov * SH[j]
 
 lid = C['li'][own]; u = C['u'][own]
 os.makedirs(os.path.join(root, 'hand_t'), exist_ok=True)
