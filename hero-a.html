@@ -230,7 +230,7 @@ html.m .sel br.k{display:inline}
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.52;--flx:-175;--fly:50;--fls:7;--flv:450;--flo:150;--flh:2.6}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.44;--flx:-175;--fly:34;--fls:0;--flv:330;--flo:0;--flh:1;--flb:26}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
@@ -239,7 +239,7 @@ html.m #floor{overflow:visible}
 /* Safari on the iPhone skipped part of one big tilted 3D layer, so on a phone there is no such layer: every letter is
    its own small layer (#floorM) carrying the whole tilt of the floor in its own transform */
 #floorM{display:none;position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
-html.m #floorM{display:none}   /* the name on the floor is off on the phone (the code stays, set display:block to bring it back) */
+html.m #floorM{display:block}
 html.m #floorClip{display:none}
 /* right of "grad", at its height: 2027, a thin rule to the right edge, and "in my FRAME" on the rule's end */
 html.m #hero .h-nav{display:none!important}
@@ -253,7 +253,7 @@ html.m #figure{left:0!important;top:0!important;width:100%!important;height:100%
 html.m #hero .fig-img{left:var(--il)!important;top:var(--it)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;
   filter:drop-shadow(-10px 14px 18px rgba(0,0,0,.16))}
 html.m #hero .fig-el{left:calc(var(--il) + var(--iw)*.0458)!important;top:calc(var(--it) + var(--iw)*1.687)!important;width:calc(var(--iw)*.967)!important;height:calc(var(--iw)*.1374)!important}
-html.m #hero .fig-sh{left:calc(var(--il) + var(--iw)*.127)!important;top:calc(var(--it) + var(--iw)*1.771)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;filter:brightness(0) blur(60px)!important;opacity:.5!important;transform:scaleY(-.3) skewX(-58deg)!important}
+html.m #hero .fig-sh{left:calc(var(--il) + var(--iw)*.127)!important;top:calc(var(--it) + var(--iw)*1.771)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;filter:brightness(0) blur(34px)!important;opacity:.26!important;transform:scale(1.1,-.36) skewX(-58deg)!important}
 /* the words: a column left of her, running up to her; they stand behind her, so a letter that reaches her slips behind */
 html.m #hero .h-txt{left:22px!important;top:calc(166px + var(--ex)*.1)!important;width:var(--tw,268px)!important;gap:12px!important;z-index:0}
 html.m #hero .h-txt h1{white-space:normal!important;font-size:11px!important;line-height:1.32!important}
@@ -261,11 +261,11 @@ html.m #hero .h-txt p{white-space:normal!important;font-size:10px!important;line
 html.m #hero .h-txt br:not(.k){display:none}
 html.m #hero .h-txt .mx,html.m #hero .h-txt .mx2{display:none}
 /* the bottom row: the links on the left, the button on the right */
-html.m #hero .h-soc{left:10px!important;right:auto!important;top:auto!important;bottom:16px!important;gap:0!important;z-index:3}
+html.m #hero .h-soc{left:auto!important;right:10px!important;top:auto!important;bottom:16px!important;gap:0!important;z-index:3}
 html.m #hero .h-soc a{width:40px;height:44px;align-items:center;justify-content:center}
 html.m #hero .h-soc svg{width:21px;height:21px}
-html.m #hero .h-cta{left:22px!important;right:auto!important;top:calc(318px + var(--ex)*.1)!important;bottom:auto!important;height:44px;font-size:13px!important;gap:8px!important;z-index:3;padding:0;margin:0}
-html.m #hero .h-cta .ha{width:33px;height:8.2px}
+html.m #hero .h-cta{left:22px!important;right:auto!important;top:calc(318px + var(--ex)*.1)!important;bottom:auto!important;height:44px;font-size:16px!important;gap:8px!important;z-index:3;padding:0;margin:0}
+html.m #hero .h-cta .ha{width:36px;height:9px}
 /* process: the drawn line runs top to bottom down the left of the column, the steps stand to its right */
 html.m #process .design{padding:64px 22px 30px;box-sizing:border-box}
 html.m .p-kick,html.m .p-big,html.m .p-sub{position:relative!important;left:auto!important;top:auto!important}
@@ -662,13 +662,15 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
         var ch=row.t[i], w=row.ws[i];
         if(ch===' '){ row.sp.push(null); continue; }
         var m=ctx.measureText(ch);
-        var bl=Math.ceil(m.actualBoundingBoxLeft||0)+6, br=Math.ceil(m.actualBoundingBoxRight||w)+6;
-        var asc=Math.ceil(m.actualBoundingBoxAscent||320)+6, des=Math.ceil(m.actualBoundingBoxDescent||0)+6;
+        var pd=6+Math.ceil(FBD/2);
+        var bl=Math.ceil(m.actualBoundingBoxLeft||0)+pd, br=Math.ceil(m.actualBoundingBoxRight||w)+pd;
+        var asc=Math.ceil(m.actualBoundingBoxAscent||320)+pd, des=Math.ceil(m.actualBoundingBoxDescent||0)+pd;
         var x0=-w/2-bl, x1=-w/2+br, y0=BASE-ROWH-asc, y1=BASE-ROWH+des;
         var c=document.createElement('canvas');
         c.width=Math.ceil((x1-x0)*R); c.height=Math.ceil((y1-y0)*R);
         var g=c.getContext('2d'); g.setTransform(R,0,0,R,-x0*R,-y0*R); g.font=FONT; g.fillStyle='#111111';
         g.fillText(ch,-w/2,BASE-ROWH);
+        if(MOB&&FBD>0){ g.lineWidth=FBD; g.lineJoin='miter'; g.miterLimit=10; g.strokeStyle='#111111'; g.strokeText(ch,-w/2,BASE-ROWH); }   // bolder letters on the phone: an outline of the same colour (FBD, from --flb, in letter px)
         if(MOB){ c.style.cssText='position:absolute;left:0;top:0;width:'+(x1-x0)+'px;height:'+(y1-y0)+'px;transform-origin:0 0;will-change:transform'; flm.appendChild(c); }
         else { c.style.cssText='position:absolute;will-change:transform;left:'+(x0+OX)+'px;top:'+(y0+OY)+'px;width:'+(x1-x0)+'px;height:'+(y1-y0)+'px;transform-origin:'+(-x0)+'px '+(-y0)+'px'; fl.appendChild(c); }
         row.sp.push({el:c, on:true, tf:'', x0:x0, y0:y0, w:x1-x0, h:y1-y0});
@@ -693,7 +695,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     rows=[top,bot];
     makeSprites();
   }
-  var SHIFT=650, FRO=0, FHY=1, FK=1, FTX=0, FTY=0, FLS=0, FLP=[0,0], FMV=0;
+  var SHIFT=650, FBD=0, FRO=0, FHY=1, FK=1, FTX=0, FTY=0, FLS=0, FLP=[0,0], FMV=0;
   function drawFloor(e){
     if(Math.abs(e-drawn)<0.0002) return; drawn=e;
     for(var r=0;r<rows.length;r++){
@@ -1272,7 +1274,8 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     FTX=+(fx-660*k).toFixed(1); FTY=+(fy-745*k).toFixed(1);
     // the slope turns the words around the spot under her feet (in #floorClip's own px)
     FHY=parseFloat(hs.getPropertyValue('--flh'))||1;   // --flh: the letters taller (their height on the floor, times)
-    FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FRO=parseFloat(hs.getPropertyValue('--flo'))||0;   // --flo: the word ROYSE moved to the right FLP=[660,745]; FPB=null; drawn=-1;
+    FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FRO=parseFloat(hs.getPropertyValue('--flo'))||0;
+    var nbd=parseFloat(hs.getPropertyValue('--flb'))||0; if(nbd!==FBD){ FBD=nbd; if(rows.length&&R) makeSprites(); }   // --flo: the word ROYSE moved to the right FLP=[660,745]; FPB=null; drawn=-1;
     fc.style.transformOrigin='0 0';
     fc.style.transform='translate('+FTX+'px,'+FTY+'px) scale('+k.toFixed(4)+')';
   }
