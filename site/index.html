@@ -277,8 +277,8 @@ html.m .lab{transform:translateY(-50%);text-align:left;white-space:normal;line-h
 /* a line break that only the phone uses */
 .lab br.mb{display:none}
 html.m .lab br.mb{display:inline}
-html.m .lab::before{content:attr(data-n);display:block;margin-bottom:4px;font-size:12px;font-weight:700;letter-spacing:.12em;color:#9E9E9E;opacity:0;transition:opacity .4s ease}
-html.m .lab.seen::before{opacity:1}
+/* the step numbers are not shown; the empty room above each caption stays, so the captions keep their places */
+html.m .lab::before{content:attr(data-n);display:block;margin-bottom:4px;font-size:12px;font-weight:700;letter-spacing:.12em;opacity:0}
 /* album */
 html.m #hint{font-size:15px;gap:10px;white-space:nowrap}
 /* on an upright phone the album lies sideways (html.rot): its own landscape grid, turned a quarter round, so the open spread
@@ -412,9 +412,9 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 <h2 class="abs sel p-sub" style="left:44px;top:250px;margin:0;font-weight:600;font-size:15px;line-height:1.35">Как проходит работа над выпускным альбомом:<br>от брони даты до готовых альбомов в руках</h2>
 
 <div id="band">
-<svg id="road" viewBox="0 0 1366 768" preserveAspectRatio="none" aria-hidden="true" data-x="0" data-y="108"><defs><mask id="roadMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768"><path id="roadPen" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 2" stroke-dashoffset="0"/><rect class="blk" x="499" y="477" width="15" height="15" fill="#000" data-ux="509.3" data-uy="473.8"/><rect class="blk" x="499" y="495" width="13" height="12" fill="#000" data-ux="504" data-uy="494"/></mask><filter id="pencil" filterUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><g mask="url(#roadMask)" id="roadInk"><image href="line5.png" x="0" y="0" width="1366" height="768" preserveAspectRatio="none" filter="url(#pencil)"/><path id="roadExt" d="" fill="none" stroke="#000" stroke-width="4" stroke-linecap="butt" stroke-linejoin="round" filter="url(#pencil)" display="none"/></g></svg>
-<div class="lab" data-n="01" data-x="204" data-y="389" data-my="-70">бронирование <br class="mb">альбома</div>
-<div class="lab" data-n="02" data-x="193" data-y="736">создание чата<br>с классом</div>
+<svg id="road" viewBox="0 0 1366 768" preserveAspectRatio="none" aria-hidden="true" data-x="0" data-y="108"><defs><mask id="roadMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768"><path id="roadPen" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 2" stroke-dashoffset="0"/><rect class="blk" x="499" y="477" width="15" height="15" fill="#000" data-ux="509.3" data-uy="473.8"/><rect class="blk" x="499" y="495" width="13" height="12" fill="#000" data-ux="504" data-uy="494"/></mask><filter id="pencil" filterUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><g mask="url(#roadMask)" id="roadInk"><image href="line5.png" x="0" y="0" width="1366" height="768" preserveAspectRatio="none" filter="url(#pencil)"/><path id="roadExt" d="" fill="#000" stroke="none" filter="url(#pencil)" display="none"/></g></svg>
+<div class="lab" data-n="01" data-x="204" data-y="389" data-my="-30">бронирование <br class="mb">альбома</div>
+<div class="lab" data-n="02" data-x="193" data-y="736" data-side="r">создание чата<br>с классом</div>
 <div class="lab" data-n="03" data-x="690" data-y="555">выбор концепции<br>и стиля</div>
 <div class="lab" data-n="04" data-x="672" data-y="312">фотосессия<br>в студии</div>
 <div class="lab" data-n="05" data-x="768" data-y="817">отбор<br>фотографий</div>
@@ -967,17 +967,22 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   var rev=null;
   function buildReveal(){
     var vb=document.getElementById('road').viewBox.baseVal, x0=vb.x, W=Math.ceil(vb.width), H=Math.ceil(vb.height);
-    var T=new Float32Array(W*H), i, k; for(k=0;k<T.length;k++) T[k]=-1;
-    [3.6,5.5].forEach(function(r){
-      var q=Math.ceil(r), r2=r*r;
-      for(i=0;i<LP.length;i++){
-        var cx=LP[i][0]-x0, cy=LP[i][1], ix=Math.round(cx), iy=Math.round(cy);
-        for(var y=Math.max(0,iy-q);y<=Math.min(H-1,iy+q);y++) for(var xx=Math.max(0,ix-q);xx<=Math.min(W-1,ix+q);xx++){
-          var dx=xx+.5-cx, dy=y+.5-cy;
-          if(dx*dx+dy*dy<=r2 && T[y*W+xx]<0) T[y*W+xx]=LEN[i];
-        }
+    var T=new Float32Array(W*H), D=new Float32Array(W*H), i, k, Rr=6, q=Math.ceil(Rr);
+    for(k=0;k<T.length;k++){ T[k]=-1; D[k]=1e9; }
+    // the route is walked in steps of about one pixel; a pixel belongs to the nearest step (so near a crossing each stroke
+    // keeps its own pixels, and the stroke that crosses later shows nothing ahead of the pen except the crossing itself)
+    function put(px,py,tm){
+      var cx=px-x0, ix=Math.round(cx), iy=Math.round(py);
+      for(var y=Math.max(0,iy-q);y<=Math.min(H-1,iy+q);y++) for(var xx=Math.max(0,ix-q);xx<=Math.min(W-1,ix+q);xx++){
+        var dx=xx+.5-cx, dy=y+.5-py, dd=dx*dx+dy*dy, j=y*W+xx;
+        if(dd<=Rr*Rr && dd<D[j]){ D[j]=dd; T[j]=tm; }
       }
-    });
+    }
+    for(i=0;i<LP.length-1;i++){
+      var sl=LEN[i+1]-LEN[i], ns=Math.max(1,Math.ceil(sl));
+      for(k=0;k<ns;k++){ var f=k/ns; put(LP[i][0]+(LP[i+1][0]-LP[i][0])*f, LP[i][1]+(LP[i+1][1]-LP[i][1])*f, LEN[i]+sl*f); }
+    }
+    put(LP[LP.length-1][0],LP[LP.length-1][1],LEN[LEN.length-1]);
     var idx=[]; for(k=0;k<T.length;k++) if(T[k]>=0) idx.push(k);
     idx.sort(function(a,b){ return T[a]-T[b]; });
     var cv=document.createElement('canvas'); cv.width=W; cv.height=H;
@@ -1254,26 +1259,43 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     function wob(t){ return .9*Math.sin(t/31+1.3)+.55*Math.sin(t/11.7+.4)+.3*Math.sin(t/5.3); }   // the hand's tremor, px
     // the ink's centre at the picture's two ends (the route itself runs along the line's upper edge, 2–3 px off the centre)
     var CA=[0,346.5], CE=[1365,614.5];
-    var a=CA, X0=(671-a[1])*sc, R=Math.max(12,MLT-yU), xL=-22-8, lead=[], tail=[], i, t, n;
-    // along under the text, rising a hair to the right, then a quarter turn down into the line's start
-    var xs=X0-R, L1=xs-xL; n=Math.ceil(L1/3);
-    for(i=0;i<=n;i++){ t=i/n; var x=xL+L1*t; lead.push(P(x, yU+2.5*(1-t)+wob(x)*(t<.92?1:(1-t)/.08))); }
+    var X0=(671-CA[1])*sc, R=Math.max(12,MLT-yU-2.5), xR=W+22+10, lead=[], tail=[], i, t, n;
+    // the lead-in: it comes in from the RIGHT wall of the screen, runs left a little under the text's end and turns down into the line's start
+    var xs=X0+R, L1=xR-xs; n=Math.ceil(L1/3);
+    for(i=0;i<=n;i++){ t=i/n; var x=xR-L1*t; lead.push([x, yU+2.5+wob(x)*(t<.85?1:(1-t)/.15)]); }
     n=Math.ceil(R*Math.PI/2/3);
-    for(i=1;i<n;i++){ t=i/n*Math.PI/2; lead.push(P(xs+R*Math.sin(t), yU+R*(1-Math.cos(t)))); }
+    for(i=1;i<=n;i++){ t=i/n*Math.PI/2; lead.push([xs-R*Math.sin(t), yU+2.5+R*(1-Math.cos(t))]); }
     // the tail: on from the line's end in the same direction, bending left and out over the edge
     var e=CE, e0=[1359,611], XE=(671-e[1])*sc, YE=MLT+e[0]*ku;
     var dX=-(e[1]-e0[1])*sc, dY=(e[0]-e0[0])*ku, dl=Math.hypot(dX,dY)||1; dX/=dl; dY/=dl;
     var c1=[XE+dX*16,YE+dY*16], c2=[XE-10,YE+26], p2=[-22-10,YE+30];
     n=Math.ceil((Math.hypot(XE-p2[0],YE-p2[1])+10)/3);
+    tail.push([XE,YE]);
     for(i=1;i<=n;i++){ t=i/n; var q=1-t,
       x=q*q*q*XE+3*q*q*t*c1[0]+3*q*t*t*c2[0]+t*t*t*p2[0], y=q*q*q*YE+3*q*q*t*c1[1]+3*q*t*t*c2[1]+t*t*t*p2[1];
-      tail.push(P(x, y+wob(x*1.3+50)*t*.8)); }
-    var d=function(pts){ return pts.map(function(p,k){ return (k?'L':'M')+p[0]+' '+p[1]; }).join(' '); };
-    // both pieces end exactly where the picture's own line begins / ends (flat ends, no overlap: overlapping grain would be darker)
-    var lead2=lead.concat([CA]), tail2=[CE].concat(tail);
-    if(ext){ ext.setAttribute('d',d(lead2)+' '+d(tail2));  ext.setAttribute('display','inline'); }
+      tail.push([x, y+wob(x*1.3+50)*t*.8]); }
+    /* the pieces are drawn as a ribbon whose width starts exactly as wide as the picture's own line at the join (measured:
+       3.85 and 4.15 picture px of ink, a touch less in grain) and then wanders like pencil pressure: harder here, lighter there.
+       Widths are in screen px, so the stroke is as thick going across the picture as along it */
+    function press(d){ return .55*Math.sin(d/9.1+1)+.4*Math.sin(d/5.3+2.3)+.3*Math.sin(d/17.7+.5)+.5*Math.sin(d/60+.7); }
+    function ribbon(pts,jw,fromEnd){
+      var m=pts.length, dd=[], k, acc=0, hw=[];
+      for(k=0;k<m;k++){ if(k) acc+=Math.hypot(pts[k][0]-pts[k-1][0],pts[k][1]-pts[k-1][1]); dd.push(acc); }
+      var Lt=acc, Lf=[], Rf=[];
+      for(k=0;k<m;k++){
+        var d=fromEnd?Lt-dd[k]:dd[k], b=Math.min(1,d/18); b=b*b*(3-2*b);
+        var w=jw*Math.max(.5,1+b*.4*press(d+(fromEnd?0:137))), a0=pts[Math.max(0,k-1)], a1=pts[Math.min(m-1,k+1)];
+        var tx=a1[0]-a0[0], ty=a1[1]-a0[1], tl=Math.hypot(tx,ty)||1, nx=-ty/tl*w/2, ny=tx/tl*w/2;
+        Lf.push([pts[k][0]+nx,pts[k][1]+ny]); Rf.push([pts[k][0]-nx,pts[k][1]-ny]);
+      }
+      return Lf.concat(Rf.reverse());
+    }
+    var dpoly=function(pts){ return 'M'+pts.map(function(q){ var u=P(q[0],q[1]); return u[0]+' '+u[1]; }).join(' L ')+' Z'; };
+    var JWS=3.85*sc*.92, JWE=4.15*sc*.92;
+    if(ext){ ext.setAttribute('d',dpoly(ribbon(lead,JWS,true))+' '+dpoly(ribbon(tail,JWE,false))); ext.setAttribute('display','inline'); }
     ['roadMask','pencil'].forEach(function(id){ var f=document.getElementById(id); if(f){ f.setAttribute('x',-EX); f.setAttribute('width',1366+2*EX); } });
-    setRoute(lead.concat([CA],LP0,[CE],tail));
+    var pm=function(a){ return a.map(function(q){ return P(q[0],q[1]); }); };
+    setRoute(pm(lead).concat([CA],LP0,[CE],pm(tail).slice(1)));
   }
   function placeStageM(dw){
     /* the line keeps its own proportions (no squeeze): its drawn band (rows 220…671 of the picture) spans the whole column,
@@ -1338,6 +1360,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
       var w=el.offsetWidth, hh=el.offsetHeight, X=+el.dataset.sx, Y=+el.dataset.sy, best=null;
       for(var dy=-150;dy<=150;dy+=6) for(var x=0;x+w<=W;x+=6){
         var y=Y+dy-hh/2;
+        if(el.dataset.side==='r' && x<X+6) continue;   // this caption stands to the right of its point
         if(put.some(function(b){ return x<b[2]+10&&x+w>b[0]-10&&y<b[3]+14&&y+hh>b[1]-14; })) continue;
         var n=hits(x-pad,y-pad,x+w+pad,y+hh+pad);
         var cx=x+w/2, cy=y+hh/2, dist=Math.hypot(Math.max(0,Math.abs(cx-X)-w/2),cy-Y);
