@@ -230,7 +230,7 @@ html.m .sel br.k{display:inline}
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flw:800;--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1;--fss:.6;--fsb:.3;--fsu:.6;--fsd:.15;--fll:.55;--flu:.35}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flw:800;--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1;--fss:.6;--fsb:.3;--fsu:.6;--fsd:.15;--fll:.55;--flu:.35;--flq:.35}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
@@ -719,7 +719,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   // near or behind the eye of the perspective (it could not be drawn right there anyway)
   // the right part of the screen stretches the letters standing there (they stay in place): VERONIKA grows up from its
   // baseline, ROYSE down from its top. --fss: where on the screen it starts (share of the width), --fsu/--fsd: how much at the edge
-  var FXS=.6, FXB=.5, FXU=.6, FXD=.15, FXL=.4, FXV=.6, FDW=430;   // --fll/--flu: the same on the left edge, for VERONIKA's first letters (grow up)   // --fsb: where it starts for ROYSE
+  var FXS=.6, FXB=.5, FXU=.6, FXD=.15, FXL=.4, FXV=.6, FXQ=0, FDW=430;   // --fll/--flu: the same on the left edge, for VERONIKA's first letters (grow up)   // --fsb: where it starts for ROYSE
   function phLetter(sp,X,Y,deg,r){
     if(!FPB) phBase();
     // the stretch at a point of the screen (share of its width): the right part (VERONIKA up, ROYSE down) and the left part
@@ -728,7 +728,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     // sides; the side it grows from stays put)
     function sAt(px){
       var ss=r?FXB:FXS, t=(px-ss)/(1-ss); t=t<0?0:t>1?1:t; var v=1+t*t*(3-2*t)*(r?FXD:FXU);
-      if(!r&&FXV){ var l=1-px/FXL; l=l<0?0:l>1?1:l; v+=l*l*(3-2*l)*FXV; }
+      var lv=r?FXQ:FXV; if(lv){ var l=1-px/FXL; l=l<0?0:l>1?1:l; v+=l*l*(3-2*l)*lv; }
       return v;
     }
     var qa=FPB.transformPoint(new DOMPoint(X+sp.x0,Y-150)), qb=FPB.transformPoint(new DOMPoint(X+sp.x0+sp.w,Y-150));
@@ -1290,7 +1290,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     FTX=+(fx-660*k).toFixed(1); FTY=+(fy-745*k).toFixed(1);
     // the slope turns the words around the spot under her feet (in #floorClip's own px)
     FHY=parseFloat(hs.getPropertyValue('--flh'))||1;   // --flh: the letters taller (their height on the floor, times)
-    FDW=dw||430; FXS=parseFloat(hs.getPropertyValue('--fss'))||.6; FXB=parseFloat(hs.getPropertyValue('--fsb'))||FXS; FXU=parseFloat(hs.getPropertyValue('--fsu'))||0; FXD=parseFloat(hs.getPropertyValue('--fsd'))||0; FXL=parseFloat(hs.getPropertyValue('--fll'))||.4; FXV=parseFloat(hs.getPropertyValue('--flu'))||0; drawn=-1;
+    FDW=dw||430; FXS=parseFloat(hs.getPropertyValue('--fss'))||.6; FXB=parseFloat(hs.getPropertyValue('--fsb'))||FXS; FXU=parseFloat(hs.getPropertyValue('--fsu'))||0; FXD=parseFloat(hs.getPropertyValue('--fsd'))||0; FXL=parseFloat(hs.getPropertyValue('--fll'))||.4; FXV=parseFloat(hs.getPropertyValue('--flu'))||0; FXQ=parseFloat(hs.getPropertyValue('--flq'))||0;   // --flq: the same on the left for ROYSE (its R grows down) drawn=-1;
     FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FRO=parseFloat(hs.getPropertyValue('--flo'))||0;
     var nbd=parseFloat(hs.getPropertyValue('--flb'))||0; if(nbd!==FBD){ FBD=nbd; if(rows.length&&R) makeSprites(); }   // --flo: the word ROYSE moved to the right FLP=[660,745]; FPB=null; drawn=-1;
     var nfw=Math.round(parseFloat(hs.getPropertyValue('--flw'))||800); if(nfw!==FW){ FW=nfw; FONT=FW+' 400px Montserrat, "Helvetica Neue", Arial, sans-serif'; var reb=function(){ if(rows.length){ build(); drawn=-1; drawFloor(lp); } }; if(document.fonts&&document.fonts.load) document.fonts.load(FONT,'VERONIKA').then(reb,reb); else reb(); }   // --flw: the weight of the letters on the phone (the wide screen stays 800)
