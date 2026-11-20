@@ -230,7 +230,7 @@ html.m .sel br.k{display:inline}
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1;--fss:.6;--fsu:.3;--fsd:.15}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1;--fss:.6;--fsb:.5;--fsu:.6;--fsd:.15}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
@@ -719,10 +719,10 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   // near or behind the eye of the perspective (it could not be drawn right there anyway)
   // the right part of the screen stretches the letters standing there (they stay in place): VERONIKA grows up from its
   // baseline, ROYSE down from its top. --fss: where on the screen it starts (share of the width), --fsu/--fsd: how much at the edge
-  var FSS=.6, FSU=.3, FSD=.15, FDW=430;
+  var FSS=.6, FSB=.5, FSU=.6, FSD=.15, FDW=430;   // --fsb: where it starts for ROYSE
   function phLetter(sp,X,Y,deg,r){
     if(!FPB) phBase();
-    var q=FPB.transformPoint(new DOMPoint(X,Y-150)), t=(q.x/q.w/FDW-FSS)/(1-FSS);
+    var q=FPB.transformPoint(new DOMPoint(X,Y-150)), ss=r?FSB:FSS, t=(q.x/q.w/FDW-ss)/(1-ss);
     t=t<0?0:t>1?1:t; t=t*t*(3-2*t);
     var st=1+t*(r?FSD:FSU), pv=r?-300:-20.6;   // the pivot: ROYSE's top edge, VERONIKA's baseline (letter px)
     var M=FPB.translate(X,Y).rotate(deg).scale(1,FHY).translate(0,pv).scale(1,st).translate(sp.x0,sp.y0-pv), on=true;
@@ -1280,7 +1280,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     FTX=+(fx-660*k).toFixed(1); FTY=+(fy-745*k).toFixed(1);
     // the slope turns the words around the spot under her feet (in #floorClip's own px)
     FHY=parseFloat(hs.getPropertyValue('--flh'))||1;   // --flh: the letters taller (their height on the floor, times)
-    FDW=dw||430; FSS=parseFloat(hs.getPropertyValue('--fss'))||.6; FSU=parseFloat(hs.getPropertyValue('--fsu'))||0; FSD=parseFloat(hs.getPropertyValue('--fsd'))||0; drawn=-1;
+    FDW=dw||430; FSS=parseFloat(hs.getPropertyValue('--fss'))||.6; FSB=parseFloat(hs.getPropertyValue('--fsb'))||FSS; FSU=parseFloat(hs.getPropertyValue('--fsu'))||0; FSD=parseFloat(hs.getPropertyValue('--fsd'))||0; drawn=-1;
     FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FRO=parseFloat(hs.getPropertyValue('--flo'))||0;
     var nbd=parseFloat(hs.getPropertyValue('--flb'))||0; if(nbd!==FBD){ FBD=nbd; if(rows.length&&R) makeSprites(); }   // --flo: the word ROYSE moved to the right FLP=[660,745]; FPB=null; drawn=-1;
     fc.style.transformOrigin='0 0';
