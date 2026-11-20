@@ -1318,7 +1318,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   /* ---- the same screen on a phone: the picture of the line is turned a quarter round, so it runs from the top of the
      column to the bottom; the band where the pencil wanders lies down the left, the steps stand one under another to its
      right, evenly spaced. ML: the line's length on screen (design px); MA: the picture's height, now its width ---- */
-  var ML=1000, MA=380, MLT=20, EX=240, clipU=0, THK=0;   // THK: the line is made this much thicker (design px, each side) on a phone
+  var ML=1000, MA=380, MLT=20, EX=240, EYB=120, clipU=0, THK=0;   // THK: the line is made this much thicker (design px, each side) on a phone
   /* on a phone the line does not start and end in the air: it comes in from the left edge of the screen, underlines
      the last line of the text under the title and turns down into the drawn line; at the bottom it runs off the left edge,
      on to the next screen. These two pieces are drawn here (same pencil, a little hand tremor) and the pen runs along them too.
@@ -1351,12 +1351,13 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     /* the tail follows the path drawn by hand: on from the line's end, a long soft wave to the left (a small bump up, then a dip),
        and out over the left edge. Points are (left, down) from the line's end, as designed for a 386 px wide column;
        the run to the left is stretched to reach past the edge */
-    var TP=[[0,0],[-5.3,6],[-12.8,11.2],[-22.4,16],[-33.1,18.1],[-43.8,17.1],[-54.5,13.8],[-65.2,10.6],[-75.9,10.1],[-86.6,12.2],[-97.3,17],[-108,22.8],[-118.7,26.5]];
-    var kT=(XE+32)/118.7, tp=TP.map(function(r){ return [XE+r[0]*kT, YE+r[1]]; });
+    var TP=[[0,0],[-5,6],[-12,12.5],[-20,18],[-30,20],[-40,15.5],[-50,9],[-60,6.5],[-69,11],[-78,19],[-88,21],[-98,14.5],[-108,10.5],[-118,12.5],[-130,17.5],[-142,21],[-152,23]];
+    var kT=(XE+34)/152, tp=TP.map(function(r){ return [XE+r[0]*kT, YE+r[1]]; });
     for(i=0;i<tp.length-1;i++){
       var q0=tp[Math.max(0,i-1)], q1=tp[i], q2=tp[i+1], q3=tp[Math.min(tp.length-1,i+2)], tl=Math.hypot(q2[0]-q1[0],q2[1]-q1[1]), tn2=Math.max(1,Math.ceil(tl/2));
       for(var tk=0;tk<tn2;tk++){ var tu=tk/tn2, tu2=tu*tu, tu3=tu2*tu;
-        tail.push([0,1].map(function(c){ return .5*((2*q1[c])+(-q0[c]+q2[c])*tu+(2*q0[c]-5*q1[c]+4*q2[c]-q3[c])*tu2+(-q0[c]+3*q1[c]-3*q2[c]+q3[c])*tu3); })); }
+        var pt=[0,1].map(function(c){ return .5*((2*q1[c])+(-q0[c]+q2[c])*tu+(2*q0[c]-5*q1[c]+4*q2[c]-q3[c])*tu2+(-q0[c]+3*q1[c]-3*q2[c]+q3[c])*tu3); });
+        pt[1]+=wob(pt[0]*1.3+50)*.5*Math.min(1,tail.length/14); tail.push(pt); }
     }
     tail.push(tp[tp.length-1]);
     /* the pieces are drawn as a ribbon whose width starts exactly as wide as the picture's own line at the join (measured:
@@ -1380,10 +1381,10 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     var rl=ribbon(lead,JWS,true), rt=ribbon(tail,JWE,false);
     extPolys=[rl,rt].map(function(pl){ return pl.map(function(q){ return P(q[0],q[1]); }); });
     if(ext){ ext.setAttribute('d',dpoly(rl)+' '+dpoly(rt)); ext.setAttribute('display','inline'); }
-    ['roadMask','pencil'].forEach(function(id){ var f=document.getElementById(id); if(f){ f.setAttribute('x',-EX); f.setAttribute('width',1366+2*EX); } });
+    ['roadMask','pencil'].forEach(function(id){ var f=document.getElementById(id); if(f){ f.setAttribute('x',-EX); f.setAttribute('width',1366+2*EX); f.setAttribute('height',768+EYB); } });
     var pm=function(a){ return a.map(function(q){ return P(q[0],q[1]); }); };
     var lp0=LP0.filter(function(q){ return q[0]>CU; });
-    var clipR=document.getElementById('roadClipR'); if(clipR){ clipR.setAttribute('x',CU); clipR.setAttribute('width',1366-CU); }
+    var clipR=document.getElementById('roadClipR'); if(clipR){ clipR.setAttribute('x',CU); clipR.setAttribute('width',1366-CU); clipR.setAttribute('height',768+EYB); }
     setRoute(pm(lead).concat([CA],lp0,[CE],pm(tail).slice(1)));
   }
   function placeStageM(dw){
@@ -1398,9 +1399,9 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     band.style.width=W+'px'; band.style.height=(ML+2*MLT)+'px';
     /* the picture gets EX of room before and after it, for the lead-in and the tail (setLineEnds) */
     var ku=ML/1366;
-    road.setAttribute('viewBox',(-EX)+' 0 '+(1366+2*EX)+' 768');
+    road.setAttribute('viewBox',(-EX)+' 0 '+(1366+2*EX)+' '+(768+EYB));
     road.style.left=(671*sc+XO).toFixed(1)+'px'; road.style.top=(MLT-EX*ku).toFixed(1)+'px';
-    road.style.width=((1366+2*EX)*ku).toFixed(1)+'px'; road.style.height=MA.toFixed(1)+'px';
+    road.style.width=((1366+2*EX)*ku).toFixed(1)+'px'; road.style.height=((768+EYB)*sc).toFixed(1)+'px';
     road.style.transformOrigin='0 0'; road.style.transform='rotate(90deg)';
     setLineEnds(W,sc,ku,XO);
     var grain=document.getElementById('pencilGrain');
@@ -1491,8 +1492,8 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     road.style.transform=''; road.style.transformOrigin='';
     road.setAttribute('viewBox','0 0 1366 768');
     var ext=document.getElementById('roadExt'); if(ext) ext.setAttribute('display','none'); extPolys=null;
-    ['roadMask','pencil'].forEach(function(id){ var f=document.getElementById(id); if(f){ f.setAttribute('x',0); f.setAttribute('width',1366); } });
-    clipU=0; var clipR=document.getElementById('roadClipR'); if(clipR){ clipR.setAttribute('x',0); clipR.setAttribute('width',1366); }
+    ['roadMask','pencil'].forEach(function(id){ var f=document.getElementById(id); if(f){ f.setAttribute('x',0); f.setAttribute('width',1366); f.setAttribute('height',768); } });
+    clipU=0; var clipR=document.getElementById('roadClipR'); if(clipR){ clipR.setAttribute('x',0); clipR.setAttribute('width',1366); clipR.setAttribute('height',768); }
     if(LP!==LP0) setRoute(LP0);
     document.querySelectorAll('.lab').forEach(function(el){ el.style.width=''; el.style.transform=''; el.style.textAlign=''; });
     document.getElementById('floorClip').style.cssText=''; document.getElementById('plane').style.left='';
@@ -1606,7 +1607,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   // AM: the album is read page by page (an upright tablet, where it stays upright)
   var ROT=false, AM=false, ROT_TOP=64;
   function placeAlbum(dw,vh){
-    ROT=MOB&&VREF.h>VREF.w*1.15&&VREF.w<600; AM=MOB&&!ROT; root.classList.toggle('rot',ROT);
+    ROT=false; AM=MOB; root.classList.toggle('rot',ROT);
     var des=albumSec.querySelector('.design');
     if(ROT){
       // the grid: as long as the screen is tall (under the badge), as wide as the column; the spread fills it
