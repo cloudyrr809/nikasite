@@ -411,7 +411,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 <h2 class="abs sel p-sub" style="left:44px;top:250px;margin:0;font-weight:600;font-size:15px;line-height:1.35">Как проходит работа над выпускным альбомом:<br>от брони даты до готовых альбомов в руках</h2>
 
 <div id="band">
-<svg id="road" viewBox="0 0 1366 768" preserveAspectRatio="none" aria-hidden="true" data-x="0" data-y="108"><defs><mask id="roadMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768"><path id="roadPen" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 2" stroke-dashoffset="0"/><rect class="blk" x="499" y="477" width="15" height="15" fill="#000" data-ux="509.3" data-uy="473.8"/><rect class="blk" x="499" y="495" width="13" height="12" fill="#000" data-ux="504" data-uy="494"/></mask><filter id="pencil" filterUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><clipPath id="roadClip" clipPathUnits="userSpaceOnUse"><rect id="roadClipR" x="0" y="0" width="1366" height="768"/></clipPath><g mask="url(#roadMask)" id="roadInk"><image href="line5.png" x="0" y="0" width="1366" height="768" preserveAspectRatio="none" filter="url(#pencil)" clip-path="url(#roadClip)"/><path id="roadExt" d="" fill="#000" stroke="none" filter="url(#pencil)" display="none"/></g></svg>
+<svg id="road" viewBox="0 0 1366 768" preserveAspectRatio="none" aria-hidden="true" data-x="0" data-y="108"><defs><mask id="roadMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768"><path id="roadPen" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 2" stroke-dashoffset="0"/><rect class="blk" x="499" y="477" width="15" height="15" fill="#000" data-ux="509.3" data-uy="473.8"/><rect class="blk" x="499" y="495" width="13" height="12" fill="#000" data-ux="504" data-uy="494"/></mask><filter id="pencil" filterUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><clipPath id="roadClip" clipPathUnits="userSpaceOnUse"><rect id="roadClipR" x="0" y="0" width="1366" height="768"/></clipPath><g mask="url(#roadMask)" id="roadInk"><image href="line5.png" x="0" y="0" width="1366" height="768" preserveAspectRatio="none" filter="url(#pencil)" clip-path="url(#roadClip)"/><path id="roadExt" d="" fill="#000" fill-opacity=".9" stroke="none" filter="url(#pencil)" display="none"/></g></svg>
 <div class="lab" data-n="01" data-x="204" data-y="389" data-my="-30">бронирование <br class="mb">альбома</div>
 <div class="lab" data-n="02" data-x="193" data-y="736" data-my="45" data-side="r">создание чата<br>с классом</div>
 <div class="lab" data-n="03" data-x="690" data-y="555">выбор концепции<br>и стиля</div>
@@ -1000,7 +1000,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
             var rr=THK*s*dpr*k0, offs=[[0,0]]; if(rr>.01) for(var oi=0;oi<8;oi++) offs.push([Math.cos(oi*Math.PI/4)*rr,Math.sin(oi*Math.PI/4)*rr]);
             offs.forEach(function(o){ x.drawImage(t0,o[0],o[1]); });
             // the hand-made lead-in and tail
-            x.setTransform(kx,0,0,ky,-vb.x*kx,-vb.y*ky); x.fillStyle='#000';
+            x.setTransform(kx,0,0,ky,-vb.x*kx,-vb.y*ky); x.fillStyle='rgba(0,0,0,.9)';   // the picture's own ink is about 83% opaque, mine a little more since its width does not vary on average
             extPolys.forEach(function(poly){ x.beginPath(); poly.forEach(function(q,i){ if(i) x.lineTo(q[0],q[1]); else x.moveTo(q[0],q[1]); }); x.closePath(); x.fill(); });
             x.setTransform(1,0,0,1,0,0);
             pencilGrain(x,pw,ph,kx,ky,vb.x);
@@ -1347,14 +1347,18 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     }
     lead.push(ap[ap.length-1]);
     // the tail: on from the line's end in the same direction, bending left and out over the edge
-    var e=CE, e0=[1359,611], XE=(671-e[1])*sc+XO, YE=MLT+e[0]*ku;
-    var dX=-(e[1]-e0[1])*sc, dY=(e[0]-e0[0])*ku, dl=Math.hypot(dX,dY)||1; dX/=dl; dY/=dl;
-    var c1=[XE+dX*16,YE+dY*16], c2=[XE-10,YE+26], p2=[-22-10,YE+30];
-    n=Math.ceil((Math.hypot(XE-p2[0],YE-p2[1])+10)/3);
-    tail.push([XE,YE]);
-    for(i=1;i<=n;i++){ t=i/n; var q=1-t,
-      x=q*q*q*XE+3*q*q*t*c1[0]+3*q*t*t*c2[0]+t*t*t*p2[0], y=q*q*q*YE+3*q*q*t*c1[1]+3*q*t*t*c2[1]+t*t*t*p2[1];
-      tail.push([x, y+wob(x*1.3+50)*t*.8]); }
+    var XE=(671-CE[1])*sc+XO, YE=MLT+CE[0]*ku;
+    /* the tail follows the path drawn by hand: on from the line's end, a long soft wave to the left (a small bump up, then a dip),
+       and out over the left edge. Points are (left, down) from the line's end, as designed for a 386 px wide column;
+       the run to the left is stretched to reach past the edge */
+    var TP=[[0,0],[-5.3,6],[-12.8,11.2],[-22.4,16],[-33.1,18.1],[-43.8,17.1],[-54.5,13.8],[-65.2,10.6],[-75.9,10.1],[-86.6,12.2],[-97.3,17],[-108,22.8],[-118.7,26.5]];
+    var kT=(XE+32)/118.7, tp=TP.map(function(r){ return [XE+r[0]*kT, YE+r[1]]; });
+    for(i=0;i<tp.length-1;i++){
+      var q0=tp[Math.max(0,i-1)], q1=tp[i], q2=tp[i+1], q3=tp[Math.min(tp.length-1,i+2)], tl=Math.hypot(q2[0]-q1[0],q2[1]-q1[1]), tn2=Math.max(1,Math.ceil(tl/2));
+      for(var tk=0;tk<tn2;tk++){ var tu=tk/tn2, tu2=tu*tu, tu3=tu2*tu;
+        tail.push([0,1].map(function(c){ return .5*((2*q1[c])+(-q0[c]+q2[c])*tu+(2*q0[c]-5*q1[c]+4*q2[c]-q3[c])*tu2+(-q0[c]+3*q1[c]-3*q2[c]+q3[c])*tu3); })); }
+    }
+    tail.push(tp[tp.length-1]);
     /* the pieces are drawn as a ribbon whose width starts exactly as wide as the picture's own line at the join (measured:
        3.85 and 4.15 picture px of ink, a touch less in grain) and then wanders like pencil pressure: harder here, lighter there.
        Widths are in screen px, so the stroke is as thick going across the picture as along it */
