@@ -911,66 +911,103 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   var inkBmp=null, inkCv=null, inkDone=false;
   // true while the process line draws itself: the album then puts no pictures onto the graphics card, so the pen runs smooth
   var introOn=false;
-  /* The pencil grain made in plain code (no SVG filter, which Safari paints onto a canvas badly and slowly): the line's picture
-     and the two hand-made pieces are drawn at screen size and every pixel's alpha is cut by the same rule as the SVG filter
-     (alpha x (3.2*noise + 1.6*blurred alpha - 2.05), clamped), the noise being a soft random field about one grain wide.
-     The result is the finished line, made once; the pen only uncovers it. Phones only. */
-  var extPolys=null;
+  /* The pencil paper of the original line, made in plain code. On a phone the SVG filter cannot be used (Safari paints it onto a
+     canvas badly and slowly), so its maths are repeated exactly: feTurbulence (Perlin noise, the reference algorithm of the SVG
+     standard, 2 octaves, the same seed), then   alpha = 0.86 * alpha * clamp(3.2*noise + 1.6*blurred alpha - 2.05).
+     The grain is as fine, relative to the line, as on the wide screen (GRAIN scales it with the line). It is done once, for the
+     finished line; the pen only uncovers it. Phones only. */
+  var extPolys=null, GRAIN=1;
+  function makeTurbulence(seed){
+    var RM=2147483647, RA=16807, RQ=127773, RR=2836, BS=256, BM=255, PN=4096;
+    function rnd(v){ var r=RA*(v%RQ)-RR*Math.floor(v/RQ); return r<=0?r+RM:r; }
+    var lat=new Int32Array(BS+BS+2), gx=new Float64Array(BS+BS+2), gy=new Float64Array(BS+BS+2), i, j, k;
+    if(seed<=0) seed=-(seed%(RM-1))+1; if(seed>RM-1) seed=RM-1;
+    for(k=0;k<4;k++){
+      for(i=0;i<BS;i++){
+        lat[i]=i;
+        var a=((seed=rnd(seed))%(BS+BS)-BS)/BS, b=((seed=rnd(seed))%(BS+BS)-BS)/BS, l=Math.sqrt(a*a+b*b)||1;
+        if(k===0){ gx[i]=a/l; gy[i]=b/l; }   // only the first channel is used (the filter's colour matrix reads it); the others still advance the sequence
+      }
+    }
+    i=BS;
+    while(--i){ k=lat[i]; j=(seed=rnd(seed))%BS; lat[i]=lat[j]; lat[j]=k; }
+    for(i=0;i<BS+2;i++){ lat[BS+i]=lat[i]; gx[BS+i]=gx[i]; gy[BS+i]=gy[i]; }
+    function noise(vx,vy){
+      var t=vx+PN, bx0=(t|0)&BM, bx1=(bx0+1)&BM, rx0=t-(t|0), rx1=rx0-1;
+      t=vy+PN; var by0=(t|0)&BM, by1=(by0+1)&BM, ry0=t-(t|0), ry1=ry0-1;
+      var ii=lat[bx0], jj=lat[bx1], b00=lat[ii+by0], b10=lat[jj+by0], b01=lat[ii+by1], b11=lat[jj+by1];
+      var sx=rx0*rx0*(3-2*rx0), sy=ry0*ry0*(3-2*ry0);
+      var u=rx0*gx[b00]+ry0*gy[b00], v=rx1*gx[b10]+ry0*gy[b10], aa=u+sx*(v-u);
+      u=rx0*gx[b01]+ry1*gy[b01]; v=rx1*gx[b11]+ry1*gy[b11]; var bb=u+sx*(v-u);
+      return aa+sy*(bb-aa);
+    }
+    // fractal noise, two octaves, returned in 0…1
+    return function(x,y,fx,fy){
+      var vx=x*fx, vy=y*fy, sum=noise(vx,vy); sum+=noise(vx*2,vy*2)/2;
+      return sum*.5+.5;
+    };
+  }
+  function gaussKernel(sg){
+    sg=Math.max(.3,sg); var R=Math.max(1,Math.ceil(sg*3)), k=[], sum=0, i;
+    for(i=-R;i<=R;i++){ var v=Math.exp(-i*i/(2*sg*sg)); k.push(v); sum+=v; }
+    for(i=0;i<k.length;i++) k[i]/=sum;
+    return k;
+  }
+  function pencilGrain(x,pw,ph,kx,ky,vx0){
+    var id=x.getImageData(0,0,pw,ph), d=id.data, n=pw*ph, A=new Uint8Array(n), T=new Float32Array(n), B=new Float32Array(n), i, j, y, xx, q;
+    for(i=0,j=3;i<n;i++,j+=4) A[i]=d[j];
+    // the filter's blur: a gaussian of 0.35 picture units
+    var kh=gaussKernel(.35*kx), Rh=(kh.length-1)>>1, kv=gaussKernel(.35*ky), Rv=(kv.length-1)>>1;
+    for(y=0;y<ph;y++){ var o=y*pw; for(xx=0;xx<pw;xx++){ var sum=0; for(q=-Rh;q<=Rh;q++){ var xq=xx+q; xq=xq<0?0:xq>=pw?pw-1:xq; sum+=kh[q+Rh]*A[o+xq]; } T[o+xx]=sum; } }
+    for(y=0;y<ph;y++){ for(xx=0;xx<pw;xx++){ var sv=0; for(q=-Rv;q<=Rv;q++){ var yq=y+q; yq=yq<0?0:yq>=ph?ph-1:yq; sv+=kv[q+Rv]*T[yq*pw+xx]; } B[y*pw+xx]=sv/255; } }
+    var turb=makeTurbulence(7), fx=PENCIL_F*GRAIN*ML/1366, fy=PENCIL_F*GRAIN*MA/768;
+    for(y=0;y<ph;y++){
+      var Y=(y+.5)/ky;
+      for(xx=0;xx<pw;xx++){
+        var idx=y*pw+xx, a=A[idx]; if(a===0) continue;
+        var nz=turb((xx+.5)/kx+vx0,Y,fx,fy), m=3.2*nz+1.6*B[idx]-2.05; m=m<0?0:m>1?1:m;
+        d[idx*4+3]=Math.round(.86*a*m);
+      }
+    }
+    x.putImageData(id,0,0);
+  }
+  // what the finished line was made for: if the layout changes, it has to be made again
+  function inkKeyNow(){
+    var r=document.getElementById('road');
+    return r.style.width+'|'+r.style.height+'|'+r.getAttribute('viewBox')+'|'+clipU+'|'+MXO+'|'+ML+'|'+s+'|'+(extPolys?extPolys.map(function(pl){ return pl.length+':'+pl[0][0]+','+pl[0][1]+','+pl[pl.length>>1][0]; }).join(';'):'');
+  }
   function bakeInkJS(){
     return new Promise(function(ok,no){
       try{
         var road=document.getElementById('road'), vb=road.viewBox.baseVal, dpr=Math.min(window.devicePixelRatio||1,3);
-        var k0=Math.sqrt(Math.min(1,6e6/(parseFloat(road.style.width)*parseFloat(road.style.height)*s*s*dpr*dpr)));
-        var pw=Math.round(parseFloat(road.style.width)*s*dpr*k0), ph=Math.round(parseFloat(road.style.height)*s*dpr*k0);
+        var k0=Math.sqrt(Math.min(1,4e6/(parseFloat(road.style.width)*parseFloat(road.style.height)*s*s*dpr*dpr)));
+        var pw=Math.round(parseFloat(road.style.width)*s*dpr*k0), ph=Math.round(parseFloat(road.style.height)*s*dpr*k0), key=inkKeyNow();
         if(pw<10||ph<10||!extPolys) return no();
         var im=new Image();
         im.onerror=no;
         im.onload=function(){
           try{
             var c=document.createElement('canvas'); c.width=pw; c.height=ph; var x=c.getContext('2d'), kx=pw/vb.width, ky=ph/vb.height;
-            x.setTransform(kx,0,0,ky,-vb.x*kx,-vb.y*ky); x.imageSmoothingEnabled=true; if(x.imageSmoothingQuality) x.imageSmoothingQuality='high';
-            // the picture is drawn clipped (from clipU on) and several times, a hair apart, which makes the line thicker
-            // first the picture alone, cleaned: faint dust is dropped and the edge made crisp; only then is it laid down several
-            // times a hair apart (that thickens the line without raising the dust)
+            // the picture alone (from clipU on, faint dust dropped) ...
             var t0=document.createElement('canvas'); t0.width=pw; t0.height=ph; var z=t0.getContext('2d');
             z.setTransform(kx,0,0,ky,-vb.x*kx,-vb.y*ky); z.imageSmoothingEnabled=true; if(z.imageSmoothingQuality) z.imageSmoothingQuality='high';
             z.save(); z.beginPath(); z.rect(clipU,0,1366-clipU,768); z.clip(); z.drawImage(im,0,0,1366,768); z.restore();
             z.setTransform(1,0,0,1,0,0);
             var zi=z.getImageData(0,0,pw,ph), zd=zi.data;
-            for(var zj=3;zj<zd.length;zj+=4){ var za=(zd[zj]/255-.3)/.4; za=za<0?0:za>1?1:za; zd[zj]=Math.round(255*za*za*(3-2*za)); }
+            for(var zj=3;zj<zd.length;zj+=4) if(zd[zj]<28) zd[zj]=0;
             z.putImageData(zi,0,0);
-            var rr=THK*s*dpr*k0, offs=[[0,0]]; for(var oi=0;oi<8;oi++) offs.push([Math.cos(oi*Math.PI/4)*rr,Math.sin(oi*Math.PI/4)*rr]);
-            x.setTransform(1,0,0,1,0,0);
+            // ... optionally laid down a few times a hair apart (THK: a thicker line; 0 keeps the picture exactly as drawn)
+            var rr=THK*s*dpr*k0, offs=[[0,0]]; if(rr>.01) for(var oi=0;oi<8;oi++) offs.push([Math.cos(oi*Math.PI/4)*rr,Math.sin(oi*Math.PI/4)*rr]);
             offs.forEach(function(o){ x.drawImage(t0,o[0],o[1]); });
-            x.setTransform(kx,0,0,ky,-vb.x*kx,-vb.y*ky);
-            x.fillStyle='#000';
+            // the hand-made lead-in and tail
+            x.setTransform(kx,0,0,ky,-vb.x*kx,-vb.y*ky); x.fillStyle='#000';
             extPolys.forEach(function(poly){ x.beginPath(); poly.forEach(function(q,i){ if(i) x.lineTo(q[0],q[1]); else x.moveTo(q[0],q[1]); }); x.closePath(); x.fill(); });
             x.setTransform(1,0,0,1,0,0);
-            var id=x.getImageData(0,0,pw,ph), d=id.data, n=pw*ph, A=new Uint8Array(n), B=new Float32Array(n), i, j;
-            for(i=0,j=3;i<n;i++,j+=4) A[i]=d[j];
-            // blurred alpha: 3x3 binomial (the filter's sigma is about 0.35 px; about the same at this size)
-            var T=new Float32Array(n), y, xx;
-            for(y=0;y<ph;y++){ var o=y*pw; for(xx=0;xx<pw;xx++){ var l=xx?A[o+xx-1]:A[o+xx], r=xx<pw-1?A[o+xx+1]:A[o+xx]; T[o+xx]=(l+2*A[o+xx]+r)*.25; } }
-            for(y=0;y<ph;y++){ var o2=y*pw, up=(y?y-1:y)*pw, dn=(y<ph-1?y+1:y)*pw; for(xx=0;xx<pw;xx++) B[o2+xx]=(T[up+xx]+2*T[o2+xx]+T[dn+xx])*.25/255; }
-            // soft noise: a random lattice about one grain wide, smoothly interpolated, plus a little per-pixel jitter
-            var g=Math.max(1.2,1.18*s*dpr*k0), gx=Math.ceil(pw/g)+2, gy=Math.ceil(ph/g)+2, L=new Float32Array(gx*gy), seed=12345;
-            var rnd=function(){ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; };
-            for(i=0;i<L.length;i++) L[i]=rnd();
-            for(y=0;y<ph;y++){
-              var fy=y/g, iy=fy|0, ty=fy-iy; ty=ty*ty*(3-2*ty); var r0=iy*gx, r1=(iy+1)*gx;
-              for(xx=0;xx<pw;xx++){
-                var idx=y*pw+xx, a=A[idx]; if(a===0) continue;
-                var fx=xx/g, ix=fx|0, tx=fx-ix; tx=tx*tx*(3-2*tx);
-                var v=(L[r0+ix]*(1-tx)+L[r0+ix+1]*tx)*(1-ty)+(L[r1+ix]*(1-tx)+L[r1+ix+1]*tx)*ty;
-                var nz=.5+(v-.5)*.3+(rnd()-.5)*.03, m=3.2*nz+1.6*B[idx]-2.05; m=m<0?0:m>1?1:m;
-                d[idx*4+3]=Math.round(.94*a*m);
-              }
-            }
-            x.putImageData(id,0,0);
+            pencilGrain(x,pw,ph,kx,ky,vb.x);
             // the same check as before: the picture really holds the line
             var t=document.createElement('canvas'); t.width=96; t.height=54; var tx2=t.getContext('2d'); tx2.drawImage(c,0,0,96,54);
-            var dd=tx2.getImageData(0,0,96,54).data, cnt=0; for(i=3;i<dd.length;i+=4) if(dd[i]>20) cnt++;
-            if(cnt<40) no(); else ok(c);
+            var dd=tx2.getImageData(0,0,96,54).data, cnt=0; for(var i=3;i<dd.length;i+=4) if(dd[i]>20) cnt++;
+            if(cnt<40) no(); else { c._k=key; ok(c); }
           }catch(e){ no(e); }
         };
         im.src='line5.png';
@@ -1017,8 +1054,23 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   function syncInk(){
     if(!inkCv) return;
     var road=document.getElementById('road');
-    if(inkDone){ inkCv.remove(); inkCv=null; var g=document.getElementById('roadInk'); if(g) g.style.visibility=''; return; }   // resized after the intro: back to the live line
+    if(inkDone){
+      if(!MOB){ inkCv.remove(); inkCv=null; var g=document.getElementById('roadInk'); if(g) g.style.visibility=''; return; }   // wide screen, resized after the intro: back to the live line
+      // on a phone the finished line stays on its canvas; if the layout really changed (not just the address bar) it is made again.
+      // (Before, any re-layout swapped it for the thin live line, which now and then showed up in place of the thick one)
+      if(inkBmp && inkBmp._k!==inkKeyNow()) rebakeInk();
+    }
     ['left','top','width','height','transform','transformOrigin'].forEach(function(k){ inkCv.style[k]=road.style[k]; });
+  }
+  var rebaking=false;
+  function rebakeInk(){
+    if(rebaking) return; rebaking=true;
+    bakeInkJS().then(function(c){
+      rebaking=false; if(!inkCv||!inkDone) return;
+      inkBmp=c; inkCv.width=c.width; inkCv.height=c.height;
+      var x=inkCv.getContext('2d'); x.setTransform(1,0,0,1,0,0); x.clearRect(0,0,c.width,c.height); x.drawImage(c,0,0);
+      if(c._k!==inkKeyNow()) rebakeInk();
+    },function(){ rebaking=false; });
   }
   function makeInk(st){
     if(!inkBmp) return null;
@@ -1087,12 +1139,13 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   function playIntro(st){
     // the line's own clock: it counts at most ~2 frames per frame, so if the page is busy for a moment the pen only slows
     // down there, instead of jumping ahead (before, a busy page made the whole line simply appear at the end)
-    var D=4200, t0=null, el=0, q=0, busy=false, reach=0, lastOff='', ink=makeInk(st);
+    var D=MOB?6500:4200, t0=null, el=0, q=0, busy=false, reach=0, fcur=0, lastOff='', ink=makeInk(st);
     introOn=true;
     function tryType(){
       if(busy || q>=st.items.length) return;
       var it=st.items[q];
-      if(reach < it.at-0.04) return;          // a caption starts once the line has reached it
+      if(MOB){ if(fcur < +it.el.dataset.f-.003) return; }   // a caption starts once the line has reached it
+      else if(reach < it.at-0.04) return;
       busy=true; q++;
       typeItem(it,function(){ busy=false; tryType(); });
     }
@@ -1108,100 +1161,29 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
       for(var b2=0;b2<st.blks.length;b2++){ var bk=st.blks[b2]; if(!bk.on && at.f>=bk.f){ bk.on=true; bk.el.setAttribute('opacity','0'); } }
       if(ink) drawInk(ink,st,at.f,false);
       if(at.x>reach) reach=at.x;
+      if(at.f>fcur) fcur=at.f;
       tryType();
       if(p<1) requestAnimationFrame(step);
       else {
         // done: drop the mask, so the finished line is the plain picture and costs nothing to show
         st.pen.style.strokeDashoffset='0'; if(st.img) st.img.removeAttribute('mask');
         if(ink){ drawInk(ink,st,1,true); inkDone=true; }   // the canvas keeps showing the finished line until the window is resized
-        reach=1; tryType();
+        reach=1; fcur=1; tryType();
         introOn=false;
       }
     }
     requestAnimationFrame(step);
   }
-  /* on a phone the line is long (it runs down the whole screen and more), so it is not drawn on a clock: the pen follows
-     the scroll, staying a little below the middle of the screen, and each step is typed as the pen comes down to it.
-     Scrolling back up leaves what is drawn as it is */
-  function scrubIntro(st){
-    var ink=null, cur=0, goalF=0, reach=0, q=0, busy=false, raf2=0, done=false, ready=false;
-    /* where the pen is along its route for a given depth down the screen. Before, the pen went as far as it could without
-       passing that depth: where the line turns back up (its big rounding) the whole bend had the same depth, so it was
-       uncovered in one go and seemed to appear on both sides at once. Now the route's own length counts half: a bend that
-       turns back is drawn bit by bit as the page scrolls on, always as one line from its start */
-    var LT=0, MP=[], mpFor=null;
-    function mapRoute(){
-      mpFor=LP; LT=LEN[LEN.length-1]; MP=[]; var m=0;
-      for(var i=0;i<LP.length;i++){ if(LP[i][0]>m) m=LP[i][0]; MP.push(.5*m/1366+.5*LEN[i]/LT); }
-    }
-    mapRoute();
-    var band=document.getElementById('band');
-    function tryType(){
-      if(busy || q>=st.items.length) return;
-      var it=st.items[q]; if(cur < +it.el.dataset.f-.003) return;
-      var behind=q+1<st.items.length&&cur>=+st.items[q+1].el.dataset.f;
-      busy=true; q++; typeItem(it,function(){ busy=false; tryType(); },behind);
-    }
-    // the point of the route (as a share of its length) that belongs to a depth down the page (a share of the band's length)
-    function routeAt(rc){
-      if(mpFor!==LP) mapRoute();
-      if(rc>=1) return 1;
-      var lo=0, hi=LP.length-1;
-      while(hi-lo>1){ var mid=(lo+hi)>>1; if(MP[mid]<=rc) lo=mid; else hi=mid; }
-      var t=(rc-MP[lo])/((MP[hi]-MP[lo])||1);
-      return (LEN[lo]+(LEN[hi]-LEN[lo])*Math.max(0,Math.min(1,t)))/LT;
-    }
-    function aim(){
-      if(mpFor!==LP) mapRoute();
-      // the pen keeps well ahead of the reader: it is where the lower part of the screen is
-      var r=band.getBoundingClientRect(), y=(window.innerHeight*.86-r.top)/s-MLT, f=Math.max(0,Math.min(1,y/ML));
-      if(f>reach){ reach=f; }
-      goalF=routeAt(reach);
-    }
-    // the page may open already scrolled down (a reload keeps the place): what lies above the top of the screen is drawn at once,
-    // so the pen starts where the reader is looking instead of walking there from the very beginning
-    function seedPen(){
-      var r=band.getBoundingClientRect(), yt=(window.innerHeight*.1-r.top)/s-MLT, ft=Math.max(0,Math.min(1,yt/ML));
-      if(ft>0) cur=Math.max(cur,routeAt(ft));
-    }
-    var tPrev=0;
-    function step(now){
-      raf2=0; aim();
-      // the pen eases after the scroll, and never runs faster than a hand would (a quick fling does not flash the line in).
-      // It is timed in milliseconds, so a 120 Hz screen draws no faster than a 60 Hz one: about 600 route units a second
-      var dt=tPrev?Math.min(50,Math.max(0,now-tPrev)):16.7; tPrev=now;
-      cur+=Math.min((goalF-cur)*(1-Math.exp(-dt/260)), 600*dt/1000/LT); if(goalF-cur<.0008) cur=goalF;
-      st.pen.style.strokeDashoffset=(1-cur).toFixed(4);
-      for(var k=0;k<st.dabs.length;k++){ var dk=st.dabs[k]; if(!dk.on && cur>=dk.f-0.004){ dk.on=true; dk.el.setAttribute('opacity','1'); } }
-      for(var b2=0;b2<st.blks.length;b2++){ var bk=st.blks[b2]; if(!bk.on && cur>=bk.f){ bk.on=true; bk.el.setAttribute('opacity','0'); } }
-      if(ink) drawInk(ink,st,cur,false);
-      tryType();
-      if(cur>=1&&!done){
-        done=true; introOn=false; st.pen.style.strokeDashoffset='0'; if(st.img) st.img.removeAttribute('mask');
-        if(ink){ drawInk(ink,st,1,true); inkDone=true; }
-        window.removeEventListener('scroll',kick2);
-        return;
-      }
-      if(cur<goalF) raf2=requestAnimationFrame(step);
-    }
-    function kick2(){ if(ready&&!raf2&&!done) raf2=requestAnimationFrame(step); }
-    st.pen.style.strokeDashoffset='1'; introOn=true;
-    // nothing is drawn until the finished line is ready: before, the first moments went through the slow live line
-    function go2(){ ready=true; seedPen(); kick2(); }
-    setTimeout(function(){ bakeInk().then(function(c){ inkBmp=c; ink=makeInk(st); go2(); },function(){ go2(); }); },400);
-    window.addEventListener('scroll',kick2,{passive:true});
-  }
   function setupIntro(){
     var st=prepIntro(); if(!st) return;
-    if(MOB){ scrubIntro(st); return; }
     var h2=document.querySelector('#process h2');
     // the grained line is baked in the background soon after load; the intro waits for it a moment at most
     var baked=new Promise(function(ok){ setTimeout(function(){ bakeInk().then(function(c){ inkBmp=c; ok(); },function(){ ok(); }); },400); });
-    function go(){ var fired=false; function fire(){ if(fired) return; fired=true; playIntro(st); } baked.then(fire); setTimeout(fire,1500); }
+    function go(){ var fired=false; function fire(){ if(fired) return; fired=true; playIntro(st); } baked.then(fire); setTimeout(fire,MOB?5000:1500); }
     if(!('IntersectionObserver' in window)){ go(); return; }
     var io=new IntersectionObserver(function(en){
       for(var k=0;k<en.length;k++) if(en[k].isIntersecting){ io.disconnect(); go(); return; }
-    },{threshold:0.9});
+    },{threshold:MOB?0.6:0.9});
     io.observe(h2);
   }
 
@@ -1336,7 +1318,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   /* ---- the same screen on a phone: the picture of the line is turned a quarter round, so it runs from the top of the
      column to the bottom; the band where the pencil wanders lies down the left, the steps stand one under another to its
      right, evenly spaced. ML: the line's length on screen (design px); MA: the picture's height, now its width ---- */
-  var ML=1000, MA=380, MLT=20, EX=240, clipU=0, THK=.5;   // THK: the line is made this much thicker (design px, each side) on a phone
+  var ML=1000, MA=380, MLT=20, EX=240, clipU=0, THK=0;   // THK: the line is made this much thicker (design px, each side) on a phone
   /* on a phone the line does not start and end in the air: it comes in from the left edge of the screen, underlines
      the last line of the text under the title and turns down into the drawn line; at the bottom it runs off the left edge,
      on to the next screen. These two pieces are drawn here (same pencil, a little hand tremor) and the pen runs along them too.
