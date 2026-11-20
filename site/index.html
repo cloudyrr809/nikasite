@@ -461,7 +461,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 <li>несколько разворотов с групповыми снимками</li>
 <li>2 разворота с масштабными общими фотографиями, отражающими вайб класса</li>
 </ul></div>
-<div><h3>Особенности такого формата</h3><ul>
+<div><h3>Особенности формата</h3><ul>
 <li>возможность каждого ученика стать полноценным соавтором своего альбома</li>
 <li>свобода самовыражения каждого на персональных страницах</li>
 <li>много разворотов для максимального количества фотографий, которые создают целую историю</li>
@@ -481,7 +481,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 <li>несколько групповых снимков</li>
 <li>общая фотография всего класса</li>
 </ul></div>
-<div><h3>Особенности такого формата</h3><ul>
+<div><h3>Особенности формата</h3><ul>
 <li>плотные страницы на пластиковой основе, которые не гнутся и сохраняют свой вид на долгие годы</li>
 <li>только самые важные фотографии</li>
 <li>строгая эстетика без детальной персонализации для каждого ученика</li>
@@ -1543,7 +1543,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     // the screen edges and the two buttons at the bottom are kept clear too
     block(0,0,dw,Q); block(0,vh-Q,dw,vh); block(0,0,Q,vh); block(dw-Q,0,dw,vh);
     block(30,vh-82,340,vh-22); block(dw-210,vh-82,dw-30,vh-22);
-    function place(el,cx0,cx1,cy0,cy1){
+    function place(el,cx0,cx1,cy0,cy1,scs){
       el.style.transform='none';
       var bw0=el.offsetWidth+12, bh0=el.offsetHeight;     // +12: the dots hang left of the text
       if(!bw0||!bh0) return null;
@@ -1554,7 +1554,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
         if(x>0) v=Math.min(v,dt[k-1]+Q); if(y>0){ v=Math.min(v,dt[k-GW]+Q); if(x>0) v=Math.min(v,dt[k-GW-1]+Q*1.414); if(x<GW-1) v=Math.min(v,dt[k-GW+1]+Q*1.414); } dt[k]=v; }
       for(y=GH-1;y>=0;y--) for(x=GW-1;x>=0;x--){ k=y*GW+x; var u=dt[k];
         if(x<GW-1) u=Math.min(u,dt[k+1]+Q); if(y<GH-1){ u=Math.min(u,dt[k+GW]+Q); if(x<GW-1) u=Math.min(u,dt[k+GW+1]+Q*1.414); if(x>0) u=Math.min(u,dt[k+GW-1]+Q*1.414); } dt[k]=u; }
-      var best=null, SC=[1,.94,.88,.82,.76];
+      var best=null, SC=scs||[1,.94,.88,.82,.76];
       for(var si=0;si<SC.length;si++){
         var sc=SC[si], bw=Math.ceil(bw0*sc/Q), bh=Math.ceil(bh0*sc/Q);
         if(bw>=GW||bh>=GH) continue;
@@ -1585,7 +1585,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
       el.style.transformOrigin='0 0';
       el.style.transform=best.sc<1?'scale('+best.sc+')':'none';      return best;
     }
-    var r=place(document.getElementById('fmtClassic'),0.5,1,0,0.62);
+    var r=place(document.getElementById('fmtClassic'),0.5,1,0,0.62,[1]);
     if(r) block(r.x-20,r.y-20,r.x+r.w+20,r.y+r.h+20);
     place(document.getElementById('fmtBook'),0,0.5,0.4,1);
   }
