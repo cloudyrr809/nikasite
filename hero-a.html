@@ -230,7 +230,7 @@ html.m .sel br.k{display:inline}
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1;--fss:.6;--fsu:.3;--fsd:.15}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
@@ -706,7 +706,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
         var left=row.base+row.xs[i]+shift, w=row.ws[i];
         var x=left+w/2-0.5*adv;
         var th=Math.max(0,(x-row.bend)*k-0.117), ty=-4.9*th*th;
-        if(MOB){ phLetter(sp, OX+left+w/2+(r?FRO:FMV), OY+row.top*FHY+ROWH+ty, -th); continue; }
+        if(MOB){ phLetter(sp, OX+left+w/2+(r?FRO:FMV), OY+row.top*FHY+ROWH+ty, -th, r); continue; }
         var on=!(left>CW-OX||left+w<-OX||ty<-OY-300);
         if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
         if(!on) continue;
@@ -717,9 +717,15 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   }
   // one letter on the phone: the floor's matrix, then its place and turn on the floor; hidden when a corner of it comes
   // near or behind the eye of the perspective (it could not be drawn right there anyway)
-  function phLetter(sp,X,Y,deg){
+  // the right part of the screen stretches the letters standing there (they stay in place): VERONIKA grows up from its
+  // baseline, ROYSE down from its top. --fss: where on the screen it starts (share of the width), --fsu/--fsd: how much at the edge
+  var FSS=.6, FSU=.3, FSD=.15, FDW=430;
+  function phLetter(sp,X,Y,deg,r){
     if(!FPB) phBase();
-    var M=FPB.translate(X,Y).rotate(deg).scale(1,FHY).translate(sp.x0,sp.y0), on=true;
+    var q=FPB.transformPoint(new DOMPoint(X,Y-150)), t=(q.x/q.w/FDW-FSS)/(1-FSS);
+    t=t<0?0:t>1?1:t; t=t*t*(3-2*t);
+    var st=1+t*(r?FSD:FSU), pv=r?-300:-20.6;   // the pivot: ROYSE's top edge, VERONIKA's baseline (letter px)
+    var M=FPB.translate(X,Y).rotate(deg).scale(1,FHY).translate(0,pv).scale(1,st).translate(sp.x0,sp.y0-pv), on=true;
     for(var c=0;c<4;c++){ var px=c&1?sp.w:0, py=c&2?sp.h:0; if(M.m14*px+M.m24*py+M.m44<0.05){ on=false; break; } }
     if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
     if(!on) return;
@@ -1274,6 +1280,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     FTX=+(fx-660*k).toFixed(1); FTY=+(fy-745*k).toFixed(1);
     // the slope turns the words around the spot under her feet (in #floorClip's own px)
     FHY=parseFloat(hs.getPropertyValue('--flh'))||1;   // --flh: the letters taller (their height on the floor, times)
+    FDW=dw||430; FSS=parseFloat(hs.getPropertyValue('--fss'))||.6; FSU=parseFloat(hs.getPropertyValue('--fsu'))||0; FSD=parseFloat(hs.getPropertyValue('--fsd'))||0; drawn=-1;
     FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FRO=parseFloat(hs.getPropertyValue('--flo'))||0;
     var nbd=parseFloat(hs.getPropertyValue('--flb'))||0; if(nbd!==FBD){ FBD=nbd; if(rows.length&&R) makeSprites(); }   // --flo: the word ROYSE moved to the right FLP=[660,745]; FPB=null; drawn=-1;
     fc.style.transformOrigin='0 0';
