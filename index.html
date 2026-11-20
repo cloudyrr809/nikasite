@@ -239,7 +239,7 @@ html.m #floor{overflow:visible}
 /* Safari on the iPhone skipped part of one big tilted 3D layer, so on a phone there is no such layer: every letter is
    its own small layer (#floorM) carrying the whole tilt of the floor in its own transform */
 #floorM{display:none;position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
-html.m #floorM{display:block}
+html.m #floorM{display:none}   /* the name on the floor is off on the phone (the code stays, set display:block to bring it back) */
 html.m #floorClip{display:none}
 /* right of "grad", at its height: 2027, a thin rule to the right edge, and "in my FRAME" on the rule's end */
 html.m #hero .h-nav{display:none!important}
@@ -253,7 +253,7 @@ html.m #figure{left:0!important;top:0!important;width:100%!important;height:100%
 html.m #hero .fig-img{left:var(--il)!important;top:var(--it)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;
   filter:drop-shadow(-10px 14px 18px rgba(0,0,0,.16))}
 html.m #hero .fig-el{left:calc(var(--il) + var(--iw)*.0458)!important;top:calc(var(--it) + var(--iw)*1.687)!important;width:calc(var(--iw)*.967)!important;height:calc(var(--iw)*.1374)!important}
-html.m #hero .fig-sh{left:calc(var(--il) + var(--iw)*.127)!important;top:calc(var(--it) + var(--iw)*1.771)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;filter:brightness(0) blur(9px)!important;transform:scaleY(-.3) skewX(-58deg)!important}
+html.m #hero .fig-sh{left:calc(var(--il) + var(--iw)*.127)!important;top:calc(var(--it) + var(--iw)*1.771)!important;width:var(--iw)!important;height:calc(var(--iw)*1.7557)!important;filter:brightness(0) blur(60px)!important;opacity:.5!important;transform:scaleY(-.3) skewX(-58deg)!important}
 /* the words: a column left of her, running up to her; they stand behind her, so a letter that reaches her slips behind */
 html.m #hero .h-txt{left:22px!important;top:calc(166px + var(--ex)*.1)!important;width:var(--tw,268px)!important;gap:12px!important;z-index:0}
 html.m #hero .h-txt h1{white-space:normal!important;font-size:11px!important;line-height:1.32!important}
