@@ -1351,13 +1351,12 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     /* the tail follows the path drawn by hand: on from the line's end, a long soft wave to the left (a small bump up, then a dip),
        and out over the left edge. Points are (left, down) from the line's end, as designed for a 386 px wide column;
        the run to the left is stretched to reach past the edge */
-    var TP=[[0,0],[-5,6],[-12,12.5],[-20,18],[-30,20],[-40,15.5],[-50,9],[-60,6.5],[-69,11],[-78,19],[-88,21],[-98,14.5],[-108,10.5],[-118,12.5],[-130,17.5],[-142,21],[-152,23]];
-    var kT=(XE+34)/152, tp=TP.map(function(r){ return [XE+r[0]*kT, YE+r[1]]; });
+    var TP=[[0,0],[-5.3,6],[-12.8,11.2],[-22.4,16],[-33.1,18.1],[-43.8,17.1],[-54.5,13.8],[-65.2,10.6],[-75.9,10.1],[-86.6,12.2],[-97.3,17],[-108,22.8],[-118.7,26.5]];
+    var kT=(XE+34)/118.7, tp=TP.map(function(r){ return [XE+r[0]*kT, YE+r[1]]; });
     for(i=0;i<tp.length-1;i++){
       var q0=tp[Math.max(0,i-1)], q1=tp[i], q2=tp[i+1], q3=tp[Math.min(tp.length-1,i+2)], tl=Math.hypot(q2[0]-q1[0],q2[1]-q1[1]), tn2=Math.max(1,Math.ceil(tl/2));
       for(var tk=0;tk<tn2;tk++){ var tu=tk/tn2, tu2=tu*tu, tu3=tu2*tu;
-        var pt=[0,1].map(function(c){ return .5*((2*q1[c])+(-q0[c]+q2[c])*tu+(2*q0[c]-5*q1[c]+4*q2[c]-q3[c])*tu2+(-q0[c]+3*q1[c]-3*q2[c]+q3[c])*tu3); });
-        pt[1]+=wob(pt[0]*1.3+50)*.5*Math.min(1,tail.length/14); tail.push(pt); }
+        var pt=[0,1].map(function(c){ return .5*((2*q1[c])+(-q0[c]+q2[c])*tu+(2*q0[c]-5*q1[c]+4*q2[c]-q3[c])*tu2+(-q0[c]+3*q1[c]-3*q2[c]+q3[c])*tu3); }); tail.push(pt); }
     }
     tail.push(tp[tp.length-1]);
     /* the pieces are drawn as a ribbon whose width starts exactly as wide as the picture's own line at the join (measured:
@@ -1371,8 +1370,11 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
       for(k=0;k<m;k++){
         var d=fromEnd?Lt-dd[k]:dd[k], b=Math.min(1,d/18); b=b*b*(3-2*b);
         var w=jw*Math.max(.5,1+b*.4*press(d+(fromEnd?0:137))), a0=pts[Math.max(0,k-1)], a1=pts[Math.min(m-1,k+1)];
-        var tx=a1[0]-a0[0], ty=a1[1]-a0[1], tl=Math.hypot(tx,ty)||1, nx=-ty/tl*w/2, ny=tx/tl*w/2;
-        Lf.push([pts[k][0]+nx,pts[k][1]+ny]); Rf.push([pts[k][0]-nx,pts[k][1]-ny]);
+        // each edge has its own small ups and downs (a slow one and a quick one), so the line is no longer an even band
+        var edge=function(ph){ return .26*Math.sin(d/3.3+ph)+.18*Math.sin(d/8.1+ph*2.3)+.12*Math.sin(d/1.9+ph*.7)+.14*Math.sin(d/23+ph*1.7); };
+        var hl=w/2*Math.max(.45,1+b*edge(.4)), hr=w/2*Math.max(.45,1+b*edge(2.6));
+        var tx=a1[0]-a0[0], ty=a1[1]-a0[1], tl=Math.hypot(tx,ty)||1, nx=-ty/tl, ny=tx/tl;
+        Lf.push([pts[k][0]+nx*hl,pts[k][1]+ny*hl]); Rf.push([pts[k][0]-nx*hr,pts[k][1]-ny*hr]);
       }
       return Lf.concat(Rf.reverse());
     }
@@ -1605,7 +1607,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
 
   // ROT: an upright phone shows the album sideways, on its own landscape grid turned a quarter round (see the CSS);
   // AM: the album is read page by page (an upright tablet, where it stays upright)
-  var ROT=false, AM=false, ROT_TOP=64;
+  var ROT=false, AM=false, ROT_TOP=64, PW=false;   // PW: read page by page (the spread wider than the screen); off, the whole spread is shown
   function placeAlbum(dw,vh){
     ROT=false; AM=MOB; root.classList.toggle('rot',ROT);
     var des=albumSec.querySelector('.design');
@@ -1618,7 +1620,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
       dw=A; vh=B;
     } else { des.style.width=''; des.style.transform=''; }
     // on a phone the open spread takes the whole width of the screen; the screen is only as tall as the album needs
-    var S=AM?Math.floor(Math.min(dw-50,460)):ROT?Math.floor(Math.min(vh-104,(dw-40)/2)):Math.floor(Math.min(0.6*vh,(dw-200)/2,(vh-130)/1.36)); BS=S;
+    var S=AM?Math.floor(Math.min(PW?dw-50:(dw-24)/2,460)):ROT?Math.floor(Math.min(vh-104,(dw-40)/2)):Math.floor(Math.min(0.6*vh,(dw-200)/2,(vh-130)/1.36)); BS=S;
     M=Math.max(10,Math.round(S*0.058)); MY=Math.max(5,Math.round(S*0.02)); T=Math.max(3,Math.round(S*0.009)); WP=S-M; HB=Math.max(Math.round(24*SHK),Math.round(S*0.1*SHK)); WS=Math.max(10,Math.round(S*0.036));
     XR=Math.round(S*1.3); YT=Math.round(S*0.6); YB=Math.round(S*0.6);
     var cy=ROT?Math.round((vh-74)/2+8):Math.max(S*0.86,(vh-110)/2+16);
@@ -2912,8 +2914,8 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   /* on a phone a page is as wide as the screen, so the album is read page by page: forward first slides from the left page
      of the spread to the right one, and only then turns the sheet (the view follows it to the next left page); back the same */
   var mView='R';
-  function mFwd(){ if(AM&&committed>0&&committed<MAXC&&mView==='L'){ mView='R'; refresh(); return; } next(); }
-  function mBack(){ if(AM&&committed>0&&committed<MAXC&&mView==='R'){ mView='L'; refresh(); return; } prev(); }
+  function mFwd(){ if(PW&&committed>0&&committed<MAXC&&mView==='L'){ mView='R'; refresh(); return; } next(); }
+  function mBack(){ if(PW&&committed>0&&committed<MAXC&&mView==='R'){ mView='L'; refresh(); return; } prev(); }
   var bookShift=0;
   function refresh(){
     pgPrefetch();
@@ -2923,7 +2925,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     pager.classList.toggle('show',committed>0);
     // on a phone the closed album lies in the middle of the screen; opened, it slides so its spine is the middle
     // (one page fills the screen: the view shows the left or the right page of the open spread, see mFwd)
-    var sh=AM?(committed<=0?-BS/2:committed>=MAXC?BS/2:(mView==='R'?-BS/2:BS/2)):0;
+    var sh=AM?(committed<=0?-BS/2:committed>=MAXC?BS/2:(PW?(mView==='R'?-BS/2:BS/2):0)):0;
     if(sh!==bookShift){ bookShift=sh; book.style.translate=glc.style.translate=sh?sh+'px 0':''; }
     // the hint is there whenever the closed album is on screen, also after it was opened and closed again
     hint.classList.toggle('show',committed===0 && inView && leaves[0].a<20 && !leaves[0].moving && !drag);
@@ -2990,7 +2992,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     if(!d.moved){
       if(ev.type==='pointerup'){
         // on a phone: a tap on the left third of the screen goes back, anywhere else forward
-        if(AM){ if(ev.clientX<window.innerWidth*.3) mBack(); else mFwd(); }
+        if(PW){ if(ev.clientX<window.innerWidth*.3) mBack(); else mFwd(); }
         else if(d.fwd) next(); else prev();
       }
       return;
