@@ -230,7 +230,7 @@ html.m .sel br.k{display:inline}
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1;--fss:.6;--fsb:.3;--fsu:.6;--fsd:.15}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flw:800;--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1;--fss:.6;--fsb:.3;--fsu:.6;--fsd:.15;--fll:.55;--flu:.35}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
@@ -635,7 +635,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
      was sent to the graphics card again each time: that was the jerk on the first screen. Now every letter is drawn once
      into its own small picture, and the scroll only moves and turns those pictures (the card does that for free) */
   var fl=document.getElementById('floor'),ctx=document.createElement('canvas').getContext('2d');
-  var FONT='800 400px Montserrat, "Helvetica Neue", Arial, sans-serif', LS=24, ROWH=328, BASE=307.4;
+  var FW=800, FONT='800 400px Montserrat, "Helvetica Neue", Arial, sans-serif', LS=24, ROWH=328, BASE=307.4;
   var rows=[], adv=300, k=0, R=0, drawn=-1, OX=500, OY=800, CW=3600, CH=1800;
   function sizeCanvas(){
     var dpr=window.devicePixelRatio||1;
@@ -719,13 +719,23 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   // near or behind the eye of the perspective (it could not be drawn right there anyway)
   // the right part of the screen stretches the letters standing there (they stay in place): VERONIKA grows up from its
   // baseline, ROYSE down from its top. --fss: where on the screen it starts (share of the width), --fsu/--fsd: how much at the edge
-  var FSS=.6, FSB=.5, FSU=.6, FSD=.15, FDW=430;   // --fsb: where it starts for ROYSE
+  var FXS=.6, FXB=.5, FXU=.6, FXD=.15, FXL=.4, FXV=.6, FDW=430;   // --fll/--flu: the same on the left edge, for VERONIKA's first letters (grow up)   // --fsb: where it starts for ROYSE
   function phLetter(sp,X,Y,deg,r){
     if(!FPB) phBase();
-    var q=FPB.transformPoint(new DOMPoint(X,Y-150)), ss=r?FSB:FSS, t=(q.x/q.w/FDW-ss)/(1-ss);
-    t=t<0?0:t>1?1:t; t=t*t*(3-2*t);
-    var st=1+t*(r?FSD:FSU), pv=r?-300:-20.6;   // the pivot: ROYSE's top edge, VERONIKA's baseline (letter px)
-    var M=FPB.translate(X,Y).rotate(deg).scale(1,FHY).translate(0,pv).scale(1,st).translate(sp.x0,sp.y0-pv), on=true;
+    // the stretch at a point of the screen (share of its width): the right part (VERONIKA up, ROYSE down) and the left part
+    // (VERONIKA up). Each letter takes it at its own left and right side, so it is stretched unevenly, more on the side
+    // nearer the screen edge, and the edge of the words follows one smooth line (a letter becomes a trapezoid with upright
+    // sides; the side it grows from stays put)
+    function sAt(px){
+      var ss=r?FXB:FXS, t=(px-ss)/(1-ss); t=t<0?0:t>1?1:t; var v=1+t*t*(3-2*t)*(r?FXD:FXU);
+      if(!r&&FXV){ var l=1-px/FXL; l=l<0?0:l>1?1:l; v+=l*l*(3-2*l)*FXV; }
+      return v;
+    }
+    var qa=FPB.transformPoint(new DOMPoint(X+sp.x0,Y-150)), qb=FPB.transformPoint(new DOMPoint(X+sp.x0+sp.w,Y-150));
+    var s0=sAt(qa.x/qa.w/FDW), s1=sAt(qb.x/qb.w/FDW), pv=r?-300:-20.6;   // the pivot: ROYSE's top edge, VERONIKA's baseline (letter px)
+    var M=FPB.translate(X,Y).rotate(deg).scale(1,FHY).translate(0,pv).translate(sp.x0,0);
+    if(s0!==1||s1!==1){ var g=(s0/s1-1)/sp.w; M=M.multiply(new DOMMatrix([g*sp.w+1,0,0,g, 0,s0,0,0, 0,0,1,0, 0,0,0,1])); }
+    M=M.translate(0,sp.y0-pv); var on=true;
     for(var c=0;c<4;c++){ var px=c&1?sp.w:0, py=c&2?sp.h:0; if(M.m14*px+M.m24*py+M.m44<0.05){ on=false; break; } }
     if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
     if(!on) return;
@@ -1280,9 +1290,10 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     FTX=+(fx-660*k).toFixed(1); FTY=+(fy-745*k).toFixed(1);
     // the slope turns the words around the spot under her feet (in #floorClip's own px)
     FHY=parseFloat(hs.getPropertyValue('--flh'))||1;   // --flh: the letters taller (their height on the floor, times)
-    FDW=dw||430; FSS=parseFloat(hs.getPropertyValue('--fss'))||.6; FSB=parseFloat(hs.getPropertyValue('--fsb'))||FSS; FSU=parseFloat(hs.getPropertyValue('--fsu'))||0; FSD=parseFloat(hs.getPropertyValue('--fsd'))||0; drawn=-1;
+    FDW=dw||430; FXS=parseFloat(hs.getPropertyValue('--fss'))||.6; FXB=parseFloat(hs.getPropertyValue('--fsb'))||FXS; FXU=parseFloat(hs.getPropertyValue('--fsu'))||0; FXD=parseFloat(hs.getPropertyValue('--fsd'))||0; FXL=parseFloat(hs.getPropertyValue('--fll'))||.4; FXV=parseFloat(hs.getPropertyValue('--flu'))||0; drawn=-1;
     FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FRO=parseFloat(hs.getPropertyValue('--flo'))||0;
     var nbd=parseFloat(hs.getPropertyValue('--flb'))||0; if(nbd!==FBD){ FBD=nbd; if(rows.length&&R) makeSprites(); }   // --flo: the word ROYSE moved to the right FLP=[660,745]; FPB=null; drawn=-1;
+    var nfw=Math.round(parseFloat(hs.getPropertyValue('--flw'))||800); if(nfw!==FW){ FW=nfw; FONT=FW+' 400px Montserrat, "Helvetica Neue", Arial, sans-serif'; var reb=function(){ if(rows.length){ build(); drawn=-1; drawFloor(lp); } }; if(document.fonts&&document.fonts.load) document.fonts.load(FONT,'VERONIKA').then(reb,reb); else reb(); }   // --flw: the weight of the letters on the phone (the wide screen stays 800)
     fc.style.transformOrigin='0 0';
     fc.style.transform='translate('+FTX+'px,'+FTY+'px) scale('+k.toFixed(4)+')';
   }
