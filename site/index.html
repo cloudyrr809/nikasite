@@ -230,7 +230,7 @@ html.m .sel br.k{display:inline}
    her name lies on the floor under her feet; the links and the button in one row at the bottom.
    --ex: the screen's height above 720 design px, shared out between the gaps so a tall phone is not empty at the bottom */
 html.m #hero{overflow:visible;--ex:max(0px,calc(var(--vh) - 720px));
-  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1;--flga:.4}
+  --iw:calc(214px + var(--ex)*.3);--il:calc(var(--dw) - 28px - var(--iw));--it:calc(172px + var(--ex)*.25);--flk:.66;--flx:-175;--fly:34;--fls:0;--flv:470;--flo:40;--flh:1}
 html.m #hero .design{height:max(var(--vh),700px)}
 html.m #hero .h-fade{height:300px!important}
 html.m #hero .abs{right:auto!important;bottom:auto!important}
@@ -695,7 +695,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     rows=[top,bot];
     makeSprites();
   }
-  var SHIFT=650, FGA=0, FG0=.5, FSW=430, FBD=0, FRO=0, FHY=1, FK=1, FTX=0, FTY=0, FLS=0, FLP=[0,0], FMV=0;
+  var SHIFT=650, FBD=0, FRO=0, FHY=1, FK=1, FTX=0, FTY=0, FLS=0, FLP=[0,0], FMV=0;
   function drawFloor(e){
     if(Math.abs(e-drawn)<0.0002) return; drawn=e;
     for(var r=0;r<rows.length;r++){
@@ -718,12 +718,8 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
   // one letter on the phone: the floor's matrix, then its place and turn on the floor; hidden when a corner of it comes
   // near or behind the eye of the perspective (it could not be drawn right there anyway)
   function phLetter(sp,X,Y,deg){
-    // the band of the two lines widens a little towards the right end of the screen: its bottom edge stays straight, its top edge
-    // lifts (the letters there grow taller from the bottom line up). t: place across the screen; FGA: how much taller at the edge
-    if(FGA){ if(!FPB) phBase(); var Yb=OY+ROWH*FHY+ROWH, t=FPB.transformPoint(new DOMPoint(X,Yb)).x/FSW, q=Math.max(0,(t-FG0)/(1-FG0)), f=1+FGA*q*q;
-      Y=Yb-(Yb-Y)*f; var fy=f; } else var fy=1;
     if(!FPB) phBase();
-    var M=FPB.translate(X,Y).rotate(deg).scale(1,FHY*fy).translate(sp.x0,sp.y0), on=true;
+    var M=FPB.translate(X,Y).rotate(deg).scale(1,FHY).translate(sp.x0,sp.y0), on=true;
     for(var c=0;c<4;c++){ var px=c&1?sp.w:0, py=c&2?sp.h:0; if(M.m14*px+M.m24*py+M.m44<0.05){ on=false; break; } }
     if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
     if(!on) return;
@@ -1278,7 +1274,7 @@ html.m #contacts .bar a:active{background:var(--ink);color:#fff}
     FTX=+(fx-660*k).toFixed(1); FTY=+(fy-745*k).toFixed(1);
     // the slope turns the words around the spot under her feet (in #floorClip's own px)
     FHY=parseFloat(hs.getPropertyValue('--flh'))||1;   // --flh: the letters taller (their height on the floor, times)
-    FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FRO=parseFloat(hs.getPropertyValue('--flo'))||0; FSW=dw||430; FGA=parseFloat(hs.getPropertyValue('--flga'))||0;   // --flga: how much taller the letters are at the right edge
+    FLS=parseFloat(hs.getPropertyValue('--fls'))||0; FMV=parseFloat(hs.getPropertyValue('--flv'))||0; FRO=parseFloat(hs.getPropertyValue('--flo'))||0;
     var nbd=parseFloat(hs.getPropertyValue('--flb'))||0; if(nbd!==FBD){ FBD=nbd; if(rows.length&&R) makeSprites(); }   // --flo: the word ROYSE moved to the right FLP=[660,745]; FPB=null; drawn=-1;
     fc.style.transformOrigin='0 0';
     fc.style.transform='translate('+FTX+'px,'+FTY+'px) scale('+k.toFixed(4)+')';
