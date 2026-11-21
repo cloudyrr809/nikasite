@@ -3478,9 +3478,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     if(n!==0&&Math.abs(vel)>1600&&(vel>0)===(n>0)) n+=n>0?1:-1;
     if(PHONE&&e.pointerType==='touch'){
       if(tOver!==0){ go(i0); coast(-fv); return; }          // the finger ran past the end: the page goes on after it
-      n=Math.max(-1,Math.min(1,n));                          // one swipe, one point
-      var top=sec.getBoundingClientRect().top;               // and the screen settles into its place
-      if(n!==0&&Math.abs(top)>1&&window.vrGlideTo) window.vrGlideTo(window.scrollY+top,Math.min(500,Math.max(250,Math.abs(top)*1.2)));
+      n=Math.max(-1,Math.min(1,n));                          // one swipe, one point; the page itself stays where it is
     }
     go(i0+n);
   }
@@ -3549,7 +3547,9 @@ html.m #contacts .bar a:active{color:var(--accent)}
     layout(); sizeCanvas(); buildStrip(); fixBox();
     PHONE=portrait&&!!window.vrMobile;
     var stick=$('vStick'); sec.style.height=''; stick.style.position=''; stick.style.top=''; stick.style.height='';
-    if(PHONE){ hit.style.cursor='default'; hit.style.touchAction=''; setTouch(); }
+    // a phone has no roll-in: the drum stands on the first point from the start. The roll-in waited for the page to stop,
+    // so on a phone it came late, and a finger on the drum meanwhile left it stuck on the 4th point
+    if(PHONE){ hit.style.cursor='default'; hit.style.touchAction=''; setTouch(); intro=true; stopIntro(); goal=Math.min(goal,N-1); }
     else { hit.style.touchAction=''; hit.style.cursor=''; }
     if(portrait){
       // the control sits under the drum: the drum shows the next point turning away and ends just above the control
