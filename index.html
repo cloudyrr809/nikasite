@@ -2112,6 +2112,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
       if(!url) return; var im=new Image(); im.decoding='async';
       // the picture is decoded before it is drawn, so drawing it does not hold the page up
       im.onload=function(){ (im.decode?im.decode():Promise.resolve()).catch(function(){}).then(draw); };
+      im.onerror=function(){ var j=pgJpg(url); if(j){ url=j; im.onerror=null; im.src=j; } };   // no WebP: the original
       function draw(){ if(!gl) return; cvx.drawImage(im,ox,0,CVH,CVH); gl.deleteTexture(coverTex); coverTex=mkTex(CV,false); if(anisoExt){ gl.bindTexture(gl.TEXTURE_2D,coverTex); gl.texParameterf(gl.TEXTURE_2D,anisoExt.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisoExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT))); } coverReady=true; render(); }
       im.src=url;
     }
@@ -2247,7 +2248,18 @@ html.m #contacts .bar a:active{color:var(--accent)}
      page's own work (as an ImageBitmap from the file's bytes), so neither the turning sheets nor the clicks wait on it.
      Before, it was decoded from an <img>, which on quick turns could hold up the page for a few frames each time.
      Where the browser cannot do that, the old way through an <img> */
+  /* the light WebP copies have their JPEG originals kept next to them: a browser that cannot read WebP (old Safari on an
+     old Mac or iPhone, before 2020-2022) gets the JPEG instead of a blank page. album/m/x.webp → album/m/x.jpg,
+     album/t/x.webp → album/x.jpg (the full size, shrunk on arrival), album/t/cover1.webp → cover1.png */
+  function pgJpg(u){
+    var m=/^(.*\/)?(t|m)\/([^\/?]+)\.webp$/.exec(u); if(!m) return null;
+    var d=m[1]||''; if(m[2]==='m') return d+'m/'+m[3]+'.jpg';
+    return m[3]==='cover1'?'cover1.png':d+m[3]+'.jpg'+PG_VER;
+  }
   function decodeTo(url,size,keep){
+    return decodeOne(url,size,keep).catch(function(e){ var j=pgJpg(url); if(!j) throw e; return decodeOne(j,size,keep); });
+  }
+  function decodeOne(url,size,keep){
     function viaImg(){
       return new Promise(function(ok,no){
         var img=new Image(); img.decoding='async'; img.crossOrigin='anonymous';
