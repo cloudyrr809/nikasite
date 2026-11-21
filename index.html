@@ -1802,10 +1802,15 @@ html.m #contacts .bar a:active{color:var(--accent)}
      picture is drawn a little coarser (down to half), which the motion hides; the moment the album lies still it is
      drawn sharp again. motionScale remembers what this card managed last time, and creeps back up after each turn */
   var glDpr=0, glSS=1, glMS=1, motionScale=1, emaDt=16, adjT=0;
+  /* test switches for tracking down a picture fault on one phone, from the address: album.html?t=sm,dpr2 … (nothing happens without them)
+     sm: smaller shadow map · vw: smaller shadow grid · dpr2 / dpr1: draw the album at most 2× / 1× the screen's pixels
+     na: no anisotropic filtering · aa0: no edge smoothing from the browser · diag: show what the graphics card is */
+  var TQ=','+((location.search.match(/[?&]t=([a-z0-9,]+)/)||[])[1]||'')+',';
+  function tq(k){ return TQ.indexOf(','+k+',')>=0; }
   function sizeGL(noRender){
     if(!gl) return;
     glDpr=window.devicePixelRatio||1;
-    var px=Math.min(glDpr*s*glSS, 3)*glMS, w=2*XR*px, h=(BS+YT+YB)*px, cap=8e6*glMS*glMS;
+    var px=Math.min(glDpr*s*glSS, tq('dpr1')?1:tq('dpr2')?2:3)*glMS, w=2*XR*px, h=(BS+YT+YB)*px, cap=8e6*glMS*glMS;
     if(w*h>cap){ var f=Math.sqrt(cap/(w*h)); w*=f; h*=f; }
     w=Math.round(w); h=Math.round(h);
     if(glc.width!==w||glc.height!==h){ glc.width=w; glc.height=h; }
@@ -2065,10 +2070,16 @@ html.m #contacts .bar a:active{color:var(--accent)}
   }
   function initGL(){
     try{
-      gl=glc.getContext('webgl',{antialias:true,alpha:true,premultipliedAlpha:true})||glc.getContext('experimental-webgl',{antialias:true});
+      gl=glc.getContext('webgl',{antialias:!tq('aa0'),alpha:true,premultipliedAlpha:true})||glc.getContext('experimental-webgl',{antialias:true});
       if(!gl) return false;
       var ca=gl.getContextAttributes&&gl.getContextAttributes(); glSS=(ca&&ca.antialias)?1:1.5;
-      if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<4096){ SMS=1024; SMS2=1024; }
+      if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<4096||tq('sm')){ SMS=1024; SMS2=1024; }
+      if(tq('vw')) VW=256;
+      if(tq('diag')){ try{ var dx=gl.getExtension('WEBGL_debug_renderer_info'), dd=document.createElement('div');
+        var ca2=gl.getContextAttributes();
+        dd.style.cssText='position:fixed;left:6px;bottom:6px;z-index:99999;background:rgba(0,0,0,.75);color:#fff;font:11px/1.35 monospace;padding:6px 8px;border-radius:6px;max-width:90vw;pointer-events:none';
+        dd.textContent=(dx?gl.getParameter(dx.UNMASKED_RENDERER_WEBGL):'?')+' | dpr '+(window.devicePixelRatio||1)+' | tex '+gl.getParameter(gl.MAX_TEXTURE_SIZE)+' | aa '+(ca2&&ca2.antialias)+' | hp '+(gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER,gl.HIGH_FLOAT).precision)+' | '+navigator.userAgent.replace(/^.*?\(/,'(').slice(0,60);
+        document.body.appendChild(dd); }catch(e){} }
       // the fade of a page from its small copy to its full-size picture needs two more picture slots; a graphics card with
       // fewer than 12 (rare) draws the pages straight from the one picture, as before
       PG_X=gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)>=12;
@@ -2088,7 +2099,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     // the cover picture, resampled once to a power-of-two square so it stays sharp at any size
     var white=document.createElement('canvas'); white.width=white.height=4; var wx=white.getContext('2d'); wx.fillStyle='#fff'; wx.fillRect(0,0,4,4);
     coverTex=mkTex(white,false); blankTex=mkTex(white,false); pgTex={}; pgLoading={}; pgQueue=[]; thTex={}; thQueue=[]; thStarted=false;
-    anisoExt=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+    anisoExt=tq('na')?null:(gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic'));
     // the full-size page pictures: 2048 px as soon as a page is more than ~640 screen pixels tall (any ordinary monitor).
     // Before, 2048 came only above 1500 px, so on a usual screen the 2000 px photo was squeezed to 1024 and then shrunk
     // again by the graphics card: twice resampled, it looked soft
