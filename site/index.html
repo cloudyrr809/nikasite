@@ -3411,20 +3411,26 @@ html.m #contacts .bar a:active{color:var(--accent)}
   }
   /* ---------- a phone (the screen scrolls past like any other screen; it no longer stands still while the page runs under it).
      The finger is read with touch events, which every phone (Safari on an iPhone too) lets the page stop from scrolling.
-     The touch-action switched on the fly was not enough: Safari both turned the drum and flung the page far away.
-     - While the screen is in its place (less than a fifth of a screen off) a vertical swipe ANYWHERE on it turns the drum
-       one point: the drum follows the finger, and on release it goes to the next point. The page does not move.
+     - A vertical swipe that starts ON THE DRUM turns it one point: the drum follows the finger, and on release it goes
+       to the next point. The page does not move. Everywhere else on the screen (the title, her photo, the space under
+       the drum) the finger scrolls the page as usual, so the visitor can always leave.
+     - The drum takes the finger only when the page has been at rest for a moment and the screen is near its place:
+       a finger that lands on it while the page is still scrolling (or has only just been stopped) goes on scrolling the page.
      - A swipe up on the last point, or down on the first, is left to the browser: the page scrolls on, with its own momentum.
-     - The buttons (the arrows, the button under them) and sideways swipes are left alone.
-     - When the page comes to rest with the screen near its place, the screen settles gently into it (a soft magnet),
-       and the first time it does, the drum gives a small nudge, so the visitor sees that it turns ---------- */
+     - The buttons and sideways swipes are left alone.
+     - Nothing ever moves the page by itself here (a "magnet" that set the screen into place made it jump on an iPhone).
+     - The first time the screen comes to rest in view, the drum gives a small nudge, so the visitor sees that it turns ---------- */
   var PHONE=false, hit=$('vHit');
-  var tMode=2, tx0=0, ty0=0, tp0=0, ti0=0, tlt=0, touchOn=false;   // tMode: 0 not decided yet, 1 the drum has it, 2 the page has it
-  function inPlace(){ return Math.abs(sec.getBoundingClientRect().top)<VREF.h*.2; }
+  var tMode=2, tx0=0, ty0=0, tp0=0, ti0=0, tlt=0, lastScroll=0;   // tMode: 0 not decided yet, 1 the drum has it, 2 the page has it
+  window.addEventListener('scroll',function(){ lastScroll=performance.now(); if(PHONE) idleSoon(); },{passive:true});
+  function inPlace(){ return Math.abs(sec.getBoundingClientRect().top)<VREF.h*.25; }
+  function onDrum(x,y){ var r=hit.getBoundingClientRect(); return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom; }
   sec.addEventListener('touchstart',function(e){
-    touchOn=true; clearTimeout(idleT);
-    if(!PHONE||!strip||e.touches.length!==1||(e.target.closest&&e.target.closest('#vCtl,#vCta'))||!inPlace()){ tMode=2; return; }
-    var t=e.touches[0]; tx0=t.clientX; ty0=t.clientY; tMode=0;
+    tMode=2;
+    if(!PHONE||!strip||e.touches.length!==1||(e.target.closest&&e.target.closest('#vCtl,#vCta'))) return;
+    var t=e.touches[0];
+    if(!onDrum(t.clientX,t.clientY)||!inPlace()||performance.now()-lastScroll<350) return;
+    tx0=t.clientX; ty0=t.clientY; tMode=0;
   },{passive:true});
   sec.addEventListener('touchmove',function(e){
     if(tMode===2) return;
@@ -3446,7 +3452,6 @@ html.m #contacts .bar a:active{color:var(--accent)}
     pos=p; kick();
   },{passive:false});
   function tEnd(){
-    touchOn=false; idleSoon();
     if(tMode!==1){ tMode=2; return; }
     tMode=2; dragging=false;
     var stp=(centers[N-1]-centers[0])/(N-1), delta=pos-centers[ti0], n=0;
@@ -3455,29 +3460,13 @@ html.m #contacts .bar a:active{color:var(--accent)}
   }
   sec.addEventListener('touchend',tEnd,{passive:true});
   sec.addEventListener('touchcancel',tEnd,{passive:true});
-  // a finger anywhere on the page holds the magnet back
-  window.addEventListener('touchstart',function(){ touchOn=true; clearTimeout(idleT); },{passive:true});
-  window.addEventListener('touchend',function(e){ if(!e.touches.length){ touchOn=false; idleSoon(); } },{passive:true});
 
-  /* the soft magnet: once the page has stopped (no scroll for a moment, no finger down), a screen that rests
-     less than a quarter of a screen off its place glides into it. It never acts while the page is still moving */
+  // the nudge: the first time the page comes to rest with the drum in view, it leans towards the next point and comes back
   var idleT=0, hinted=false;
-  function idleSoon(){ if(!PHONE) return; clearTimeout(idleT); idleT=setTimeout(onIdle,180); }
-  window.addEventListener('scroll',idleSoon,{passive:true});
-  function onIdle(){
-    if(!PHONE||touchOn||!strip) return;
-    var top=sec.getBoundingClientRect().top, a=Math.abs(top);
-    if(a<1.5){ hint(); return; }
-    if(a<VREF.h*.25&&window.vrGlideTo){
-      window.vrGlideTo(window.scrollY+top,Math.round(Math.min(520,Math.max(300,a*2))));
-      setTimeout(function(){ if(Math.abs(sec.getBoundingClientRect().top)<1.5) hint(); },640);
-    }
-  }
-  // the first time the screen is in its place: the drum leans towards the next point and comes back
-  function hint(){
-    if(hinted||reduce||dragging||goal!==0) return; hinted=true;
-    setTimeout(function(){ if(dragging||goal!==0) return; vel=900; kick(); },180);
-  }
+  function idleSoon(){ if(hinted) return; clearTimeout(idleT); idleT=setTimeout(function(){
+    if(!PHONE||!strip||hinted||!inPlace()) return;
+    hinted=true; if(reduce||dragging||goal!==0) return; vel=900; kick();
+  },300); }
   $('vPv').addEventListener('click',function(){ go(goal-1); });
   $('vNx').addEventListener('click',function(){ go(goal+1); });
 
