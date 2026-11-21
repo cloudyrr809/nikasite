@@ -331,6 +331,25 @@ html.m .fmt li{padding-left:16px}
 html.m .fmt li::before{left:2px}
 html.m .mbot{order:5;margin-top:22px}
 html.m .c-cta{order:4;position:relative!important;left:auto!important;bottom:auto!important;margin-top:34px;align-self:flex-start;font-size:23px!important}
+/* the two album formats on a phone, both on one screen, inside the hand-drawn frame (choice_m_draw.png):
+   the frame was drawn over a 375x693 template, which sat at 509.7,64.1 / 357.5x660.7 px on that 1366x768 canvas */
+.fmtM{display:none}
+html.m #choice .design{padding:0}
+html.m #choice .msc,html.m #choice .fmtTabs,html.m #fmtBook,html.m #fmtClassic,html.m #choice .c-cta{display:none!important}
+/* everything is placed in % of the drawing, so the text stays in the gaps the frame leaves at any phone width */
+html.m .fmtM{display:block;position:relative;width:100%;aspect-ratio:375/693}
+.fmtM .mdraw{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.fmtM .mf{position:absolute;z-index:1;width:77.3%;font-size:10px;line-height:1.4;font-weight:500;color:var(--ink)}
+.fmtM .mf1{left:5.87%;top:10.4%}
+.fmtM .mf2{right:5.87%;top:61.8%}
+.fmtM h2{margin:0;font-weight:700;font-size:18px;line-height:1.05;letter-spacing:-.02em;color:var(--accent)}
+.fmtM .n{margin:4px 0 9px;font-weight:600;font-size:10px;color:var(--ink-soft)}
+.fmtM h3{margin:9px 0 5px;font-weight:700;font-size:8.5px;line-height:1.2;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.fmtM ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.fmtM li{position:relative;padding-left:10px}
+.fmtM li::before{content:"";position:absolute;left:1px;top:.6em;width:3px;height:3px;border-radius:50%;background:var(--ink)}
+.fmtM .cta{position:absolute;z-index:1;left:5.87%;top:94.2%;display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:16px;line-height:1;letter-spacing:-.01em;text-decoration:none}
+.fmtM .cta .a2{width:40px;height:10px}
 /* "what MATTERS" keeps a full screen */
 html.m #values{height:var(--rh)}
 /* footer */
@@ -496,6 +515,47 @@ html.m #contacts .bar a:active{color:var(--accent)}
 <li>строгая эстетика без детальной персонализации для каждого ученика</li>
 </ul></div>
 </div>
+</div>
+
+<!-- on a phone: both formats on one screen inside the hand-drawn frame (the blocks above are hidden there) -->
+<div class="fmtM">
+<svg class="mdraw" viewBox="509.7 64.1 357.5 660.7" preserveAspectRatio="none" aria-hidden="true"><image href="choice_m_draw.png" x="0" y="0" width="1366" height="768"/></svg>
+<div class="mf mf1">
+<h2>Книга класса</h2>
+<p class="n">30–40 полных разворотов</p>
+<ul>
+<li>совместно разработанная обложка</li>
+<li>разворот с портретами учеников</li>
+<li>разворот с фотографиями учителей</li>
+<li>большой блок личных страниц каждого ученика с индивидуальным дизайном</li>
+<li>несколько групповых разворотов</li>
+<li>2 разворота с масштабными общими фотографиями</li>
+</ul>
+<h3>Особенности формата</h3>
+<ul>
+<li>возможность каждого ученика стать полноценным соавтором своего альбома</li>
+<li>свобода самовыражения каждого на персональных страницах</li>
+<li>много разворотов для максимального количества фотографий</li>
+<li>журнальный стиль страниц из плотной мелованной бумаги, твёрдая обложка</li>
+</ul>
+</div>
+<div class="mf mf2">
+<h2>Классический альбом</h2>
+<p class="n">7–8 полных разворотов</p>
+<ul>
+<li>личная фотография ученика</li>
+<li>разворот с портретами всех одноклассников</li>
+<li>разворот с портретами учителей</li>
+<li>несколько групповых снимков</li>
+<li>общая фотография всего класса</li>
+</ul>
+<h3>Особенности формата</h3>
+<ul>
+<li>плотные страницы на пластиковой основе: не гнутся и идеально сохраняют свой вид</li>
+<li>строгая эстетика с самыми важными фотографиями для каждого ученика</li>
+</ul>
+</div>
+<a class="cta" href="https://t.me/vichinks">получить альбом <span class="arr ha a2" aria-hidden="true"></span></a>
 </div>
 </div>
 </section>
