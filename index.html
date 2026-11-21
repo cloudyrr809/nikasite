@@ -292,10 +292,15 @@ html.m .lab{transform:translateY(-50%);text-align:left;white-space:normal;line-h
 html.m .lab br.mb{display:inline}
 html.m .lab::before{display:none}
 /* album */
-html.m #hint{font-size:15px;gap:10px;white-space:normal;text-align:right;line-height:1.25}
+/* on a phone the hint and the closing button are small and stand clear of the album: two centred lines, a short arrow
+   that only nudges a little (it used to reach the album's edge) */
+html.m #hint{font-size:13.5px;gap:8px;white-space:pre-line;text-align:center;line-height:1.3}
+html.m #hint .ha{width:34px;height:8.4px;animation-name:nudgeM}
+@keyframes nudgeM{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
 /* the closing button on a phone: one line, the size of the hint, a shorter arrow (it used to wrap onto the counter) */
-html.m #endCta{font-size:15px;gap:10px;white-space:nowrap}
-html.m #endCta .ha{width:38px;height:10px}
+html.m #endCta{font-size:13.5px;gap:8px;white-space:nowrap}
+html.m #endCta .ha{width:34px;height:8.9px}
+html.m #endCta:hover .ha{transform:translateX(3px)}
 /* on an upright phone the album lies sideways (html.rot): its own landscape grid, turned a quarter round, so the open spread
    runs along the phone's long side and is big. Turning the phone makes it read the right way up; a badge over it says so */
 #rotHint{display:none}
@@ -1768,7 +1773,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     endCta.style.left=(dw/2+Math.round(S*0.32))+'px'; endCta.style.top=cy+'px';   // right of the closed album, with clear air between them
     pager.style.left=(dw/2)+'px';
     // a finger opens the album with a tap (also a phone on its side, which gets the wide layout)
-    var coarse=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches, ht=(MOB||coarse)?'Нажмите, чтобы\u00a0открыть':'Потяните страницу, чтобы открыть';
+    var coarse=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches, ht=MOB?'Потяните, чтобы\nоткрыть':coarse?'Нажмите, чтобы открыть':'Потяните страницу, чтобы открыть';
     if(hint.firstChild.textContent!==ht){ hint.firstChild.textContent=ht; hint.setAttribute('aria-label',ht); }
     if(ROT){ pager.style.bottom='22px'; } else pager.style.bottom='';
     if(AM){
@@ -1776,9 +1781,9 @@ html.m #contacts .bar a:active{color:var(--accent)}
       // as on a computer: the hint stands left of the closed album (on the right half), the button right of the album closed
       // at the end (on the left half), each on the album's middle line. The room beside the album is narrow, so the hint
       // breaks into two lines (see html.m #hint)
-      var gap=16;
+      var gap=24;
       hint.style.left=''; hint.style.right=(dw/2+gap)+'px'; hint.style.top=cy+'px'; hint.style.transform='';
-      hint.style.maxWidth=(dw/2-gap-12)+'px';
+      hint.style.maxWidth='';
       endCta.style.left=(dw/2+gap)+'px'; endCta.style.top=cy+'px'; endCta.style.transform='';
     }
     // the button stays on the process screen; on the album screen its place is taken by the one at the album's end
@@ -1806,14 +1811,23 @@ html.m #contacts .bar a:active{color:var(--accent)}
     if(glc.width!==w||glc.height!==h){ glc.width=w; glc.height=h; }
     if(!noRender) render();
   }
-  function motionRes(more,dt,now){
+  /* settle: every sheet in the air is within a few degrees of where it lands. The last stretch of a turn moves so little
+     that the picture is drawn sharp again already then: before, the spread looked landed but was still drawn coarse for
+     another ~0.3 s, and then snapped sharp ("first a little soft, then good"). How fast this card is (motionScale) is
+     left as it was, so the next turn starts where this one was.
+     msLevel: on a phone the canvas changes size in two big steps, not five small ones. Each change of its size makes the
+     browser set up the whole picture buffer again, a hitch of its own, and on quick clicks that kept happening */
+  function msLevel(m){ return MOB?(m>=0.95?1:m>=0.68?0.75:0.5):m; }
+  function motionRes(more,dt,now,settle){
+    if(more&&settle){ if(glMS!==1){ glMS=1; sizeGL(true); } return; }
     if(more){
       emaDt=emaDt*0.85+dt*0.15;
       if(now-adjT>300){
         if(emaDt>21&&motionScale>0.5){ motionScale=Math.max(0.5,motionScale*0.82); adjT=now; }
         else if(emaDt<12&&motionScale<1){ motionScale=Math.min(1,motionScale/0.82); adjT=now; }
       }
-      if(glMS!==motionScale){ glMS=motionScale; sizeGL(true); }
+      var lv=msLevel(motionScale);
+      if(glMS!==lv){ glMS=lv; sizeGL(true); }
     } else {
       emaDt=16; motionScale=Math.min(1,motionScale/0.82);
       if(glMS!==1){ glMS=1; sizeGL(true); }
@@ -2290,6 +2304,13 @@ html.m #contacts .bar a:active{color:var(--accent)}
      A full-size picture is a big upload that holds up the graphics card for a few frames: during a turn that showed as a
      stutter, so they go up only while nothing moves; a sheet in the air shows its small copy, which in motion looks the same */
   function moving(){ return !!drag||leaves.some(function(L){ return L.moving; }); }
+  // nothing in the hand and every sheet in the air within 8 degrees of where it lands (see motionRes)
+  function settling(){
+    if(drag||peek) return false;
+    var any=false;
+    for(var k=0;k<=LAST;k++){ var L=leaves[k]; if(!L.moving) continue; any=true; if(Math.abs(L.to-L.af)>8||Math.abs(L.g)>4) return false; }
+    return any;
+  }
   function pgPump(){
     if(pgPumpT||!gl) return;
     if(introOn&&(thQueue.length||pgQueue.length||upJob)){ pgPumpT=setTimeout(function(){ pgPumpT=0; pgPump(); },150); return; }
@@ -2315,7 +2336,8 @@ html.m #contacts .bar a:active{color:var(--accent)}
          So the page under the turning sheet is usually sharp by the time it lands, instead of half a second later.
          Everything else still waits until the album lies still */
       if(moving()){
-        if(motionScale>=1&&dt>0&&dt<frBase*1.45) upStep(true);
+        // (also while the sheet settles: it hardly moves then, and the page it uncovers should be sharp as it lands)
+        if((motionScale>=1&&dt>0&&dt<frBase*1.45)||settling()) upStep(true);
         if(pgQueue.length||upJob) pgPumpT=requestAnimationFrame(function(){ pgPumpT=0; pgPump(); });
         else pumpT=0;
         return;
@@ -3071,7 +3093,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     }
     // on a 120/144 Hz screen the 3D book is drawn at most ~60 times a second (the motion itself still runs every frame):
     // the picture moves as smoothly and the graphics card has half the work. The last frame is always drawn.
-    motionRes(more,dt,now);
+    motionRes(more,dt,now,more&&settling());
     if(!more || now-lastR>=15){ render(); lastR=now; }
     refresh();
     if(more) kickA(); else lastA=0;
