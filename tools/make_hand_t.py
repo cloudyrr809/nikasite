@@ -55,7 +55,7 @@ def letter(a):
     # iron out the 1-px staircase of the tracing, pass by pass (so the turning points keep their tips)
     for p in np.unique(ps):
         m = np.nonzero(ps == p)[0]; lo = max(0, m[0] - 1)             # shares its first point with the pass before
-        pts[lo:m[-1] + 1] = smooth(pts[lo:m[-1] + 1], 5, 3)
+        pts[lo:m[-1] + 1] = smooth(pts[lo:m[-1] + 1], 8, 4)
     seg = np.r_[0, np.hypot(*np.diff(pts, axis=0).T)]; s = np.cumsum(seg); L = s[-1]; n = len(pts)
     bend = np.zeros(n)                                            # change of direction over ±4 px of route
     for i in range(n):
@@ -123,8 +123,8 @@ for k, cand in enumerate(tree.query_ball_point(q, INK + 1.5)):
         r = c[br[i]:br[i + 1]]
         dd = np.hypot(*(C['p'][r] - q[k]).T); runs.append((dd.min(), r[np.argmin(dd)]))
     dmin = min(r[0] for r in runs)
-    # the pixel is ink of the pass it lies on; of a second pass only if it lies well inside that one too (a real overlap)
-    mine = [r for r in runs if r[0] <= max(dmin + 1.0, 2.0)]
+    # every pass is a band of its own width round its (smoothed, straight-through) centre line; the first band that really covers the pixel owns it
+    mine = [r for r in runs if r[0] <= INK]
     got = []
     for dist, j in mine:
         side = (q[k, 0] - C['p'][j, 0]) * C['tg'][j, 1] - (q[k, 1] - C['p'][j, 1]) * C['tg'][j, 0]
@@ -134,7 +134,13 @@ for k, cand in enumerate(tree.query_ball_point(q, INK + 1.5)):
     got.sort()
     # the first pass over it takes it if that pass really paints it; a pixel only grazed by the first pass waits for
     # the pass that paints it most — so the second line never shows up at a crossing with the first
-    t_, cov, j = got[0] if got[0][1] >= .5 else max(got, key=lambda g: g[1])
+    t_, cov, j = next((g for g in got if g[1] >= .5), None) or max(got, key=lambda g: g[1])
+    # where the pen runs up a line and slides back down it, the two passes are one line, not two thin ones crossing:
+    # the pixel takes the fuller of the two (it shows with the first, which is the same line)
+    for dist, jj in runs:
+        if abs(C['ps'][jj] - C['ps'][j]) == 1:
+            side = (q[k, 0] - C['p'][jj, 0]) * C['tg'][jj, 1] - (q[k, 1] - C['p'][jj, 1]) * C['tg'][jj, 0]
+            cov = max(cov, np.clip((HWL[jj] if side >= 0 else HWR[jj]) - dist + .6, 0, 1))
     own[k] = j; A[k] = cov * SH[j]
 
 lid = C['li'][own]; u = C['u'][own]
