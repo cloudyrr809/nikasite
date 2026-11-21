@@ -142,7 +142,7 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 #contacts .row small{font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
 #contacts .row b{font-weight:700;font-size:34px;letter-spacing:-.03em;line-height:1}
 #contacts .bar{position:absolute;left:44px;right:44px;bottom:30px;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:13px}
-#contacts .bar .nm{font-weight:800;font-size:17px;letter-spacing:.01em;text-transform:uppercase}
+#contacts .bar .nm{font-weight:800;font-size:21px;line-height:1;letter-spacing:.01em;text-transform:uppercase}
 #contacts .bar .mid{color:var(--ink-soft)}
 #contacts .bar a{position:relative;display:inline-block;padding:0 2px 6px;font-weight:700;font-size:21px;line-height:1;letter-spacing:-.01em;text-decoration:none}
 /* "наверх": underlined by hand — a crooked pencil stroke, thin on the left, heavier to the right, flicked up at the end; drawn again on hover */
@@ -274,8 +274,9 @@ html.m #hero .h-txt .mx,html.m #hero .h-txt .mx2{display:none}
 html.m #hero .h-soc{left:auto!important;right:10px!important;top:auto!important;bottom:16px!important;gap:0!important;z-index:3}
 html.m #hero .h-soc a{width:40px;height:44px;align-items:center;justify-content:center}
 html.m #hero .h-soc svg{width:21px;height:21px}
-html.m #hero .h-cta{left:22px!important;right:auto!important;top:calc(318px + var(--ex)*.1)!important;bottom:auto!important;height:44px;font-size:16px!important;gap:8px!important;z-index:3;padding:0;margin:0}
-html.m #hero .h-cta .ha{width:36px;height:9px}
+html.m #hero .h-cta{left:22px!important;right:auto!important;top:calc(318px + var(--ex)*.1)!important;bottom:auto!important;height:44px;font-size:20.8px!important;gap:8.6px!important;z-index:3;padding:0;margin:0}
+/* the same size on screen as the button on "what MATTERS" (29px / 48×10 on its 600 grid = ×430/600 on this one) */
+html.m #hero .h-cta .ha{width:34.4px;height:7.2px}
 /* process: the drawn line runs top to bottom down the left of the column, the steps stand to its right */
 html.m #process .design{padding:64px 22px 30px;box-sizing:border-box}
 html.m .p-kick,html.m .p-big,html.m .p-sub{position:relative!important;left:auto!important;top:auto!important}
@@ -383,7 +384,7 @@ html.m #contacts .ideas .h{font-size:15px;margin-bottom:10px}
 html.m #contacts .ideas ul{gap:6px;font-size:12.5px;line-height:1.38}
 html.m #contacts .ideas b{white-space:nowrap}
 html.m #contacts .bar{margin-top:60px;display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:6px 12px}
-html.m #contacts .bar .nm{grid-column:1;grid-row:1}
+html.m #contacts .bar .nm{grid-column:1;grid-row:1;font-size:19px}   /* the same size as "наверх" beside it */
 html.m #contacts .bar .mid,html.m #contacts .nm-hand{display:none}
 /* on a phone "наверх" stands on the right, on the same line as the name (letters on one baseline); a big enough spot to tap */
 html.m #contacts .bar a{grid-column:2;grid-row:1;justify-self:end;align-self:baseline;font-size:19px;padding:10px 4px 12px;-webkit-tap-highlight-color:transparent}
@@ -3709,7 +3710,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
       lastD=null; placeBox();
       // the button: low on the outer left margin (the line of "what MATTERS"), right over her long shadow on the floor,
       // clear of her dress (it scales with the screen's height like her picture does)
-      px($('vCta'),{left:28,top:'auto',bottom:Math.round(LH*.075)});
+      px($('vCta'),{left:28,top:'auto',bottom:Math.round(LH*.092)});
     } else if(portrait){
       // the control sits under the drum: the drum shows the next point turning away and ends just above the control
       var mh=Math.max.apply(null,halfH)+6, ct=Math.round(Y+mh+18+120), wt=parseFloat($('vWin').style.top);
