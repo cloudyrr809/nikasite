@@ -361,7 +361,7 @@ html.m #contacts .ideas ul{gap:6px;font-size:12.5px;line-height:1.38}
 html.m #contacts .ideas b{white-space:nowrap}
 html.m #contacts .bar{margin-top:60px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 12px}
 html.m #contacts .bar .nm{grid-column:1;grid-row:1}
-html.m #contacts .bar .mid{grid-column:1;grid-row:2;font-size:12px}
+html.m #contacts .bar .mid,html.m #contacts .nm-hand{display:none}
 /* on a phone "наверх" stands on the right, across both lines of the name; a big enough spot to tap */
 html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;align-self:center;font-size:19px;padding:10px 4px 12px;-webkit-tap-highlight-color:transparent}
 html.m #contacts .totop .ul{bottom:-3px}
@@ -553,7 +553,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 <p class="h">Мы можем реализовать любые идеи</p>
 <ul>
 <li>страницу с росписями? <b>окей, делаем</b></li>
-<li>написать пожелания в будущее от руки? <b>да, давайте</b></li>
+<li>написать пожелания в будущее<span class="nm-hand"> от руки</span>? <b>да, давайте</b></li>
 <li style="margin-left:.05em">добавить детские фотки? <b>не проблема</b></li>
 <li>снять и сделать QR-код на видео? <b>достаю камеру</b></li>
 </ul>
