@@ -747,6 +747,9 @@ html.m #contacts .bar a:active{color:var(--accent)}
     // a very narrow window falls back to fitting a 1200px-wide composition
     s=h/900; if(w/s<1200) s=w/1200;
     vhD=h/s; dw=w/s;
+    // the floor letters' stretch at the screen edges (see pcStretch): measured against this screen's width
+    DDW=dw; var hs=getComputedStyle(hero), hv=function(n,d){ var v=parseFloat(hs.getPropertyValue(n)); return isNaN(v)?d:v; };
+    DXL=hv('--dfl',.4); DXU=hv('--dfu',.35); DXB=hv('--dfb',.6); DXD=hv('--dfd',.2);
     root.style.setProperty('--s',s);
     root.style.setProperty('--vh',vhD+'px');
     root.style.setProperty('--dw',dw+'px');
@@ -846,10 +849,34 @@ html.m #contacts .bar a:active{color:var(--accent)}
         var on=!(left>CW-OX||left+w<-OX||ty<-OY-300);
         if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
         if(!on) continue;
-        var tf='translate('+(left+w/2).toFixed(2)+'px,'+(row.top+ROWH+ty).toFixed(2)+'px) rotate('+(-th).toFixed(3)+'deg)';
+        var tf='translate('+(left+w/2).toFixed(2)+'px,'+(row.top+ROWH+ty).toFixed(2)+'px) rotate('+(-th).toFixed(3)+'deg)'+pcStretch(sp, OX+left+w/2, OY+row.top+ROWH+ty, th, r);
         if(tf!==sp.tf){ sp.tf=tf; sp.el.style.transform=tf; }
       }
     }
+  }
+  /* the wide screen: the same stretch of the letters at the screen edges as on the phone, only VERONIKA's first letters on the
+     left (they grow up from their baseline) and ROYSE's last ones on the right (they grow down from their top). Each letter is
+     measured where its left and right side land on the screen, and becomes the same trapezoid with upright sides as on the
+     phone, so the edge of the words follows one smooth line. Letters away from the edges keep their plain transform.
+     --dfl: how far from the left edge it reaches (share of the width), --dfu: how much at the edge;
+     --dfb: where it starts for ROYSE on the right, --dfd: how much at the right edge (all on #hero) */
+  var DXL=.4, DXU=.35, DXB=.6, DXD=.2, DDW=1440, FPD=null;
+  function pcStretch(sp,X,Y,th,r){
+    if(!(r?DXD:DXU)) return '';
+    // #plane: left -380, top 400, origin (880,400); #floor at (-500,-800) inside it; #floorClip sits at the screen's 0,0
+    if(!FPD) FPD=new DOMMatrix().translate(-380+880,400+400).multiply(FPT).translate(-880-500,-400-800);
+    function sAt(px){
+      var t;
+      if(r){ t=(px-DXB)/(1-DXB); t=t<0?0:t>1?1:t; return 1+t*t*(3-2*t)*DXD; }
+      t=1-px/DXL; t=t<0?0:t>1?1:t; return 1+t*t*(3-2*t)*DXU;
+    }
+    // the letter's two sides, at mid height, turned with the letter, on the screen (share of its width)
+    var a=-th*Math.PI/180, ca=Math.cos(a), sa=Math.sin(a);
+    function scr(lx){ var ly=-150, q=FPD.transformPoint(new DOMPoint(X+lx*ca-ly*sa, Y+lx*sa+ly*ca)); return q.x/q.w/DDW; }
+    var s0=sAt(scr(sp.x0)), s1=sAt(scr(sp.x0+sp.w));
+    if(s0===1&&s1===1) return '';
+    var pv=r?-300:-20.6, g=(s0/s1-1)/sp.w;   // the pivot: ROYSE's top edge, VERONIKA's baseline (letter px)
+    return ' translate('+sp.x0.toFixed(2)+'px,'+pv+'px) matrix3d('+(+(g*sp.w+1).toFixed(5))+',0,0,'+(+g.toFixed(8))+',0,'+(+s0.toFixed(5))+',0,0,0,0,1,0,0,0,0,1) translate('+(-sp.x0).toFixed(2)+'px,'+(-pv)+'px)';
   }
   // one letter on the phone: the floor's matrix, then its place and turn on the floor; hidden when a corner of it comes
   // near or behind the eye of the perspective (it could not be drawn right there anyway)
