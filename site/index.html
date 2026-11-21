@@ -176,6 +176,8 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 #vSnaps{position:absolute;left:0;top:0;width:1px;height:0;pointer-events:none}
 #vSnaps i{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start;scroll-snap-stop:always}
 html.vsnap{scroll-snap-type:y proximity}
+/* while the page glides by itself ("на главную", a link) the snap places must not catch it on its way */
+html.vsnap.noSnap{scroll-snap-type:none}
 .vkick{position:absolute;font-weight:600;color:var(--accent);z-index:2;line-height:.8;letter-spacing:-.065em;white-space:nowrap}
 .vbig{position:absolute;font-weight:800;line-height:.8;letter-spacing:-.05em;white-space:nowrap;z-index:1}
 #vLead{position:absolute;margin:0;font-weight:600;font-size:15px;line-height:1.35;z-index:3;pointer-events:none;white-space:nowrap}
@@ -1195,23 +1197,25 @@ html.m #contacts .bar a:active{color:var(--accent)}
   /* "на главную" and the links to a part of the page (контакты): a quick start and a long, gentle settle.
      The wheel, the keys or the scrollbar stop it at once */
   var auto=0, autoV=0;
-  function stopAuto(){ if(auto){ cancelAnimationFrame(auto); auto=0; } autoV=0; }
+  function stopAuto(){ if(auto){ cancelAnimationFrame(auto); auto=0; } autoV=0; root.classList.remove('noSnap'); }
   function glideTo(y,D){
     gliding=false; sv=0; stopAuto();
     y=Math.max(0,Math.min(maxY(),y));
     if(reduce){ window.scrollTo(0,y); sy=ty=tg=y; return; }
     var from=window.scrollY, t0=null, lastNow=0, lastY=from, setA=-1;
+    root.classList.add('noSnap');                         // the drum's snap places on a phone would stop the glide on its way
+    function done(){ auto=0; autoV=0; sy=ty=tg=window.scrollY; root.classList.remove('noSnap'); }
     // short soft start (quadratic over the first 15%), then a long quintic glide that settles gently
     var a=0.15, B=1/(Math.pow(1-a,4)*(2.5*a+(1-a))), A=5*B*Math.pow(1-a,4)/(2*a);
     function step(now){
-      if(setA>=0&&Math.abs(window.scrollY-setA)>1.5){ auto=0; autoV=0; sy=ty=tg=window.scrollY; return; }
+      if(setA>=0&&Math.abs(window.scrollY-setA)>1.5){ done(); return; }
       if(t0===null) t0=now;
       var p=Math.min(1,(now-t0)/D);
       var e=p<a ? A*p*p : 1-B*Math.pow(1-p,5), yy=from+(y-from)*e;
       if(lastNow&&now>lastNow) autoV=(yy-lastY)/((now-lastNow)/1000);
       lastNow=now; lastY=yy;
       window.scrollTo(0,yy); setA=window.scrollY;
-      if(p<1){ auto=requestAnimationFrame(step); } else { auto=0; autoV=0; sy=ty=tg=window.scrollY; }
+      if(p<1){ auto=requestAnimationFrame(step); } else done();
     }
     auto=requestAnimationFrame(step);
   }
@@ -3224,10 +3228,25 @@ html.m #contacts .bar a:active{color:var(--accent)}
   }
   var pos=0, vel=0, F=60;
   function ymap(u){ var a=Math.abs(u); if(a<=F) return u; return (u<0?-1:1)*(F+proj((a-F)/R)); }
+  /* the frame stands still at its tallest size; only its corners (and the lead-in above it) slide in and out with
+     transforms, so a turning drum never makes the browser lay the screen out again. Changing the frame's top and height
+     on every frame made the standing screen shake up and down on phones while the page scrolled */
+  var boxTop0=0, boxH0=0, lastD=null, cTop=[], cBot=[];
+  function fixBox(){
+    var box=$('vBox');
+    boxH0=Math.round(2*(Math.max.apply(null,halfH)+6)+36); boxTop0=Y-boxH0/2;
+    box.style.top=boxTop0.toFixed(1)+'px'; box.style.height=boxH0+'px';
+    cTop=[box.querySelector('.tl'),box.querySelector('.tr'),box.querySelector('.vinfo')];
+    cBot=[box.querySelector('.bl'),box.querySelector('.br')];
+    if(portrait){ cTop.push($('vLead')); $('vLead').style.top=(boxTop0-30).toFixed(1)+'px'; }
+    lastD=null;
+  }
   function placeBox(){
-    var hh=Math.round(2*F+36), top=Y-hh/2, box=$('vBox');
-    box.style.top=top.toFixed(1)+'px'; box.style.height=hh+'px';
-    if(portrait) $('vLead').style.top=(top-30).toFixed(1)+'px';
+    var d=Math.round((boxH0-(2*F+36))/2*2)/2;            // how far each edge of the frame stands in, to half a pixel
+    if(d===lastD) return; lastD=d;
+    var t='translateY('+d+'px)', b='translateY('+(-d)+'px)';
+    for(var i=0;i<cTop.length;i++) cTop[i].style.transform=t;
+    for(var j=0;j<cBot.length;j++) cBot[j].style.transform=b;
   }
   function draw(){
     ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height);
@@ -3445,7 +3464,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   var built=false, intro=false, introRaf=0;
   function rebuild(){
     if(!root.clientWidth||!window.innerHeight) return;               // a hidden tab: build once it has a size
-    layout(); sizeCanvas(); buildStrip();
+    layout(); sizeCanvas(); buildStrip(); fixBox();
     SCRUB=portrait&&!!window.vrMobile;
     var stick=$('vStick'), snaps=$('vSnaps');
     snaps.textContent='';
@@ -3457,11 +3476,15 @@ html.m #contacts .bar a:active{color:var(--accent)}
       for(var si=0;si<N;si++){ var m=document.createElement('i'); m.style.top=(si*STEP)+'px'; snaps.appendChild(m); }
       // and one where the screen ends, so a swipe on the last point goes straight on to the footer (not back onto that point)
       var me=document.createElement('i'); me.style.top=((N-1)*STEP+Math.round(STEP*.5)+VREF.h)+'px'; snaps.appendChild(me);
-      // no snap places: a phone scrolls freely and smoothly past the drum (the snaps made every flick stop short)
+      // the snap places are on: one swipe turns exactly one point (scroll-snap-stop), however hard or soft the flick.
+      // Without them a flick flew past several points and a short swipe stopped between two
+      root.classList.add('vsnap');
+      // the standing screen gets a layer of its own, so the phone moves it without repainting it
+      stick.style.willChange='transform';
       hit.style.touchAction='pan-y'; hit.style.cursor='default';
       intro=true;                                                       // no roll-in: the scroll drives the drum
     } else {
-      sec.style.height=''; stick.style.position=''; stick.style.top=''; stick.style.height='';
+      sec.style.height=''; stick.style.position=''; stick.style.top=''; stick.style.height=''; stick.style.willChange='';
       root.classList.remove('vsnap');
       hit.style.touchAction=''; hit.style.cursor='';
     }
