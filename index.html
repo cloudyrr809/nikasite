@@ -304,7 +304,7 @@ html.m #book,html.m #bookGL{transition:translate .75s cubic-bezier(.3,.7,.2,1)}
 /* the two album formats on a phone: the top of the pencil scribbles, two tabs, the chosen format, the bottom of the
    scribbles with the button in its empty corner — the text always sits between the drawn lines, as on the wide screen */
 .msc,.fmtTabs{display:none}
-html.m #choice{margin:20px 0 10px}
+html.m #choice{margin:20px 0 56px}
 html.m #choice .design{display:flex;flex-direction:column;padding:10px 22px 30px;box-sizing:border-box}
 html.m #scrib{display:none}
 html.m .msc{display:block;width:calc(100% + 44px);height:auto;margin:0 -22px;pointer-events:none}
@@ -328,7 +328,7 @@ html.m .fmt li{padding-left:16px}
 html.m .fmt li::before{left:2px}
 html.m .mbot{order:5;margin-top:22px}
 html.m .c-cta{order:4;position:relative!important;left:auto!important;bottom:auto!important;margin-top:34px;align-self:flex-start;font-size:23px!important}
-/* the two album formats on a phone, both on one screen, inside the hand-drawn frame (choice_m_lines.png, cut from the 1366x768 drawing at x 510..867, y 40..740):
+/* the two album formats on a phone, both on one screen, inside the hand-drawn frame (choice_m_pencil.png: the drawing cut at x 510..867, y 40..740 of the 1366x768 canvas, upscaled 4x, sharpened, with the process line's pencil grain baked in):
    the frame was drawn over a 375x693 template, which sat at 509.7,64.1 / 357.5x660.7 px on that 1366x768 canvas */
 .fmtM{display:none}
 html.m #choice .design{padding:0}
@@ -343,8 +343,8 @@ html.m #choice .msc,html.m #choice .fmtTabs,html.m #fmtBook,html.m #fmtClassic,h
 html.m .fmtM{display:block;position:relative;width:100%;aspect-ratio:375/693}
 .fmtM .mdraw{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:0}
 .fmtM .mf{position:absolute;z-index:1;width:77.3%;font-size:10px;line-height:1.4;font-weight:500;color:var(--ink)}
-.fmtM .mf1{left:18.5%;top:12%}
-.fmtM .mf2{right:12.5%;top:61.4%;width:71%}
+.fmtM .mf1{left:14.5%;top:12%}
+.fmtM .mf2{right:14.5%;top:62.6%;width:71%}
 .fmtM h2{margin:0;font-weight:700;font-size:18px;line-height:1.05;letter-spacing:-.02em;color:var(--accent)}
 .fmtM .n{margin:4px 0 9px;font-weight:600;font-size:10px;color:var(--ink-soft)}
 .fmtM h3{margin:9px 0 5px;font-weight:700;font-size:8.5px;line-height:1.2;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
@@ -355,8 +355,8 @@ html.m .fmtM{display:block;position:relative;width:100%;aspect-ratio:375/693}
 .fmtM .mf2{text-align:right}
 .fmtM .mf2 li{padding-left:0;padding-right:10px}
 .fmtM .mf2 li::before{left:auto;right:1px}
-.fmtM .cta{position:absolute;z-index:1;left:5.87%;top:94.2%;display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:16px;line-height:1;letter-spacing:-.01em;text-decoration:none}
-.fmtM .cta .a2{width:40px;height:10px}
+.fmtM .cta{position:absolute;z-index:1;left:14.5%;top:94.2%;display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:17px;line-height:1;letter-spacing:-.01em;text-decoration:none}
+.fmtM .cta .a2{width:36px;height:9px}
 /* "what MATTERS" keeps a full screen */
 html.m #values{height:var(--rh)}
 /* footer */
@@ -527,7 +527,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 
 <!-- on a phone: both formats on one screen inside the hand-drawn frame (the blocks above are hidden there) -->
 <div class="fmtM">
-<img class="mdraw" src="choice_m_lines.png" alt="" aria-hidden="true">
+<img class="mdraw" src="choice_m_pencil.png" alt="" aria-hidden="true">
 <div class="mf mf1">
 <h2>Книга класса</h2>
 <p class="n">30–40 полных разворотов</p>
