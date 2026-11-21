@@ -4,6 +4,36 @@
 <!-- the font files themselves come from this second server: connecting to it in advance saves a round trip before the letters show -->
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- the two font files (Cyrillic and Latin; one variable file holds every weight) are asked for at once, without first waiting
+     for Google's stylesheet: the floor words wait for them. If Google ever renames them, these two are simply not used -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459WlhyyTh89Y.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459W1hyyTh89ZNpQ.woff2">
+<script>
+/* the opening: the page stays hidden over the grey backdrop until the font, her photo and the floor words are all ready,
+   then fades in as one, instead of showing "grad EDITION" first and the rest popping in after it.
+   vrPart() is called once by each of the two parts (the photo, the floor); after 3 s the page shows whatever is ready */
+(function(){
+  var r=document.documentElement, need=2, shown=false;
+  r.classList.add('boot','nofl');
+  function show(){
+    if(shown) return; shown=true;
+    // two frames: the browser has really drawn everything (hidden) before the fade starts, so nothing pops in during it
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ r.classList.remove('boot'); window.vrShownAt=performance.now(); }); });
+  }
+  window.vrPart=function(){ if(--need<=0) show(); };
+  window.vrShown=function(){ return shown; };
+  setTimeout(show,3000);
+})();
+</script>
+<style>
+/* the opening (see the script above): hidden, then one soft fade. The floor words that come late (slow font) fade in on their own */
+html.boot #page{opacity:0}
+#page{transition:opacity .9s cubic-bezier(.3,0,.2,1)}
+html.nofl #floorClip,html.nofl #floorM{opacity:0}
+#floorClip,#floorM{transition:opacity .8s ease}
+html.boot #floorClip,html.boot #floorM{transition:none}
+@media (prefers-reduced-motion: reduce){#page,#floorClip,#floorM{transition:none}}
+</style>
 <style>
 /* Layout: two full-height screens drawn on a 1440-wide design grid (CSS zoom), over one fixed studio-grey backdrop.
    Scrolling slides the two floor words apart; everything else stays put. */
@@ -425,7 +455,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 <div aria-hidden="true" class="abs h-grad" style="left:42px;top:74px;font-weight:600;font-size:148px;color:var(--accent);z-index:2;line-height:.8;letter-spacing:0;font-kerning:none;white-space:nowrap"><span style="margin-right:-.0715em">g</span><span style="margin-right:.0032em">r</span><span style="margin-right:-.0217em">a</span>d</div>
 <div aria-hidden="true" class="abs h-ed" style="left:40px;top:172px;font-weight:800;font-size:160px;line-height:.8;letter-spacing:-.05em;white-space:nowrap">EDITION</div>
 
-<div class="abs h-year" style="left:572px;top:92px;right:250px;display:flex;align-items:center;gap:14px;font-weight:700;font-size:15px">
+<div class="abs h-year" style="left:449px;top:92px;right:250px;display:flex;align-items:center;gap:14px;font-weight:700;font-size:15px">
 <span>2027</span><span aria-hidden="true" style="flex:1;height:1.5px;background:var(--ink)"></span><span class="yf" aria-hidden="true" style="display:none"><span style="color:var(--accent)">in</span><br>my<br>FRAME</span>
 </div>
 
@@ -442,7 +472,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 </div>
 <span class="nav-name" style="font-weight:800;font-size:17px;letter-spacing:.01em;text-transform:uppercase">Veronika Royse</span>
 <nav aria-label="Разделы" class="nav-links" style="display:flex;flex-direction:column;align-items:flex-end;gap:0;font-weight:600;font-size:13px;line-height:1.35">
-<a class="cta" href="#">портфолио</a><a class="cta" href="#">стоимость</a><a class="cta" href="#contacts">контакты</a>
+<a class="cta" href="#">портфолио</a><a class="cta" href="#contacts">контакты</a>
 </nav>
 </div>
 
@@ -859,9 +889,9 @@ html.m #contacts .bar a:active{color:var(--accent)}
      turning the wheel the other way turns the page at once, a touchpad (it has its own momentum) is followed
      almost directly, and the keyboard or the scrollbar take over the moment they are used ---- */
   var sy=window.scrollY, ty=sy, tg=sy, sv=0, gliding=false, setY=-1, lastT=0;
-  // a wheel notch: spring stiffness (1/s) and the softening of the aim (s); 90% of a notch in ~0.5 s, settled in ~1 s.
+  // a wheel notch: spring stiffness (1/s) and the softening of the aim (s); 90% of a notch in ~0.7 s, settled in ~1.3 s.
   // A touchpad step: 90% in ~0.1 s, no softening (the pad already moves softly)
-  var W_WHEEL=7.5, PRE_WHEEL=0.06, W_PAD=38, wk=W_WHEEL, pre=PRE_WHEEL;
+  var W_WHEEL=6.5, PRE_WHEEL=0.07, W_PAD=38, wk=W_WHEEL, pre=PRE_WHEEL;
   var lastNotch=0, boost=1;
   function maxY(){return document.documentElement.scrollHeight-window.innerHeight;}
   function onWheel(ev){
@@ -872,8 +902,11 @@ html.m #contacts .bar a:active{color:var(--accent)}
     ev.preventDefault();
     var now=performance.now(), handV=auto?autoV:0;
     stopAuto();                                              // the wheel takes over a running "на главную" glide
-    // a touchpad sends many small, uneven steps; a wheel sends big, even notches
-    var pad=ev.deltaMode===0&&(Math.abs(dy)<50||dy%1!==0);
+    // a touchpad sends many small, uneven steps; a wheel sends big, even notches. Chrome and Edge on Windows with the screen
+    // scaled to 125/150/175% give a notch as 100 screen pixels counted in page px (80, 66.67, 57.14): that fraction was taken
+    // for a touchpad and the wheel then jumped with no glide. So a notch is also told by its size in screen pixels
+    var q=Math.abs(dy)*(window.devicePixelRatio||1);
+    var pad=ev.deltaMode===0&&!((Math.abs(dy)>=50&&dy%1===0)||(q>=50&&Math.abs(q-Math.round(q))<0.02));
     wk=pad?W_PAD:W_WHEEL; pre=pad?0:PRE_WHEEL;
     // taking over a glide: keep its speed, and aim where that speed would coast to, so the page slows down evenly, no bounce
     if(!gliding){ sy=window.scrollY; sv=handV; ty=tg=sy+sv/wk; }
@@ -1058,14 +1091,37 @@ html.m #contacts .bar a:active{color:var(--accent)}
     for(i=0;i<k.length;i++) k[i]/=sum;
     return k;
   }
+  /* the grain over a few million pixels took the phone ~0.5 s or more, all of it on the page's own thread, right when the visitor
+     made the first scroll: the floor words then stood still and jerked after. Now it runs in a background worker (the same
+     maths, the same result); only where a worker cannot be made does it run here as before */
   function pencilGrain(x,pw,ph,kx,ky,vx0){
-    var id=x.getImageData(0,0,pw,ph), d=id.data, n=pw*ph, A=new Uint8Array(n), T=new Float32Array(n), B=new Float32Array(n), i, j, y, xx, q;
+    var fx=PENCIL_F*GRAIN*ML/1366, fy=PENCIL_F*GRAIN*MA/768;
+    function here(){ var id=x.getImageData(0,0,pw,ph); grainCore(id.data,pw,ph,kx,ky,vx0,fx,fy); x.putImageData(id,0,0); }
+    return new Promise(function(ok){
+      var w=null, url=null, t=0, over=false;
+      function end(){ over=true; clearTimeout(t); if(w) w.terminate(); if(url) URL.revokeObjectURL(url); }
+      function fallback(){ if(over) return; end(); try{ here(); }catch(e){} ok(); }
+      try{
+        url=URL.createObjectURL(new Blob([makeTurbulence.toString(),'\n',gaussKernel.toString(),'\n',grainCore.toString(),'\n',
+          'onmessage=function(e){var m=e.data,d=new Uint8ClampedArray(m.b);grainCore(d,m.pw,m.ph,m.kx,m.ky,m.vx0,m.fx,m.fy);postMessage(m.b,[m.b]);};'],{type:'text/javascript'}));
+        w=new Worker(url);
+      }catch(e){ fallback(); return; }
+      w.onmessage=function(e){ if(over) return; end(); try{ x.putImageData(new ImageData(new Uint8ClampedArray(e.data),pw,ph),0,0); }catch(er){ try{ here(); }catch(e2){} } ok(); };
+      w.onerror=function(e){ if(e&&e.preventDefault) e.preventDefault(); fallback(); };
+      t=setTimeout(fallback,10000);
+      var id=x.getImageData(0,0,pw,ph);
+      w.postMessage({b:id.data.buffer,pw:pw,ph:ph,kx:kx,ky:ky,vx0:vx0,fx:fx,fy:fy},[id.data.buffer]);
+    });
+  }
+  // (self-contained: it is also sent to the worker as text, so it uses nothing from around it but makeTurbulence and gaussKernel)
+  function grainCore(d,pw,ph,kx,ky,vx0,fx,fy){
+    var n=pw*ph, A=new Uint8Array(n), T=new Float32Array(n), B=new Float32Array(n), i, j, y, xx, q;
     for(i=0,j=3;i<n;i++,j+=4) A[i]=d[j];
     // the filter's blur: a gaussian of 0.35 picture units
     var kh=gaussKernel(.35*kx), Rh=(kh.length-1)>>1, kv=gaussKernel(.35*ky), Rv=(kv.length-1)>>1;
     for(y=0;y<ph;y++){ var o=y*pw; for(xx=0;xx<pw;xx++){ var sum=0; for(q=-Rh;q<=Rh;q++){ var xq=xx+q; xq=xq<0?0:xq>=pw?pw-1:xq; sum+=kh[q+Rh]*A[o+xq]; } T[o+xx]=sum; } }
     for(y=0;y<ph;y++){ for(xx=0;xx<pw;xx++){ var sv=0; for(q=-Rv;q<=Rv;q++){ var yq=y+q; yq=yq<0?0:yq>=ph?ph-1:yq; sv+=kv[q+Rv]*T[yq*pw+xx]; } B[y*pw+xx]=sv/255; } }
-    var turb=makeTurbulence(7), fx=PENCIL_F*GRAIN*ML/1366, fy=PENCIL_F*GRAIN*MA/768;
+    var turb=makeTurbulence(7);
     for(y=0;y<ph;y++){
       var Y=(y+.5)/ky;
       for(xx=0;xx<pw;xx++){
@@ -1074,7 +1130,6 @@ html.m #contacts .bar a:active{color:var(--accent)}
         d[idx*4+3]=Math.round(.86*a*m);
       }
     }
-    x.putImageData(id,0,0);
   }
   // what the finished line was made for: if the layout changes, it has to be made again
   function inkKeyNow(){
@@ -1108,11 +1163,12 @@ html.m #contacts .bar a:active{color:var(--accent)}
             x.setTransform(kx,0,0,ky,-vb.x*kx,-vb.y*ky); x.fillStyle='rgba(0,0,0,.9)';   // the picture's own ink is about 83% opaque, mine a little more since its width does not vary on average
             extPolys.forEach(function(poly){ x.beginPath(); poly.forEach(function(q,i){ if(i) x.lineTo(q[0],q[1]); else x.moveTo(q[0],q[1]); }); x.closePath(); x.fill(); });
             x.setTransform(1,0,0,1,0,0);
-            pencilGrain(x,pw,ph,kx,ky,vb.x);
-            // the same check as before: the picture really holds the line
-            var t=document.createElement('canvas'); t.width=96; t.height=54; var tx2=t.getContext('2d'); tx2.drawImage(c,0,0,96,54);
-            var dd=tx2.getImageData(0,0,96,54).data, cnt=0; for(var i=3;i<dd.length;i+=4) if(dd[i]>20) cnt++;
-            if(cnt<40) no(); else { c._k=key; ok(c); }
+            pencilGrain(x,pw,ph,kx,ky,vb.x).then(function(){
+              // the same check as before: the picture really holds the line
+              var t=document.createElement('canvas'); t.width=96; t.height=54; var tx2=t.getContext('2d'); tx2.drawImage(c,0,0,96,54);
+              var dd=tx2.getImageData(0,0,96,54).data, cnt=0; for(var i=3;i<dd.length;i+=4) if(dd[i]>20) cnt++;
+              if(cnt<40) no(); else { c._k=key; ok(c); }
+            }).catch(no);
           }catch(e){ no(e); }
         };
         im.src='line5.png';
@@ -1283,7 +1339,9 @@ html.m #contacts .bar a:active{color:var(--accent)}
     var st=prepIntro(); if(!st) return;
     var h2=document.querySelector('#process h2');
     // the grained line is baked in the background soon after load; the intro waits for it a moment at most
-    var baked=new Promise(function(ok){ setTimeout(function(){ bakeInk().then(function(c){ inkBmp=c; ok(); },function(){ ok(); }); },400); });
+    // (it starts once the page has opened and the finger rests a moment, or 2.5 s after the opening at the latest: its grain
+    // runs in a worker, but drawing the picture still costs the phone a few frames, which must not fall into the first scroll)
+    var baked=new Promise(function(ok){ whenCalm(function(){ bakeInk().then(function(c){ inkBmp=c; ok(); },function(){ ok(); }); },{after:300,quiet:300,latest:2500}); });
     function go(){ var fired=false; function fire(){ if(fired) return; fired=true; playIntro(st); } baked.then(fire); setTimeout(fire,MOB?5000:1500); }
     if(!('IntersectionObserver' in window)){ go(); return; }
     var io=new IntersectionObserver(function(en){
@@ -1296,14 +1354,14 @@ html.m #contacts .bar a:active{color:var(--accent)}
      The wheel, the keys or the scrollbar stop it at once */
   var auto=0, autoV=0;
   function stopAuto(){ if(auto){ cancelAnimationFrame(auto); auto=0; } autoV=0; }
-  function glideTo(y,D){
+  function glideTo(y,D,soft){
     gliding=false; sv=0; stopAuto();
     y=Math.max(0,Math.min(maxY(),y));
     if(reduce){ window.scrollTo(0,y); sy=ty=tg=y; return; }
     var from=window.scrollY, t0=null, lastNow=0, lastY=from, setA=-1;
     function done(){ auto=0; autoV=0; sy=ty=tg=window.scrollY; }
-    // short soft start (quadratic over the first 15%), then a long quintic glide that settles gently
-    var a=0.15, B=1/(Math.pow(1-a,4)*(2.5*a+(1-a))), A=5*B*Math.pow(1-a,4)/(2*a);
+    // short soft start (quadratic over the first 15%, or `soft` of the way), then a long quintic glide that settles gently
+    var a=soft||0.15, B=1/(Math.pow(1-a,4)*(2.5*a+(1-a))), A=5*B*Math.pow(1-a,4)/(2*a);
     function step(now){
       if(setA>=0&&Math.abs(window.scrollY-setA)>1.5){ done(); return; }
       if(t0===null) t0=now;
@@ -1336,10 +1394,21 @@ html.m #contacts .bar a:active{color:var(--accent)}
   }
   function toTop(ev){
     ev.preventDefault();
-    // a phone: the browser's own smooth scroll. Our frame-by-frame glide lost its way in Safari on an iPhone (a step it
-    // did not take looked like the visitor's own scroll, and the glide stopped where it was)
-    if(MOB){ phoneTop(); return; }
-    glideTo(0,1400);
+    /* a phone: the browser's own smooth scroll. Moved frame by frame from the page's script, the page jerked on an iPhone:
+       a ride of several thousand px in 1–2 s is up to 150 px a frame, and every frame Safari is late with (pictures being
+       decoded on the way, the floor words) showed as a jump. The browser's own scroll is run by the phone itself, outside the
+       page's script, so it keeps an even pace whatever the page is busy with; a finger on the screen stops it as usual.
+       (Old phones without it: the frame-by-frame ride as before) */
+    if(MOB){
+      if('scrollBehavior' in document.documentElement.style&&!reduce){
+        stopAuto(); gliding=false; cancelAnimationFrame(topRaf);
+        window.scrollTo({top:0,left:0,behavior:'smooth'});
+      } else phoneTop();
+      return;
+    }
+    // the wide screen: a calmer ride than the links' (a longer soft start, 1.7–2.3 s with the distance)
+    var from=window.scrollY;
+    glideTo(0,Math.min(2300,Math.max(1700,1500+from*0.08)),0.25);
   }
   function onLink(ev){
     if(ev.defaultPrevented||ev.button>0||ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey) return;
@@ -3318,6 +3387,59 @@ html.m #contacts .bar a:active{color:var(--accent)}
     render(); refresh(); schedulePeek();
   }
 
+  /* the visitor's hand: the last moment the page was scrolled or touched. Heavy work waits for a calm moment (whenCalm):
+     after the page has opened, plus o.after ms; when nothing has scrolled or touched it for o.quiet ms; with o.noIntro, not while
+     the process line draws itself. o.latest: ms after the opening at which it runs anyway */
+  var lastHand=0;
+  ['scroll','touchstart','touchmove','wheel'].forEach(function(t){ window.addEventListener(t,function(){ lastHand=performance.now(); },{passive:true}); });
+  function whenCalm(fn,o){
+    (function check(){
+      var now=performance.now(), at=window.vrShownAt;
+      if(at==null&&!(window.vrShown&&window.vrShown())){ setTimeout(check,150); return; }
+      if(at==null) at=now;
+      var late=o.latest!=null&&now-at>=o.latest;
+      if(late||(now-at>=(o.after||0)&&now-lastHand>=(o.quiet||0)&&!(o.noIntro&&introOn))) fn(); else setTimeout(check,150);
+    })();
+  }
+
+  /* the hand-drawn arrows get the pencil grain of the line on "the PROCESS": the same maths (grainCore: the noise, the blur,
+     alpha = 0.86 * alpha * clamp(3.2*noise + 1.6*blurred alpha - 2.05)), as fine on screen as the line's (PENCIL_F grains per
+     design px). Each arrow picture is drawn once onto a canvas at the size it is shown, grained, and used as the arrow's mask
+     in place of the plain picture: a ready picture, so every phone shows it (a filter inside a mask is not drawn by all of them).
+     If anything fails, the plain arrows simply stay */
+  function grainArrows(){
+    var CL={a1:'arrow1.png',a2:'arrow2.png',a3:'arrow3.png',a4:'arrow4.png',a5:'arrow5.png',a6:'arrow6b.png'};
+    var dpr=Math.min(window.devicePixelRatio||1,3), k=s*dpr, css=[], todo=0;
+    function done(){ if(--todo>0||!css.length) return; var st=document.createElement('style'); st.textContent=css.join(' '); document.body.appendChild(st); }   // after the page's own styles, so it wins
+    Object.keys(CL).forEach(function(cl,n){
+      var w=0; document.querySelectorAll('.ha.'+cl).forEach(function(el){ w=Math.max(w,el.offsetWidth); });
+      if(!w) return;
+      todo++;
+      var im=new Image();
+      im.onerror=done;
+      im.onload=function(){
+        try{
+          var pw=Math.max(8,Math.round(w*k)), ph=Math.max(4,Math.round(pw*im.naturalHeight/im.naturalWidth));
+          // the big picture is brought down to size in halves (one big step would drop strokes thinner than a pixel)
+          var src=im, sw=im.naturalWidth, sh=im.naturalHeight;
+          while(sw>pw*2){ var t=document.createElement('canvas'); t.width=Math.round(sw/2); t.height=Math.round(sh/2);
+            var tx=t.getContext('2d'); tx.imageSmoothingEnabled=true; tx.drawImage(src,0,0,t.width,t.height); src=t; sw=t.width; sh=t.height; }
+          var c=document.createElement('canvas'); c.width=pw; c.height=ph; var x=c.getContext('2d');
+          x.imageSmoothingEnabled=true; if(x.imageSmoothingQuality) x.imageSmoothingQuality='high';
+          x.drawImage(src,0,0,pw,ph);
+          var id=x.getImageData(0,0,pw,ph);
+          grainCore(id.data,pw,ph,k,k,n*97.3,PENCIL_F,PENCIL_F);   // each arrow its own patch of the paper
+          x.putImageData(id,0,0);
+          var url=c.toDataURL('image/png'), ready=new Image();
+          // swapped only once the new picture is decoded, so the arrow never blinks
+          ready.onload=function(){ css.push('.'+cl+'{-webkit-mask-image:url('+url+');mask-image:url('+url+')}'); done(); };
+          ready.onerror=done; ready.src=url;
+        }catch(e){ done(); }
+      };
+      im.src=CL[cl];
+    });
+  }
+
   function start(){
     // a click anywhere outside the selectable text drops the current selection
     document.addEventListener('pointerdown',function(e){
@@ -3325,7 +3447,21 @@ html.m #contacts .bar a:active{color:var(--accent)}
       var sel=window.getSelection && window.getSelection();
       if(sel && sel.rangeCount) sel.removeAllRanges();
     });
-    build(); fit(); setupIntro(); setupAlbum(); setupHand();
+    build(); fit(); setupIntro(); setupHand();
+    try{ grainArrows(); }catch(e){}
+    // the floor is there: it is drawn at once (below), and the opening may show the page
+    lp=reduce?0:progress(); drawFloor(lp); root.classList.remove('nofl'); if(window.vrPart) window.vrPart();
+    /* the 3D album (its graphics, ~40 small page pictures decoded and put onto the graphics card) used to be set up right here,
+       on top of the opening and the first scroll: on a phone the floor words then answered the finger late and jerked.
+       Now it waits until the page has opened and the visitor's finger rests, and not while the process line draws itself;
+       if the visitor heads for the album sooner, it starts as soon as the album is a screen away */
+    var albumOn=false;
+    function albumGo(){ if(albumOn) return; albumOn=true; setupAlbum(); }
+    whenCalm(albumGo,{after:1000,quiet:450,noIntro:true});
+    if('IntersectionObserver' in window){
+      var aio=new IntersectionObserver(function(en){ if(en[0].isIntersecting){ aio.disconnect(); albumGo(); } },{rootMargin:'100% 0px 100% 0px'});
+      aio.observe(document.getElementById('album'));
+    }
     // the format tabs on a phone
     document.querySelectorAll('.fmtTabs button').forEach(function(b,i,all){
       b.addEventListener('click',function(){
@@ -3335,7 +3471,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
           f.classList.toggle('off',!on); f.classList.remove('in'); if(on){ void f.offsetWidth; f.classList.add('in'); }
         });
       });
-    }); lp=reduce?0:progress(); drawFloor(lp); room();
+    }); room();
     if(reduce) window.addEventListener('scroll',room,{passive:true});
     window.addEventListener('resize',room);
     document.querySelectorAll('[data-totop]').forEach(function(a){ a.addEventListener('click',toTop); });
@@ -3368,6 +3504,11 @@ html.m #contacts .bar a:active{color:var(--accent)}
     });
   }
   fit();
+  // the opening's other part: her photo on the first screen, loaded and decoded (so it does not appear after the fade)
+  (function(){ var im=hero.querySelector('.fig-img'), done=false; function part(){ if(done) return; done=true; if(window.vrPart) window.vrPart(); }
+    if(!im){ part(); return; }
+    if(im.decode) im.decode().then(part,function(){ if(im.complete) part(); else { im.addEventListener('load',part); im.addEventListener('error',part); } });
+    else if(im.complete) part(); else { im.addEventListener('load',part); im.addEventListener('error',part); } })();
   var go=function(){ (document.fonts&&document.fonts.load?document.fonts.load(FONT,'VERONIKA'):Promise.resolve()).then(start,start); };
   if(document.fonts&&document.fonts.ready) document.fonts.ready.then(go); else window.addEventListener('load',go);
 })();
