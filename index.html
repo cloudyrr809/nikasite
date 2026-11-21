@@ -280,8 +280,9 @@ html.m #hero .h-cta .ha{width:30.6px;height:6.4px}
 /* process: the drawn line runs top to bottom down the left of the column, the steps stand to its right */
 html.m #process .design{padding:64px 22px 30px;box-sizing:border-box}
 html.m .p-kick,html.m .p-big,html.m .p-sub{position:relative!important;left:auto!important;top:auto!important}
-html.m .p-kick{font-size:calc(var(--mw)*.2)!important}
-html.m .p-big{font-size:calc(var(--mw)*.2)!important;margin-top:calc(var(--mw)*-.04)}
+/* every title on a phone is as large as "grad EDITION" (68 / 74 on the phone grid) */
+html.m .p-kick{font-size:68px!important}
+html.m .p-big{font-size:74px!important;margin-top:-14px}
 html.m .p-sub{margin-top:22px!important;font-size:12.5px!important;line-height:1.38!important}
 html.m .p-sub br,html.m #contacts .lead br{display:none}
 html.m #band{position:relative;margin-top:18px}
@@ -370,8 +371,8 @@ html.m #contacts{margin-top:30px}
 html.m #contacts .design{height:auto;display:flex;flex-direction:column;padding:40px 22px 28px;box-sizing:border-box}
 html.m #contacts .k,html.m #contacts .b,html.m #contacts .lead,html.m #contacts .rows,html.m #contacts .main,html.m #contacts .bar,
 html.m #contacts .hand,html.m #contacts .ideas{position:relative;left:auto;right:auto;top:auto;bottom:auto}
-html.m #contacts .k{font-size:calc(var(--mw)*.2)}
-html.m #contacts .b{font-size:calc(var(--mw)*.226);margin-top:calc(var(--mw)*-.04)}
+html.m #contacts .k{font-size:68px}
+html.m #contacts .b{font-size:74px;margin-top:-14px}
 html.m #contacts .lead{margin-top:22px;font-size:12.5px;line-height:1.38}
 html.m #contacts .rows{margin-top:32px}
 html.m #contacts .row{grid-template-columns:minmax(96px,30%) 1fr auto;padding:19px 0}
@@ -3268,7 +3269,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
       px(hit,{left:0,top:winT,width:tl+TW+40,height:H});
       px(cta,{left:44,top:'auto',bottom:40});
     } else {
-      px(kick,{left:28,top:50,fontSize:80}); px(big,{left:26,top:96,fontSize:92});
+      px(kick,{left:28,top:50,fontSize:HZ?95:80}); px(big,{left:26,top:HZ?102:96,fontSize:HZ?103:92});   // a phone: as large as "grad EDITION"
       tl=36; TW=HZ?Math.round(LW*.64):LW-2*tl;
       fh=Math.min(LH*.41,860); fw=fh*RATIO; figL=LW-fw-14; figT=LH-20-fh;   // the train's tip stays clear of the screen edge
       var zt=206, zb=figT+70;
