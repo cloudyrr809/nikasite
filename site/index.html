@@ -327,6 +327,10 @@ html.m .c-cta{order:4;position:relative!important;left:auto!important;bottom:aut
    the frame was drawn over a 375x693 template, which sat at 509.7,64.1 / 357.5x660.7 px on that 1366x768 canvas */
 .fmtM{display:none}
 html.m #choice .design{padding:0}
+/* the drawing may stick out above and below onto the neighbouring screens: only the sides are clipped */
+html.m #choice{overflow-x:clip;overflow-y:visible;z-index:2}
+html.m #choice .design{overflow:visible}
+.fmtM .mdraw{overflow:visible}
 html.m #choice .msc,html.m #choice .fmtTabs,html.m #fmtBook,html.m #fmtClassic,html.m #choice .c-cta{display:none!important}
 /* everything is placed in % of the drawing, so the text stays in the gaps the frame leaves at any phone width */
 html.m .fmtM{display:block;position:relative;width:100%;aspect-ratio:375/693}
