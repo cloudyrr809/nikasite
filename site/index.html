@@ -2064,27 +2064,11 @@ html.m #contacts .bar a:active{color:var(--accent)}
       if(!gl) return false;
       var ca=gl.getContextAttributes&&gl.getContextAttributes(); glSS=(ca&&ca.antialias)?1:1.5;
       if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<4096){ SMS=1024; SMS2=1024; }
-      // on a phone the album is ~550 screen pixels tall: shadow maps of 1024 look the same there and cost a quarter as much
-      // (both are drawn again on every frame of a turn, which on a phone's graphics card was a good part of the stutter)
-      if(MOB){ SMS=1024; SMS2=1024; }
       // the fade of a page from its small copy to its full-size picture needs two more picture slots; a graphics card with
       // fewer than 12 (rare) draws the pages straight from the one picture, as before
       PG_X=gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)>=12;
-      /* on a phone the soft shadows take fewer samples and the shadow grid is coarser (the album is small there, the shadows
-         are blurred anyway). Counted from the shaders: a flying sheet took 38 shadow-map reads per screen pixel and the shadow
-         blur 66 surface lookups per grid point, on every frame. A phone's graphics card could not keep up, so the album was
-         drawn at half resolution all through a turn: that was the "soap" until the sheet landed */
-      var FS3m=FS3, FSVm=FSV, FSBm=FSB;
-      if(MOB){
-        VW=320;
-        FS3m=FS3.replace('for(int i=0;i<10;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/10.);','for(int i=0;i<6;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/6.);')
-          .replace('for(int i=0;i<24;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/24.);','for(int i=0;i<12;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/12.);')
-          .replace('v/24.','v/12.');
-        FSVm=FSV.replace('for(int i=0;i<16;i++){float a=float(i)*2.39996;float r=sqrt((float(i)+.5)/16.);','for(int i=0;i<10;i++){float a=float(i)*2.39996;float r=sqrt((float(i)+.5)/10.);');
-        FSBm=FSB.split('for(int i=-16;i<=16;i++){float t=float(i)/16.;').join('for(int i=-8;i<=8;i++){float t=float(i)/8.;');
-      }
-      P3=mkProg(VS3,PG_X?FS3m:FS3m.replace(/texture2D\(uPgA0,/g,'texture2D(uPgA,').replace(/texture2D\(uPgB0,/g,'texture2D(uPgB,')); PZ=mkProg('attribute vec3 aP;'+PROJ+'void main(){gl_Position=proj(aP);}','precision mediump float;void main(){gl_FragColor=vec4(0.);}');
-      PG=mkProg(VSG,FSG); PD=mkProg(VSD,FSD); PV=mkProg(VSQ,FSVm); PB=mkProg(VSQ,FSBm);
+      P3=mkProg(VS3,PG_X?FS3:FS3.replace(/texture2D\(uPgA0,/g,'texture2D(uPgA,').replace(/texture2D\(uPgB0,/g,'texture2D(uPgB,')); PZ=mkProg('attribute vec3 aP;'+PROJ+'void main(){gl_Position=proj(aP);}','precision mediump float;void main(){gl_FragColor=vec4(0.);}');
+      PG=mkProg(VSG,FSG); PD=mkProg(VSD,FSD); PV=mkProg(VSQ,FSV); PB=mkProg(VSQ,FSB);
       var sm=mkTarget(SMS,SMS,gl.NEAREST,true); smT=sm.t; smF=sm.f;
       var sm2=mkTarget(SMS2,SMS2,gl.NEAREST,true); smT2=sm2.t; smF2=sm2.f;
       VH=Math.round(VW*2.2/2.6);
