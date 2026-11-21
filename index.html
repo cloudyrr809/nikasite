@@ -292,15 +292,10 @@ html.m .lab{transform:translateY(-50%);text-align:left;white-space:normal;line-h
 html.m .lab br.mb{display:inline}
 html.m .lab::before{display:none}
 /* album */
-/* on a phone the hint and the closing button are small and stand clear of the album: two centred lines, a short arrow
-   that only nudges a little (it used to reach the album's edge) */
-html.m #hint{font-size:13.5px;gap:8px;white-space:pre-line;text-align:center;line-height:1.3}
-html.m #hint .ha{width:34px;height:8.4px;animation-name:nudgeM}
-@keyframes nudgeM{0%,100%{transform:translateX(0)}50%{transform:translateX(3px)}}
+html.m #hint{font-size:15px;gap:10px;white-space:normal;text-align:right;line-height:1.25}
 /* the closing button on a phone: one line, the size of the hint, a shorter arrow (it used to wrap onto the counter) */
-html.m #endCta{font-size:13.5px;gap:8px;white-space:nowrap}
-html.m #endCta .ha{width:34px;height:8.9px}
-html.m #endCta:hover .ha{transform:translateX(3px)}
+html.m #endCta{font-size:15px;gap:10px;white-space:nowrap}
+html.m #endCta .ha{width:38px;height:10px}
 /* on an upright phone the album lies sideways (html.rot): its own landscape grid, turned a quarter round, so the open spread
    runs along the phone's long side and is big. Turning the phone makes it read the right way up; a badge over it says so */
 #rotHint{display:none}
@@ -656,12 +651,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   // real height (the page then took that height for one screen, and the album and every screen came out twice as tall)
   function winH(){ var v=window.visualViewport; return (v&&v.scale>0&&v.scale<0.98)?Math.round(v.height*v.scale):window.innerHeight; }
   window.VREF={w:root.clientWidth||window.innerWidth, h:winH(), dpr:window.devicePixelRatio||1};
-  /* pinched: a phone zoomed in by two fingers. The browser then reports a smaller window (innerHeight shrinks), and every
-     resize handler took that for a new screen and laid the whole page out again for it: the page jumped about while
-     zoomed, anywhere on the site, and the repeated rebuilds while pinching could make the phone drop the tab */
-  function pinched(){ var v=window.visualViewport; return !!(v&&v.scale>1.02); }
-  window.vrPinched=pinched;
-  function zoomed(){ return pinched()||(window.devicePixelRatio||1)>VREF.dpr+0.001; }
+  function zoomed(){ return (window.devicePixelRatio||1)>VREF.dpr+0.001; }
   function takeRef(){ VREF.w=root.clientWidth||window.innerWidth; VREF.h=winH(); VREF.dpr=window.devicePixelRatio||1; }
   window.vrZoomed=zoomed; window.vrTakeRef=takeRef;          // the What-matters script uses the same rule
   // Ctrl+wheel: the browser zooms towards the page's top-left corner; right after, the page is moved so that
@@ -690,7 +680,6 @@ html.m #contacts .bar a:active{color:var(--accent)}
   // that must not lay the whole page out again (everything would jump)
   // (but a change between upright and lying is always laid out again, even if the width came first and the height after)
   window.vrSkipResize=function(){ var w=root.clientWidth||window.innerWidth, h=window.innerHeight;
-    if(window.vrPinched&&window.vrPinched()) return true;
     return MOB && isMob(w,h) && Math.abs(w-VREF.w)<2 && (h>w*1.15)===(VREF.h>VREF.w*1.15); };
   function fit(){
     var w=VREF.w,h=VREF.h, mob=isMob(w,h), dw;
@@ -1779,7 +1768,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     endCta.style.left=(dw/2+Math.round(S*0.32))+'px'; endCta.style.top=cy+'px';   // right of the closed album, with clear air between them
     pager.style.left=(dw/2)+'px';
     // a finger opens the album with a tap (also a phone on its side, which gets the wide layout)
-    var coarse=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches, ht=MOB?'Потяните, чтобы\nоткрыть':coarse?'Нажмите, чтобы открыть':'Потяните страницу, чтобы открыть';
+    var coarse=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches, ht=(MOB||coarse)?'Нажмите, чтобы\u00a0открыть':'Потяните страницу, чтобы открыть';
     if(hint.firstChild.textContent!==ht){ hint.firstChild.textContent=ht; hint.setAttribute('aria-label',ht); }
     if(ROT){ pager.style.bottom='22px'; } else pager.style.bottom='';
     if(AM){
@@ -1787,9 +1776,9 @@ html.m #contacts .bar a:active{color:var(--accent)}
       // as on a computer: the hint stands left of the closed album (on the right half), the button right of the album closed
       // at the end (on the left half), each on the album's middle line. The room beside the album is narrow, so the hint
       // breaks into two lines (see html.m #hint)
-      var gap=24;
+      var gap=16;
       hint.style.left=''; hint.style.right=(dw/2+gap)+'px'; hint.style.top=cy+'px'; hint.style.transform='';
-      hint.style.maxWidth='';
+      hint.style.maxWidth=(dw/2-gap-12)+'px';
       endCta.style.left=(dw/2+gap)+'px'; endCta.style.top=cy+'px'; endCta.style.transform='';
     }
     // the button stays on the process screen; on the album screen its place is taken by the one at the album's end
@@ -1811,30 +1800,20 @@ html.m #contacts .bar a:active{color:var(--accent)}
   function sizeGL(noRender){
     if(!gl) return;
     glDpr=window.devicePixelRatio||1;
-    // (on a phone the zoomed picture is capped low: a big picture buffer is what makes iOS drop the tab)
-    var px=Math.min(glDpr*s*glSS, 3)*vvZ*glMS, w=2*XR*px, h=(BS+YT+YB)*px, cap=(MOB?3.5e6:8e6)*glMS*glMS;
+    var px=Math.min(glDpr*s*glSS, 3)*vvZ*glMS, w=2*XR*px, h=(BS+YT+YB)*px, cap=8e6*glMS*glMS;
     if(w*h>cap){ var f=Math.sqrt(cap/(w*h)); w*=f; h*=f; }
     w=Math.round(w); h=Math.round(h);
     if(glc.width!==w||glc.height!==h){ glc.width=w; glc.height=h; }
     if(!noRender) render();
   }
-  /* settle: every sheet in the air is within a few degrees of where it lands. The last stretch of a turn moves so little
-     that the picture is drawn sharp again already then: before, the spread looked landed but was still drawn coarse for
-     another ~0.3 s, and then snapped sharp ("first a little soft, then good"). How fast this card is (motionScale) is
-     left as it was, so the next turn starts where this one was.
-     msLevel: on a phone the canvas changes size in two big steps, not five small ones. Each change of its size makes the
-     browser set up the whole picture buffer again, a hitch of its own, and on quick clicks that kept happening */
-  function msLevel(m){ return MOB?(m>=0.95?1:m>=0.68?0.75:0.5):m; }
-  function motionRes(more,dt,now,settle){
-    if(more&&settle){ if(glMS!==1){ glMS=1; sizeGL(true); } return; }
+  function motionRes(more,dt,now){
     if(more){
       emaDt=emaDt*0.85+dt*0.15;
       if(now-adjT>300){
         if(emaDt>21&&motionScale>0.5){ motionScale=Math.max(0.5,motionScale*0.82); adjT=now; }
         else if(emaDt<12&&motionScale<1){ motionScale=Math.min(1,motionScale/0.82); adjT=now; }
       }
-      var lv=msLevel(motionScale);
-      if(glMS!==lv){ glMS=lv; sizeGL(true); }
+      if(glMS!==motionScale){ glMS=motionScale; sizeGL(true); }
     } else {
       emaDt=16; motionScale=Math.min(1,motionScale/0.82);
       if(glMS!==1){ glMS=1; sizeGL(true); }
@@ -2085,11 +2064,27 @@ html.m #contacts .bar a:active{color:var(--accent)}
       if(!gl) return false;
       var ca=gl.getContextAttributes&&gl.getContextAttributes(); glSS=(ca&&ca.antialias)?1:1.5;
       if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<4096){ SMS=1024; SMS2=1024; }
+      // on a phone the album is ~550 screen pixels tall: shadow maps of 1024 look the same there and cost a quarter as much
+      // (both are drawn again on every frame of a turn, which on a phone's graphics card was a good part of the stutter)
+      if(MOB){ SMS=1024; SMS2=1024; }
       // the fade of a page from its small copy to its full-size picture needs two more picture slots; a graphics card with
       // fewer than 12 (rare) draws the pages straight from the one picture, as before
       PG_X=gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)>=12;
-      P3=mkProg(VS3,PG_X?FS3:FS3.replace(/texture2D\(uPgA0,/g,'texture2D(uPgA,').replace(/texture2D\(uPgB0,/g,'texture2D(uPgB,')); PZ=mkProg('attribute vec3 aP;'+PROJ+'void main(){gl_Position=proj(aP);}','precision mediump float;void main(){gl_FragColor=vec4(0.);}');
-      PG=mkProg(VSG,FSG); PD=mkProg(VSD,FSD); PV=mkProg(VSQ,FSV); PB=mkProg(VSQ,FSB);
+      /* on a phone the soft shadows take fewer samples and the shadow grid is coarser (the album is small there, the shadows
+         are blurred anyway). Counted from the shaders: a flying sheet took 38 shadow-map reads per screen pixel and the shadow
+         blur 66 surface lookups per grid point, on every frame. A phone's graphics card could not keep up, so the album was
+         drawn at half resolution all through a turn: that was the "soap" until the sheet landed */
+      var FS3m=FS3, FSVm=FSV, FSBm=FSB;
+      if(MOB){
+        VW=320;
+        FS3m=FS3.replace('for(int i=0;i<10;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/10.);','for(int i=0;i<6;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/6.);')
+          .replace('for(int i=0;i<24;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/24.);','for(int i=0;i<12;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/12.);')
+          .replace('v/24.','v/12.');
+        FSVm=FSV.replace('for(int i=0;i<16;i++){float a=float(i)*2.39996;float r=sqrt((float(i)+.5)/16.);','for(int i=0;i<10;i++){float a=float(i)*2.39996;float r=sqrt((float(i)+.5)/10.);');
+        FSBm=FSB.split('for(int i=-16;i<=16;i++){float t=float(i)/16.;').join('for(int i=-8;i<=8;i++){float t=float(i)/8.;');
+      }
+      P3=mkProg(VS3,PG_X?FS3m:FS3m.replace(/texture2D\(uPgA0,/g,'texture2D(uPgA,').replace(/texture2D\(uPgB0,/g,'texture2D(uPgB,')); PZ=mkProg('attribute vec3 aP;'+PROJ+'void main(){gl_Position=proj(aP);}','precision mediump float;void main(){gl_FragColor=vec4(0.);}');
+      PG=mkProg(VSG,FSG); PD=mkProg(VSD,FSD); PV=mkProg(VSQ,FSVm); PB=mkProg(VSQ,FSBm);
       var sm=mkTarget(SMS,SMS,gl.NEAREST,true); smT=sm.t; smF=sm.f;
       var sm2=mkTarget(SMS2,SMS2,gl.NEAREST,true); smT2=sm2.t; smF2=sm2.f;
       VH=Math.round(VW*2.2/2.6);
@@ -2174,9 +2169,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   /* the size a page is wanted at: on a phone zoomed in by a finger (1.5× or more) the open spread takes the 2048 px
      pictures, the rest stay at 1024 (each 2048 px picture is 22 MB on the graphics card, too much to keep many on a phone) */
   var pgSz={}, pgLdSz={}, decRedo={};
-  // (switched off: on a phone the 1024 px pages are already as sharp as the screen up to ~2× zoom, and the 2048 px ones
-  // cost 22 MB each on the graphics card, too much for a phone. The size-upgrade path below stays, but nothing asks for it)
-  function pgWant(p){ return PG_SIZE; }
+  function pgWant(p){ return (MOB&&vvZ>=1.5&&pgSp(p)===Math.max(1,Math.min(SPREADS,committed)))?2048:PG_SIZE; }
   // the pages of spread sp (1…SPREADS): the left one is the back of sheet sp-1 (on the first spread, the front endpaper),
   // the right one the front of sheet sp (on the last spread, the back endpaper)
   function pgOfSpread(sp){ return [sp>1?2*(sp-1):EP_F, sp<SPREADS?2*sp-1:EP_B]; }
@@ -2297,13 +2290,6 @@ html.m #contacts .bar a:active{color:var(--accent)}
      A full-size picture is a big upload that holds up the graphics card for a few frames: during a turn that showed as a
      stutter, so they go up only while nothing moves; a sheet in the air shows its small copy, which in motion looks the same */
   function moving(){ return !!drag||leaves.some(function(L){ return L.moving; }); }
-  // nothing in the hand and every sheet in the air within 8 degrees of where it lands (see motionRes)
-  function settling(){
-    if(drag||peek) return false;
-    var any=false;
-    for(var k=0;k<=LAST;k++){ var L=leaves[k]; if(!L.moving) continue; any=true; if(Math.abs(L.to-L.af)>8||Math.abs(L.g)>4) return false; }
-    return any;
-  }
   function pgPump(){
     if(pgPumpT||!gl) return;
     if(introOn&&(thQueue.length||pgQueue.length||upJob)){ pgPumpT=setTimeout(function(){ pgPumpT=0; pgPump(); },150); return; }
@@ -2329,8 +2315,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
          So the page under the turning sheet is usually sharp by the time it lands, instead of half a second later.
          Everything else still waits until the album lies still */
       if(moving()){
-        // (also while the sheet settles: it hardly moves then, and the page it uncovers should be sharp as it lands)
-        if((motionScale>=1&&dt>0&&dt<frBase*1.45)||settling()) upStep(true);
+        if(motionScale>=1&&dt>0&&dt<frBase*1.45) upStep(true);
         if(pgQueue.length||upJob) pgPumpT=requestAnimationFrame(function(){ pgPumpT=0; pgPump(); });
         else pumpT=0;
         return;
@@ -2399,9 +2384,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   }
   function pgPrefetchNow(){
     if(!gl||committed===pgLastAt) return; pgLastAt=committed;
-    // (on a phone one spread back and three ahead, and the rest let go at once: ~10 pages, ~55 MB, instead of up to 18;
-    // the small copies cover the rest, and on a phone they are nearly as sharp)
-    var at=Math.max(1,Math.min(SPREADS,committed)), keep={}, back=MOB?1:PG_SIZE>1024?1:2, ahead=PG_SIZE>1024?2:3, far=MOB?0:ahead+1;
+    var at=Math.max(1,Math.min(SPREADS,committed)), keep={}, back=PG_SIZE>1024?1:2, ahead=PG_SIZE>1024?2:3;
     for(var sp=at-back;sp<=at+ahead;sp++) if(sp>=1&&sp<=SPREADS) pgOfSpread(sp).forEach(function(p){ keep[p]=1; });
     // the bytes of a few more spreads ahead (and two back) are fetched in advance; far ones are let go
     if(warmOK){
@@ -2413,7 +2396,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     if(MOB) Object.keys(pgTex).forEach(function(p){ if((pgSz[p]||0)>PG_SIZE&&pgSp(+p)!==at){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; delete pgSz[p]; } });
     // the spread that opens first loads before the others
     pgOfSpread(at).concat(pgOfSpread(at+1)).concat(Object.keys(keep).map(Number)).forEach(function(p){ pgLoad(p); });
-    Object.keys(pgTex).forEach(function(p){ if(!keep[p]&&Math.abs(pgSp(+p)-at)>far){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; delete pgSz[p]; } });
+    Object.keys(pgTex).forEach(function(p){ if(!keep[p]&&Math.abs(pgSp(+p)-at)>ahead+1){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; delete pgSz[p]; } });
     Object.keys(pgLoading).forEach(function(p){ if(!keep[p]) delete pgLoading[p]; });
     pgQueue=pgQueue.filter(function(it){ if(keep[it.p]) return true; dropStrips(it.strips); return false; });
   }
@@ -3088,7 +3071,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     }
     // on a 120/144 Hz screen the 3D book is drawn at most ~60 times a second (the motion itself still runs every frame):
     // the picture moves as smoothly and the graphics card has half the work. The last frame is always drawn.
-    motionRes(more,dt,now,more&&settling());
+    motionRes(more,dt,now);
     if(!more || now-lastR>=15){ render(); lastR=now; }
     refresh();
     if(more) kickA(); else lastA=0;
