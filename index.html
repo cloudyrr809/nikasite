@@ -216,7 +216,8 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 /* the same button as the riding ones */
 #vCta{position:absolute;z-index:5;display:flex;align-items:center;gap:12px;font-weight:700;font-size:21px;line-height:1;letter-spacing:-.01em;text-decoration:none}
 /* on a phone the words were small next to the long drawn arrow */
-html.m #vCta{font-size:30px;gap:14px}
+html.m #vCta{font-size:29px;gap:12px}
+html.m #vCta .a1{width:48px;height:10px}
 /* her long shadow, cast far back across the floor like on the first screen; it lies under the drum */
 #vSh{position:absolute;pointer-events:none;z-index:0}
 #vSh img{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:50% 0;transform:scaleY(-.3) skewX(-58deg);filter:brightness(0) blur(20px);opacity:.14}
@@ -3255,7 +3256,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
       Y=Math.round(300+(LH-300)*.4);
       winT=Y-280; H=560; Y0=280;
       px(lead,{left:44,top:Y,transform:'translateY(-50%)'});
-      px(ctl,{left:34,top:Y+20});
+      px(ctl,{left:34,top:Y+20,transform:''});
       px(box,{left:tl-24,width:TW+48});
       box.querySelector('.vinfo').style.display='';
       px(hit,{left:0,top:winT,width:tl+TW+40,height:H});
@@ -3301,7 +3302,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     return a;
   }
   function buildStrip(){
-    SS=Math.min(2.5,Math.max(1,sl*(window.devicePixelRatio||1)));
+    SS=Math.min(HZ?2:2.5,Math.max(1,sl*(window.devicePixelRatio||1)));
     var m=document.createElement('canvas').getContext('2d'); setFont(m);
     var blocks=ITEMS.map(function(t){ return wrap(m,t); });
     if(HZ){ buildSide(blocks); return; }
@@ -3315,26 +3316,34 @@ html.m #contacts .bar a:active{color:var(--accent)}
     blurA=smear(strip,1,4,6); blurB=smear(strip,.5,11,8);
   }
 
-  /* the sideways band: the points side by side, each TW wide and centred on the payline's height.
-     centers / tops / bottoms are then places along the band (left to right), halfH is still each point's half height */
-  var GAPX=30, PADX=330, BAND_H=0, STRIP_W=0;         // a narrow gap: the neighbours peek in at the edges, so the visitor sees there is more
+  /* the sideways band, on a ring: the points side by side, each TW wide and centred on the payline's height, and after
+     the last point comes the first again. Each point is its own small picture (tiles), with its two smeared copies.
+     One long band of all eleven points was ~10 000 px wide: wider than many phones' video cards take, so those phones
+     drew it slowly by hand and the drum stuttered. A point sits at S·i along the band (i any whole number); its picture
+     is tiles[i mod N]. halfH is still each point's half height */
+  var GAPX=30, TM=12, S=414, BAND_H=0, tiles=[], tilesA=[], tilesB=[];
+  function modN(i){ return ((i%N)+N)%N; }
+  function cpos(i){ return HZ?i*S:centers[Math.max(0,Math.min(N-1,i))]; }      // where point i stands on the band
   function buildSide(blocks){
     var hs=blocks.map(function(l){ return l.length*LINE; });
-    BAND_H=Math.max.apply(null,hs)+40;
-    var x=PADX; centers=[]; tops=[]; bottoms=[];
-    hs.forEach(function(){ tops.push(x); bottoms.push(x+TW); centers.push(x+TW/2); x+=TW+GAPX; });
-    STRIP_W=x-GAPX+PADX; STRIP_H=BAND_H;
-    halfH=hs.map(function(h){ return h/2; });
-    strip=document.createElement('canvas'); strip.width=Math.ceil(STRIP_W*SS); strip.height=Math.ceil(BAND_H*SS);
-    var c=strip.getContext('2d'); c.setTransform(SS,0,0,SS,0,0); setFont(c); c.fillStyle='#111111';
-    blocks.forEach(function(lines,i){ var t0=(BAND_H-hs[i])/2; lines.forEach(function(l,k){ c.fillText(l,tops[i],t0+k*LINE+30); }); });
-    blurA=smear(strip,1,4,6,true); blurB=smear(strip,.5,11,8,true);
+    BAND_H=Math.max.apply(null,hs)+40; S=TW+GAPX;
+    centers=[]; tops=[]; bottoms=[];
+    hs.forEach(function(h,i){ centers.push(i*S); tops.push(i*S-TW/2); bottoms.push(i*S+TW/2); });
+    STRIP_H=BAND_H; halfH=hs.map(function(h){ return h/2; });
+    tiles=[]; tilesA=[]; tilesB=[];
+    blocks.forEach(function(lines,i){
+      var t=document.createElement('canvas'); t.width=Math.ceil((TW+2*TM)*SS); t.height=Math.ceil(BAND_H*SS);
+      var c=t.getContext('2d'); c.setTransform(SS,0,0,SS,0,0); setFont(c); c.fillStyle='#111111';
+      var t0=(BAND_H-hs[i])/2; lines.forEach(function(l,k){ c.fillText(l,TM,t0+k*LINE+30); });
+      tiles.push(t); tilesA.push(smear(t,1,4,6,true)); tilesB.push(smear(t,.5,11,8,true));
+    });
+    strip=tiles[0]; blurA=tilesA[0]; blurB=tilesB[0];
   }
 
   /* ---------- drawing the drum ---------- */
   var cv=$('vReel'), ctx=cv.getContext('2d'), CS=1;
   var fade=null;
-  function sizeCanvas(){ CS=Math.min(2.5,Math.max(1,sl*(window.devicePixelRatio||1))); cv.width=Math.round(W*CS); cv.height=Math.round(H*CS);
+  function sizeCanvas(){ CS=Math.min(HZ?2:2.5,Math.max(1,sl*(window.devicePixelRatio||1))); cv.width=Math.round(W*CS); cv.height=Math.round(H*CS);
     fade=HZ?ctx.createLinearGradient(0,0,cv.width,0):ctx.createLinearGradient(0,0,0,cv.height);
     var e0=HZ?.06:.13;
     fade.addColorStop(0,'rgba(0,0,0,0)'); fade.addColorStop(e0,'#000'); fade.addColorStop(1-e0,'#000'); fade.addColorStop(1,'rgba(0,0,0,0)'); }
@@ -3343,6 +3352,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   /* the drum has a flat face on the payline, exactly as tall as the point standing there:
      on it the text is flat and sharp; the curve starts only past its edges */
   function flatHalf(p){
+    if(HZ){ var j=Math.floor(p/S), u=(p-j*S)/S; u=u*u*(3-2*u); return halfH[modN(j)]+(halfH[modN(j+1)]-halfH[modN(j)])*u; }
     if(p<=centers[0]) return halfH[0]; if(p>=centers[N-1]) return halfH[N-1];
     for(var i=0;i<N-1;i++) if(p<centers[i+1]){ var t=(p-centers[i])/(centers[i+1]-centers[i]); t=t*t*(3-2*t); return halfH[i]+(halfH[i+1]-halfH[i])*t; }
     return halfH[N-1];
@@ -3368,6 +3378,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     var t='translateY('+d+'px)', b='translateY('+(-d)+'px)';
     for(var i=0;i<cTop.length;i++) cTop[i].style.transform=t;
     for(var j=0;j<cBot.length;j++) cBot[j].style.transform=b;
+    if(HZ) $('vCtl').style.transform='translate(-50%,'+(-d)+'px)';   // the pager hangs under the frame and rises and falls with it
   }
   function draw(){
     ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height);
@@ -3428,16 +3439,19 @@ html.m #contacts .bar a:active{color:var(--accent)}
   function drawSide(){
     var FX=TW/2+6;                                                     // the flat face: the point in the frame and a little air
     var speed=Math.min(1,Math.abs(vel)/2400), step=1/SS, span=Math.ceil((FX+R*TMAX)*SS);
-    var by=Y0-BAND_H/2;
+    var by=Y0-BAND_H/2, TWt=TW+2*TM, EF=W*.06;
     function xmap(u){ var a=Math.abs(u); if(a<=FX) return u; return (u<0?-1:1)*(FX+proj((a-FX)/R)); }
-    var fx0=Math.max(0,pos-FX), fx1=Math.min(STRIP_W,pos+FX);
-    if(fx1>fx0){
-      var dX=(X0-(pos-fx0))*CS, dW=(fx1-fx0)*CS;
-      if(speed<.01){ ctx.globalAlpha=1; ctx.drawImage(strip,fx0*SS,0,(fx1-fx0)*SS,strip.height,dX,by*CS,dW,BAND_H*CS); }
+    // the flat face: the part of each picture that lies inside it, pixel for pixel
+    for(var i=Math.floor((pos-FX)/S)-1;i<=Math.ceil((pos+FX)/S)+1;i++){
+      var L=i*S-TW/2-TM, a0=Math.max(L,pos-FX), a1=Math.min(L+TWt,pos+FX);
+      if(a1<=a0) continue;
+      var mi=modN(i), sx0=(a0-L)*SS, sw=(a1-a0)*SS, dX=(X0+(a0-pos))*CS, dW=(a1-a0)*CS;
+      if(speed<.01){ ctx.globalAlpha=1; ctx.drawImage(tiles[mi],sx0,0,sw,tiles[mi].height,dX,by*CS,dW,BAND_H*CS); }
       else { var q=Math.min(1,speed*.95);
-        ctx.globalAlpha=1-q; ctx.drawImage(strip,fx0*SS,0,(fx1-fx0)*SS,strip.height,dX,by*CS,dW,BAND_H*CS);
-        ctx.globalAlpha=q;   ctx.drawImage(blurA,fx0*SS,0,(fx1-fx0)*SS,blurA.height,dX,by*CS,dW,BAND_H*CS); }
+        ctx.globalAlpha=1-q; ctx.drawImage(tiles[mi],sx0,0,sw,tiles[mi].height,dX,by*CS,dW,BAND_H*CS);
+        ctx.globalAlpha=q;   ctx.drawImage(tilesA[mi],sx0,0,sw,tilesA[mi].height,dX,by*CS,dW,BAND_H*CS); }
     }
+    // past the face: thin columns of the band, each laid on its own part of the curve
     for(var v=-span;v<span;){
       var u=v*step, n=1;
       if(Math.abs(u+step/2)<=FX){ v++; continue; }
@@ -3445,42 +3459,44 @@ html.m #contacts .bar a:active{color:var(--accent)}
       n=Math.min(40,Math.max(1,Math.floor((speed>.04?6:2.4)/Math.max(d1,.12))));
       if(u<0&&u+n*step>-FX) n=Math.max(1,Math.floor((-FX-u)/step));
       if(v+n>span) n=span-v;
+      var sx=pos+u, ti=Math.round(sx/S), loc=sx-(ti*S-TW/2-TM);
+      if(loc<0||loc>=TWt){ v+=n; continue; }                           // the gap between two points
+      n=Math.max(1,Math.min(n,Math.floor((TWt-loc)*SS)));              // a column never runs past its picture
       v+=n;
-      var sx=pos+u; if(sx<0||sx+n*step>=STRIP_W-1) continue;
       var x1=X0+xmap(u), x2=X0+xmap(u+n*step), dw=x2-x1;
       if(x2<0||x1>W) continue;
       var e=Math.abs(u+n*step/2)-FX, th=e/R;
       if(th>TMAX) continue;
       var k=depthK(th);
-      var a=(.38+.62*Math.exp(-e/14))*Math.pow(Math.cos(th),1.3);
+      var xc=(x1+x2)/2, edge=Math.max(0,Math.min(1,xc/EF,(W-xc)/EF));   // the soft fade at the left and right edges
+      var a=(.38+.62*Math.exp(-e/14))*Math.pow(Math.cos(th),1.3)*edge;
       if(a<.02) continue;
-      var dh=BAND_H*k, dy=(Y0-dh/2)*CS;
+      var mi2=modN(ti), dh=BAND_H*k, dy=(Y0-dh/2)*CS, lx=loc*SS;
       var f=Math.min(1,.25+th/.75+speed*.95);
       var dx=x1*CS, dww=Math.max(dw*CS,.2*n);
       if(f<.5){ var w1=f/.5;
-        if(w1<.995){ ctx.globalAlpha=a*(1-w1); ctx.drawImage(strip,sx*SS,0,n,strip.height,dx,dy,dww,dh*CS); }
-        if(w1>.005){ ctx.globalAlpha=a*w1;     ctx.drawImage(blurA,sx*SS,0,n,blurA.height,dx,dy,dww,dh*CS); }
+        if(w1<.995){ ctx.globalAlpha=a*(1-w1); ctx.drawImage(tiles[mi2],lx,0,n,tiles[mi2].height,dx,dy,dww,dh*CS); }
+        if(w1>.005){ ctx.globalAlpha=a*w1;     ctx.drawImage(tilesA[mi2],lx,0,n,tilesA[mi2].height,dx,dy,dww,dh*CS); }
       } else { var w2=(f-.5)/.5;
-        if(w2<.995){ ctx.globalAlpha=a*(1-w2); ctx.drawImage(blurA,sx*SS,0,n,blurA.height,dx,dy,dww,dh*CS); }
-        if(w2>.005){ ctx.globalAlpha=a*w2;     ctx.drawImage(blurB,sx*SS*.5,0,n*.5,blurB.height,dx,dy,dww,dh*CS); }
+        if(w2<.995){ ctx.globalAlpha=a*(1-w2); ctx.drawImage(tilesA[mi2],lx,0,n,tilesA[mi2].height,dx,dy,dww,dh*CS); }
+        if(w2>.005){ ctx.globalAlpha=a*w2;     ctx.drawImage(tilesB[mi2],lx*.5,0,Math.max(1,n*.5),tilesB[mi2].height,dx,dy,dww,dh*CS); }
       }
     }
     ctx.globalAlpha=1;
-    if(fade){ ctx.globalCompositeOperation='destination-in'; ctx.fillStyle=fade; ctx.fillRect(0,0,cv.width,cv.height); ctx.globalCompositeOperation='source-over'; }
   }
 
   /* ---------- motion: a spring pulls the reel onto a point and it settles with a small mechanical bounce ---------- */
   var goal=0, target=0, zeta=.62, raf=0, last=0, dragging=false, shown=-1;
   function nearest(p){ var b=0,bd=1e9; for(var i=0;i<N;i++){ var d=Math.abs(centers[i]-p); if(d<bd){bd=d;b=i;} } return b; }
   function status(){
-    var at=nearest(pos);
-    if(at!==shown){ shown=at; $('vNo').textContent=String(at+1).padStart(2,'0'); $('vPv').disabled=at===0; $('vNx').disabled=at===N-1; }
+    var at=HZ?modN(Math.round(pos/S)):nearest(pos);
+    if(at!==shown){ shown=at; $('vNo').textContent=String(at+1).padStart(2,'0'); $('vPv').disabled=!HZ&&at===0; $('vNx').disabled=!HZ&&at===N-1; }
   }
   function stopIntro(){ if(introRaf){ cancelAnimationFrame(introRaf); introRaf=0; vel=0; } }
   function go(i,z){
     stopIntro();
-    goal=Math.max(0,Math.min(N-1,i)); target=centers[goal]; zeta=z||(PHONE?.8:.62);
-    $('vNow').textContent=ITEMS[goal];
+    goal=HZ?i:Math.max(0,Math.min(N-1,i)); target=cpos(goal); zeta=z||(PHONE?.8:.62);   // on a phone the ring has no ends
+    $('vNow').textContent=ITEMS[modN(goal)];
     if(reduce){ pos=target; vel=0; draw(); status(); return; }
     kick();
   }
@@ -3518,9 +3534,8 @@ html.m #contacts .bar a:active{color:var(--accent)}
       tMode=1; stopIntro(); dragging=true; tp0=pos; ti0=goal; vel=0; tlt=performance.now(); kick();
     }
     if(e.cancelable) e.preventDefault();
-    // the drum follows the finger, at most one point either way, with a soft give past the first and the last
-    var stp=(centers[N-1]-centers[0])/(N-1);
-    var q=tp0-dx/sl*.9, lo=Math.max(centers[0],centers[ti0]-stp), hi=Math.min(centers[N-1],centers[ti0]+stp);
+    // the drum follows the finger, at most one point either way (the ring has no ends)
+    var q=tp0-dx/sl*.9, lo=cpos(ti0-1), hi=cpos(ti0+1);
     if(q<lo) q=lo-(lo-q)*.25; if(q>hi) q=hi+(q-hi)*.25;
     var now=performance.now(), dt=(now-tlt)/1000;
     if(dt>0){ vel=.7*vel+.3*((q-pos)/dt); tlt=now; }
@@ -3538,8 +3553,8 @@ html.m #contacts .bar a:active{color:var(--accent)}
     }
     if(tMode!==1){ tMode=2; return; }
     tMode=2; dragging=false;
-    var stp=(centers[N-1]-centers[0])/(N-1), delta=pos-centers[ti0], n=0;
-    if(Math.abs(delta)>stp*.08||Math.abs(vel)>220) n=(Math.abs(delta)>stp*.08?delta:vel)>0?1:-1;   // a short swipe is enough
+    var delta=pos-cpos(ti0), n=0;
+    if(Math.abs(delta)>S*.08||Math.abs(vel)>220) n=(Math.abs(delta)>S*.08?delta:vel)>0?1:-1;   // a short swipe is enough
     go(ti0+n);
   }
   sec.addEventListener('touchend',tEnd,{passive:true});
@@ -3551,7 +3566,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     if(!HZ||hinted) return; clearTimeout(idleT);
     idleT=setTimeout(function(){
       if(!HZ||!strip||hinted||Math.abs(sec.getBoundingClientRect().top)>VREF.h*.25) return;
-      hinted=true; if(reduce||dragging||goal!==0) return; vel=1100; kick();
+      hinted=true; if(reduce||dragging||modN(goal)!==0) return; vel=1100; kick();
     },300);
   },{passive:true});
   $('vPv').addEventListener('click',function(){ go(goal-1); });
@@ -3670,20 +3685,33 @@ html.m #contacts .bar a:active{color:var(--accent)}
     // a phone has no roll-in: the drum stands on the first point from the start. The roll-in waited for the page to stop,
     // so on a phone it came late, and a finger on the drum meanwhile left it stuck on the 4th point
     // pan-y: up and down are always the page's; sideways is the drum's (the touch handlers above)
-    if(PHONE){ hit.style.cursor='default'; hit.style.touchAction='pan-y'; intro=true; stopIntro(); goal=Math.min(goal,N-1); }
-    else { hit.style.touchAction=''; hit.style.cursor=''; }
-    if(portrait){
+    if(PHONE){ hit.style.cursor='default'; hit.style.touchAction='pan-y'; intro=true; stopIntro(); goal=modN(goal); }
+    else { hit.style.touchAction=''; hit.style.cursor=''; goal=Math.max(0,Math.min(N-1,goal)); }
+    if(HZ){
+      /* a phone: two axes. The drum's own controls sit on the drum's centre line: the pager hangs right under the frame
+         (and follows its lower edge, see placeBox), so it reads as part of the drum. The button is the page's action:
+         it stands on the outer left margin, the same line as "what MATTERS" above, low in the free space left of her */
+      // the drum block hangs from the title: the lead-in a short step under "MATTERS", the frame right under it
+      var bh=Math.round(2*(Math.max.apply(null,halfH)+6)+36), bt=232;
+      Y=Math.round(bt+bh/2);
+      var wt=Math.round(Y-BAND_H/2-8); H=BAND_H+16; Y0=Y-wt;
+      px($('vWin'),{top:wt,height:H}); px(cv,{height:H}); px($('vHit'),{top:wt,height:H}); sizeCanvas(); fixBox();
+      px($('vCtl'),{left:LW/2,top:Math.round(boxTop0+boxH0+12)});
+      lastD=null; placeBox();
+      // the button: under the pager, on the left edge of the text in the frame (the line of the lead-in as well)
+      px($('vCta'),{left:Math.round((LW-TW)/2),top:Math.round(boxTop0+boxH0+12+44+16),bottom:'auto'});
+    } else if(portrait){
       // the control sits under the drum: the drum shows the next point turning away and ends just above the control
       var mh=Math.max.apply(null,halfH)+6, ct=Math.round(Y+mh+18+120), wt=parseFloat($('vWin').style.top);
       H=Math.max(200,ct-12-wt);
       px($('vWin'),{height:H}); px(cv,{height:H}); px($('vHit'),{height:H}); sizeCanvas();
-      px($('vCtl'),{left:26,top:ct});
+      px($('vCtl'),{left:26,top:ct,transform:''});
       // the button stands in the free column under the control, clear of her train
       px($('vCta'),{left:36,top:ct+86,bottom:'auto'});
     }
     // before the first visit the drum already rests where its roll-in starts (the 4th point), so nothing jumps when it begins
     var waitIntro=!intro&&!reduce&&('IntersectionObserver' in window);
-    pos=waitIntro?centers[Math.min(3,N-1)]:centers[goal]; target=centers[goal]; vel=0; draw(); status(); built=true;
+    pos=waitIntro?centers[Math.min(3,N-1)]:cpos(goal); target=cpos(goal); vel=0; shown=-1; draw(); status(); built=true;
   }
   var rt=0, fontsOk=false;
   window.addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(function(){ if(!fontsOk||window.vrZoomed()||(window.vrSkipResize&&window.vrSkipResize())) return; window.vrTakeRef(); cancelAnimationFrame(raf); raf=0; rebuild(); },120); });
