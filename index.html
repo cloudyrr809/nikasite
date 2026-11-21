@@ -327,10 +327,12 @@ html.m .c-cta{order:4;position:relative!important;left:auto!important;bottom:aut
    the frame was drawn over a 375x693 template, which sat at 509.7,64.1 / 357.5x660.7 px on that 1366x768 canvas */
 .fmtM{display:none}
 html.m #choice .design{padding:0}
-/* the drawing may stick out above and below onto the neighbouring screens: only the sides are clipped */
-html.m #choice{overflow-x:clip;overflow-y:visible;z-index:2}
+/* the drawing sticks out above and below onto the neighbouring screens. The svg box itself is taller than the block
+   (viewBox y 40..740 instead of 64.1..724.8), so it never relies on svg/section overflow, which some phone browsers clip;
+   sideways the svg box still ends at the screen edge */
+html.m #choice{overflow:visible;z-index:2}
 html.m #choice .design{overflow:visible}
-.fmtM .mdraw{overflow:visible}
+html.m .fmtM .mdraw{top:-3.648%;height:105.948%}
 html.m #choice .msc,html.m #choice .fmtTabs,html.m #fmtBook,html.m #fmtClassic,html.m #choice .c-cta{display:none!important}
 /* everything is placed in % of the drawing, so the text stays in the gaps the frame leaves at any phone width */
 html.m .fmtM{display:block;position:relative;width:100%;aspect-ratio:375/693}
@@ -516,7 +518,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 
 <!-- on a phone: both formats on one screen inside the hand-drawn frame (the blocks above are hidden there) -->
 <div class="fmtM">
-<svg class="mdraw" viewBox="509.7 64.1 357.5 660.7" preserveAspectRatio="none" aria-hidden="true"><image href="choice_m_draw.png" x="0" y="0" width="1366" height="768"/></svg>
+<svg class="mdraw" viewBox="509.7 40 357.5 700" preserveAspectRatio="none" aria-hidden="true"><image href="choice_m_draw.png" x="0" y="0" width="1366" height="768"/></svg>
 <div class="mf mf1">
 <h2>Книга класса</h2>
 <p class="n">30–40 полных разворотов</p>
