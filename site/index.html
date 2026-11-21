@@ -292,7 +292,7 @@ html.m .lab{transform:translateY(-50%);text-align:left;white-space:normal;line-h
 html.m .lab br.mb{display:inline}
 html.m .lab::before{display:none}
 /* album */
-html.m #hint{font-size:15px;gap:10px;white-space:nowrap}
+html.m #hint{font-size:15px;gap:10px;white-space:normal;text-align:right;line-height:1.25}
 /* the closing button on a phone: one line, the size of the hint, a shorter arrow (it used to wrap onto the counter) */
 html.m #endCta{font-size:15px;gap:10px;white-space:nowrap}
 html.m #endCta .ha{width:38px;height:10px}
@@ -1768,16 +1768,18 @@ html.m #contacts .bar a:active{color:var(--accent)}
     endCta.style.left=(dw/2+Math.round(S*0.32))+'px'; endCta.style.top=cy+'px';   // right of the closed album, with clear air between them
     pager.style.left=(dw/2)+'px';
     // a finger opens the album with a tap (also a phone on its side, which gets the wide layout)
-    var coarse=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches, ht=(MOB||coarse)?'Нажмите, чтобы открыть':'Потяните страницу, чтобы открыть';
+    var coarse=window.matchMedia&&window.matchMedia('(pointer: coarse)').matches, ht=(MOB||coarse)?'Нажмите, чтобы\u00a0открыть':'Потяните страницу, чтобы открыть';
     if(hint.firstChild.textContent!==ht){ hint.firstChild.textContent=ht; hint.setAttribute('aria-label',ht); }
     if(ROT){ pager.style.bottom='22px'; } else pager.style.bottom='';
     if(AM){
       // the hint and the closing button stand centred under the album
-      // (the closed album lies on the right half at the start and on the left half at the end, so each stands under it)
-      var hy=Math.round(cy+S/2+48);
-      // (the hint is wider than the album: it ends at the album's right edge, so it never runs off the screen)
-      hint.style.right='auto'; hint.style.left=(dw/2+S)+'px'; hint.style.top=hy+'px'; hint.style.transform='translate(-100%,-50%)';
-      endCta.style.left=(dw/2-S/2)+'px'; endCta.style.top=hy+'px'; endCta.style.transform='translate(-50%,-50%)';
+      // as on a computer: the hint stands left of the closed album (on the right half), the button right of the album closed
+      // at the end (on the left half), each on the album's middle line. The room beside the album is narrow, so the hint
+      // breaks into two lines (see html.m #hint)
+      var gap=16;
+      hint.style.left=''; hint.style.right=(dw/2+gap)+'px'; hint.style.top=cy+'px'; hint.style.transform='';
+      hint.style.maxWidth=(dw/2-gap-12)+'px';
+      endCta.style.left=(dw/2+gap)+'px'; endCta.style.top=cy+'px'; endCta.style.transform='';
     }
     // the button stays on the process screen; on the album screen its place is taken by the one at the album's end
     var tr=document.getElementById('dockTrack'), pr=document.getElementById('process');
@@ -1792,10 +1794,13 @@ html.m #contacts .bar a:active{color:var(--accent)}
      picture is drawn a little coarser (down to half), which the motion hides; the moment the album lies still it is
      drawn sharp again. motionScale remembers what this card managed last time, and creeps back up after each turn */
   var glDpr=0, glSS=1, glMS=1, motionScale=1, emaDt=16, adjT=0;
+  // vvZ: how far a finger has zoomed the page in (pinch). The 3D picture is then drawn that much finer: before, the browser
+  // only stretched the picture already drawn, so the photos went blurry the moment the album was zoomed in
+  var vvZ=1;
   function sizeGL(noRender){
     if(!gl) return;
     glDpr=window.devicePixelRatio||1;
-    var px=Math.min(glDpr*s*glSS, 3)*glMS, w=2*XR*px, h=(BS+YT+YB)*px, cap=8e6*glMS*glMS;
+    var px=Math.min(glDpr*s*glSS, 3)*vvZ*glMS, w=2*XR*px, h=(BS+YT+YB)*px, cap=8e6*glMS*glMS;
     if(w*h>cap){ var f=Math.sqrt(cap/(w*h)); w*=f; h*=f; }
     w=Math.round(w); h=Math.round(h);
     if(glc.width!==w||glc.height!==h){ glc.width=w; glc.height=h; }
@@ -2065,8 +2070,21 @@ html.m #contacts .bar a:active{color:var(--accent)}
       // the fade of a page from its small copy to its full-size picture needs two more picture slots; a graphics card with
       // fewer than 12 (rare) draws the pages straight from the one picture, as before
       PG_X=gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)>=12;
-      P3=mkProg(VS3,PG_X?FS3:FS3.replace(/texture2D\(uPgA0,/g,'texture2D(uPgA,').replace(/texture2D\(uPgB0,/g,'texture2D(uPgB,')); PZ=mkProg('attribute vec3 aP;'+PROJ+'void main(){gl_Position=proj(aP);}','precision mediump float;void main(){gl_FragColor=vec4(0.);}');
-      PG=mkProg(VSG,FSG); PD=mkProg(VSD,FSD); PV=mkProg(VSQ,FSV); PB=mkProg(VSQ,FSB);
+      /* on a phone the soft shadows take fewer samples and the shadow grid is coarser (the album is small there, the shadows
+         are blurred anyway). Counted from the shaders: a flying sheet took 38 shadow-map reads per screen pixel and the shadow
+         blur 66 surface lookups per grid point, on every frame. A phone's graphics card could not keep up, so the album was
+         drawn at half resolution all through a turn: that was the "soap" until the sheet landed */
+      var FS3m=FS3, FSVm=FSV, FSBm=FSB;
+      if(MOB){
+        VW=320;
+        FS3m=FS3.replace('for(int i=0;i<10;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/10.);','for(int i=0;i<6;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/6.);')
+          .replace('for(int i=0;i<24;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/24.);','for(int i=0;i<12;i++){float a=float(i)*2.39996+rot;float r=sqrt((float(i)+.5)/12.);')
+          .replace('v/24.','v/12.');
+        FSVm=FSV.replace('for(int i=0;i<16;i++){float a=float(i)*2.39996;float r=sqrt((float(i)+.5)/16.);','for(int i=0;i<10;i++){float a=float(i)*2.39996;float r=sqrt((float(i)+.5)/10.);');
+        FSBm=FSB.split('for(int i=-16;i<=16;i++){float t=float(i)/16.;').join('for(int i=-8;i<=8;i++){float t=float(i)/8.;');
+      }
+      P3=mkProg(VS3,PG_X?FS3m:FS3m.replace(/texture2D\(uPgA0,/g,'texture2D(uPgA,').replace(/texture2D\(uPgB0,/g,'texture2D(uPgB,')); PZ=mkProg('attribute vec3 aP;'+PROJ+'void main(){gl_Position=proj(aP);}','precision mediump float;void main(){gl_FragColor=vec4(0.);}');
+      PG=mkProg(VSG,FSG); PD=mkProg(VSD,FSD); PV=mkProg(VSQ,FSVm); PB=mkProg(VSQ,FSBm);
       var sm=mkTarget(SMS,SMS,gl.NEAREST,true); smT=sm.t; smF=sm.f;
       var sm2=mkTarget(SMS2,SMS2,gl.NEAREST,true); smT2=sm2.t; smF2=sm2.f;
       VH=Math.round(VW*2.2/2.6);
@@ -2143,10 +2161,14 @@ html.m #contacts .bar a:active{color:var(--accent)}
      A phone takes the 1024 px ones (its pages are never drawn bigger than that): before, it fetched the 2048 px files,
      ~0.5–0.9 MB each, and shrank them itself, which was slow and held the page up */
   function pgSmall(u,dir){ return /\.jpe?g$/i.test(u)?u.replace(/([^\/]+)\.jpe?g$/i,dir+'$1.webp'):u.replace(/([^\/]+)$/,dir+'$1'); }
-  function pgUrl(p){
+  function pgUrl(p,sz){
     var u=pgSrc(p); if(!u) return null;
-    return PG_SIZE>1024?u+PG_VER:pgSmall(u,'t/');
+    return (sz||PG_SIZE)>1024?u+PG_VER:pgSmall(u,'t/');
   }
+  /* the size a page is wanted at: on a phone zoomed in by a finger (1.5× or more) the open spread takes the 2048 px
+     pictures, the rest stay at 1024 (each 2048 px picture is 22 MB on the graphics card, too much to keep many on a phone) */
+  var pgSz={}, pgLdSz={}, decRedo={};
+  function pgWant(p){ return (MOB&&vvZ>=1.5&&pgSp(p)===Math.max(1,Math.min(SPREADS,committed)))?2048:PG_SIZE; }
   // the pages of spread sp (1…SPREADS): the left one is the back of sheet sp-1 (on the first spread, the front endpaper),
   // the right one the front of sheet sp (on the last spread, the back endpaper)
   function pgOfSpread(sp){ return [sp>1?2*(sp-1):EP_F, sp<SPREADS?2*sp-1:EP_B]; }
@@ -2182,24 +2204,25 @@ html.m #contacts .bar a:active{color:var(--accent)}
      the album a dozen decodes at once used to take every processor core, and the page stuttered */
   var decWait=[], decIn={}, decBusy=0;
   function pgLoad(p){
-    var url=pgUrl(p); if(!url||pgTex[p]||pgLoading[p]) return;
-    pgLoading[p]=url; decWait.push(p); decRun();
+    var sz=pgWant(p), url=pgUrl(p,sz); if(!url||(pgTex[p]&&(pgSz[p]||0)>=sz)||pgLoading[p]===url) return;
+    pgLoading[p]=url; pgLdSz[p]=sz; decWait.push(p); decRun();
   }
   function decRun(){
     while(decBusy<(moving()?1:2)&&decWait.length){
       var at=Math.max(1,Math.min(SPREADS,committed));
       decWait.sort(function(x,y){ return Math.abs(pgSp(x)-at)-Math.abs(pgSp(y)-at); });
-      var p=decWait.shift(), url=pgLoading[p];
-      if(!url||pgTex[p]||decIn[p]) continue;
+      var p=decWait.shift(), url=pgLoading[p], sz=pgLdSz[p]||PG_SIZE;
+      if(!url||(pgTex[p]&&(pgSz[p]||0)>=sz)) continue;
+      if(decIn[p]){ decRedo[p]=1; continue; }   // still decoding the smaller one: asked again when that is done
       decBusy++; decIn[p]=1;
-      (function(p,url){
-        function done(){ decBusy--; delete decIn[p]; decRun(); }
-        decodeTo(url,PG_SIZE,true).then(toStrips).then(function(strips){
+      (function(p,url,sz){
+        function done(){ decBusy--; delete decIn[p]; if(decRedo[p]){ delete decRedo[p]; if(pgLoading[p]&&pgLoading[p]!==url) decWait.push(p); } decRun(); }
+        decodeTo(url,sz,true).then(toStrips).then(function(strips){
           done();
           if(pgLoading[p]!==url){ dropStrips(strips); return; }
-          pgQueue.push({p:p,strips:strips}); pgPump();
+          pgQueue.push({p:p,strips:strips,url:url}); pgPump();
         }).catch(function(){ done(); if(pgLoading[p]===url) delete pgLoading[p]; });
-      })(p,url);
+      })(p,url,sz);
     }
   }
   /* the files' bytes for the spreads ahead are fetched in advance, quietly, and kept (about 0.5 MB each, never on the graphics
@@ -2302,7 +2325,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   function dropStrips(a){ a.forEach(function(b){ if(b&&b.close) b.close(); }); }
   // one strip of the picture being put up; true when there is more to do
   function upStep(hotOnly){
-    if(upJob&&!pgLoading[upJob.p]){ gl.deleteTexture(upJob.t); dropStrips(upJob.strips.slice(upJob.i)); upJob=null; }   // no longer wanted
+    if(upJob&&pgLoading[upJob.p]!==upJob.url){ gl.deleteTexture(upJob.t); dropStrips(upJob.strips.slice(upJob.i)); upJob=null; }   // no longer wanted
     // hotOnly: only the pages of the spread the album is turning to (see pgPump)
     var at=Math.max(1,Math.min(SPREADS,committed));
     if(hotOnly&&upJob&&pgSp(upJob.p)!==at) return false;
@@ -2311,10 +2334,10 @@ html.m #contacts .bar a:active{color:var(--accent)}
       pgQueue.sort(function(x,y){ return Math.abs(pgSp(x.p)-at)-Math.abs(pgSp(y.p)-at); });
       if(hotOnly&&!(pgQueue.length&&pgSp(pgQueue[0].p)===at)) return false;
       var it=pgQueue.shift(); if(!it) return false;
-      if(!pgLoading[it.p]){ dropStrips(it.strips); return pgQueue.length>0; }
+      if(pgLoading[it.p]!==it.url){ dropStrips(it.strips); return pgQueue.length>0; }
       var N=it.strips[0].width, t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
       gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,N,N,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
-      upJob={p:it.p,t:t,strips:it.strips,i:0,y:0};
+      upJob={p:it.p,t:t,strips:it.strips,i:0,y:0,url:it.url,N:N};
       return true;
     }
     var j=upJob, s=j.strips[j.i];
@@ -2328,7 +2351,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
     if(anisoExt) gl.texParameterf(gl.TEXTURE_2D,anisoExt.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisoExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
     if(pgTex[j.p]) gl.deleteTexture(pgTex[j.p]);
-    pgTex[j.p]=j.t; pgFade[j.p]=performance.now(); delete pgLoading[j.p]; upJob=null;
+    pgTex[j.p]=j.t; pgSz[j.p]=j.N; pgFade[j.p]=performance.now(); delete pgLoading[j.p]; upJob=null;
     pgLastUp=performance.now(); if(!moving()) render();
     return pgQueue.length>0;
   }
@@ -2357,12 +2380,24 @@ html.m #contacts .bar a:active{color:var(--accent)}
       for(var ws=at-2;ws<=at+5;ws++) if(ws>=1&&ws<=SPREADS) pgOfSpread(ws).forEach(function(p){ var u=pgUrl(p); if(u){ near[u]=1; getBlob(u).catch(function(){}); } });
       Object.keys(blobs).forEach(function(u){ if(!near[u]) delete blobs[u]; });
     }
+    // a 2048 px picture taken while zoomed in is let go once its spread is no longer open (it comes back at 1024)
+    if(MOB) Object.keys(pgTex).forEach(function(p){ if((pgSz[p]||0)>PG_SIZE&&pgSp(+p)!==at){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; delete pgSz[p]; } });
     // the spread that opens first loads before the others
     pgOfSpread(at).concat(pgOfSpread(at+1)).concat(Object.keys(keep).map(Number)).forEach(function(p){ pgLoad(p); });
-    Object.keys(pgTex).forEach(function(p){ if(!keep[p]&&Math.abs(pgSp(+p)-at)>ahead+1){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; } });
+    Object.keys(pgTex).forEach(function(p){ if(!keep[p]&&Math.abs(pgSp(+p)-at)>ahead+1){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; delete pgSz[p]; } });
     Object.keys(pgLoading).forEach(function(p){ if(!keep[p]) delete pgLoading[p]; });
     pgQueue=pgQueue.filter(function(it){ if(keep[it.p]) return true; dropStrips(it.strips); return false; });
   }
+  // a pinch zoom: the picture is drawn finer and, on a phone, the open spread takes its big pictures
+  // (asked once the fingers have rested a moment; the scale is rounded so tiny changes do nothing)
+  var vvT=0;
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',function(){
+    clearTimeout(vvT); vvT=setTimeout(function(){
+      var z=Math.max(1,Math.min(3,window.visualViewport.scale||1)); z=Math.round(z*4)/4;
+      if(z===vvZ) return; vvZ=z;
+      if(gl){ sizeGL(); pgLastAt=-2; pgPrefetchNow(); }
+    },200);
+  });
   function pgBind(pA,pB,mode){
     // each page is drawn from its small copy and its full-size picture, mixed: a full-size picture that has just arrived
     // fades in over the small copy (FADE ms) instead of snapping in, so the page is never seen "loading"
