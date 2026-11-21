@@ -201,6 +201,9 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
   -webkit-mask-image:radial-gradient(closest-side,#000 60%,transparent);mask-image:radial-gradient(closest-side,#000 60%,transparent)}
 #vCtl button{width:44px;height:44px;display:grid;place-items:center;background:none;border:0;padding:0;margin:0;cursor:pointer;color:var(--ink);transition:transform .2s ease,opacity .2s ease}
 #vPv .ha{transform:rotate(-90deg)}#vNx .ha{transform:rotate(90deg)}
+/* a phone: the drum turns sideways, so the arrows point left and right */
+#values.hz #vPv .ha{transform:rotate(180deg)}#values.hz #vNx .ha{transform:none}
+#values.hz #vPv:hover:not(:disabled){transform:translateX(-3px)}#values.hz #vNx:hover:not(:disabled){transform:translateX(3px)}
 #vPv:hover:not(:disabled){transform:translateY(-3px)}
 #vNx:hover:not(:disabled){transform:translateY(3px)}
 #vCtl button:disabled{opacity:.2;cursor:default}
@@ -212,6 +215,8 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
   background:radial-gradient(closest-side,rgba(0,0,0,.26),rgba(0,0,0,.09) 60%,rgba(0,0,0,0));filter:blur(6px)}
 /* the same button as the riding ones */
 #vCta{position:absolute;z-index:5;display:flex;align-items:center;gap:12px;font-weight:700;font-size:21px;line-height:1;letter-spacing:-.01em;text-decoration:none}
+/* on a phone the words were small next to the long drawn arrow */
+html.m #vCta{font-size:30px;gap:14px}
 /* her long shadow, cast far back across the floor like on the first screen; it lies under the drum */
 #vSh{position:absolute;pointer-events:none;z-index:0}
 #vSh img{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:50% 0;transform:scaleY(-.3) skewX(-58deg);filter:brightness(0) blur(20px);opacity:.14}
@@ -3224,10 +3229,15 @@ html.m #contacts .bar a:active{color:var(--accent)}
   /* ---------- layout ---------- */
   var sl=1, LW=1440, LH=900, portrait=false;
   var W=650, H=560, Y0=280, TW=620, Y=540;           // canvas, payline in it, text column, payline on the screen
+  /* HZ: an upright phone. The drum turns sideways there: the points stand side by side, the one in the frame flat,
+     its neighbours curving away at the left and right edges, and a sideways swipe turns it. A sideways swipe never
+     fights the page's own (upright) scrolling, so the page scrolls freely past the screen and the drum always answers */
+  var HZ=false, X0=300;
   function px(el,o){ for(var k in o) el.style[k]=(typeof o[k]==='number')?o[k]+'px':o[k]; }
   function layout(){
     var w=VREF.w, h=VREF.h;
     portrait=h>w*1.1;
+    HZ=portrait&&!!window.vrMobile; sec.classList.toggle('hz',HZ);
     if(!portrait){ sl=h/900; if(w/sl<1200) sl=w/1200; }   // the same rule as the other screens
     else sl=w/Math.max(600,Math.min(1000,w*1.15));         // upright: a narrower grid, so the type stays readable
     LW=w/sl; LH=h/sl;
@@ -3252,20 +3262,21 @@ html.m #contacts .bar a:active{color:var(--accent)}
       px(cta,{left:44,top:'auto',bottom:40});
     } else {
       px(kick,{left:28,top:50,fontSize:80}); px(big,{left:26,top:96,fontSize:92});
-      tl=36; TW=LW-2*tl;
+      tl=36; TW=HZ?Math.round(LW*.64):LW-2*tl;
       fh=Math.min(LH*.41,860); fw=fh*RATIO; figL=LW-fw-14; figT=LH-20-fh;   // the train's tip stays clear of the screen edge
       var zt=206, zb=figT+70;
       Y=Math.round((zt+zb)/2);
       winT=zt-30; H=zb-winT+30; Y0=Y-winT;
-      px(lead,{left:tl,transform:'none'});                   // its height follows the frame (see placeBox)
+      var bl=HZ?Math.round((LW-TW)/2):tl;                   // the frame: centred on the sideways drum
+      px(lead,{left:bl,transform:'none'});                   // its height follows the frame (see placeBox)
       // the control sits just under the frame at its tallest, so it never jumps and never covers a point (see rebuild)
-      px(box,{left:tl-14,width:TW+28});
+      px(box,{left:bl-14,width:TW+28});
       box.querySelector('.vinfo').style.display='none';
       px(hit,{left:0,top:winT,width:LW,height:H});
       px(cta,{left:tl,top:'auto',bottom:40});
     }
-    W=TW+30;
-    px(win,{left:tl,top:winT,width:W,height:H});
+    W=HZ?LW:TW+30; X0=LW/2; R=HZ?108:250;
+    px(win,{left:HZ?0:tl,top:winT,width:W,height:H});
     px($('vReel'),{width:W,height:H});
     var ks=fh/(FB[3]-FB[1]);
     px(fig,{left:figL-FB[0]*ks,top:figT-FB[1]*ks,width:IW*ks,height:IH*ks});
@@ -3282,17 +3293,18 @@ html.m #contacts .bar a:active{color:var(--accent)}
     words.forEach(function(w){ var t=cur?cur+' '+w:w; if(c.measureText(t).width>TW&&cur){ lines.push(cur); cur=w; } else cur=t; });
     if(cur) lines.push(cur); return lines;
   }
-  function smear(src,k,reach,steps){
+  function smear(src,k,reach,steps,side){
     // letters stay crisp side to side and run only along the drum's turn, like print on a spinning reel
     var a=document.createElement('canvas'); a.width=Math.max(1,Math.round(src.width*k)); a.height=Math.max(1,Math.round(src.height*k));
     var c=a.getContext('2d'); c.imageSmoothingQuality='high'; c.globalAlpha=.9/(steps+1);
-    for(var j=-steps;j<=steps;j++) c.drawImage(src,0,reach*j/steps*SS*k,a.width,a.height);
+    for(var j=-steps;j<=steps;j++){ var o=reach*j/steps*SS*k; if(side) c.drawImage(src,o,0,a.width,a.height); else c.drawImage(src,0,o,a.width,a.height); }
     return a;
   }
   function buildStrip(){
     SS=Math.min(2.5,Math.max(1,sl*(window.devicePixelRatio||1)));
     var m=document.createElement('canvas').getContext('2d'); setFont(m);
     var blocks=ITEMS.map(function(t){ return wrap(m,t); });
+    if(HZ){ buildSide(blocks); return; }
     var y=PAD; centers=[]; tops=[]; bottoms=[];
     blocks.forEach(function(lines){ var hh=lines.length*LINE; tops.push(y); bottoms.push(y+hh); centers.push(y+hh/2); y+=hh+GAP; });
     STRIP_H=y-GAP+PAD;
@@ -3303,12 +3315,29 @@ html.m #contacts .bar a:active{color:var(--accent)}
     blurA=smear(strip,1,4,6); blurB=smear(strip,.5,11,8);
   }
 
+  /* the sideways band: the points side by side, each TW wide and centred on the payline's height.
+     centers / tops / bottoms are then places along the band (left to right), halfH is still each point's half height */
+  var GAPX=30, PADX=330, BAND_H=0, STRIP_W=0;         // a narrow gap: the neighbours peek in at the edges, so the visitor sees there is more
+  function buildSide(blocks){
+    var hs=blocks.map(function(l){ return l.length*LINE; });
+    BAND_H=Math.max.apply(null,hs)+40;
+    var x=PADX; centers=[]; tops=[]; bottoms=[];
+    hs.forEach(function(){ tops.push(x); bottoms.push(x+TW); centers.push(x+TW/2); x+=TW+GAPX; });
+    STRIP_W=x-GAPX+PADX; STRIP_H=BAND_H;
+    halfH=hs.map(function(h){ return h/2; });
+    strip=document.createElement('canvas'); strip.width=Math.ceil(STRIP_W*SS); strip.height=Math.ceil(BAND_H*SS);
+    var c=strip.getContext('2d'); c.setTransform(SS,0,0,SS,0,0); setFont(c); c.fillStyle='#111111';
+    blocks.forEach(function(lines,i){ var t0=(BAND_H-hs[i])/2; lines.forEach(function(l,k){ c.fillText(l,tops[i],t0+k*LINE+30); }); });
+    blurA=smear(strip,1,4,6,true); blurB=smear(strip,.5,11,8,true);
+  }
+
   /* ---------- drawing the drum ---------- */
   var cv=$('vReel'), ctx=cv.getContext('2d'), CS=1;
   var fade=null;
   function sizeCanvas(){ CS=Math.min(2.5,Math.max(1,sl*(window.devicePixelRatio||1))); cv.width=Math.round(W*CS); cv.height=Math.round(H*CS);
-    fade=ctx.createLinearGradient(0,0,0,cv.height);
-    fade.addColorStop(0,'rgba(0,0,0,0)'); fade.addColorStop(.13,'#000'); fade.addColorStop(.87,'#000'); fade.addColorStop(1,'rgba(0,0,0,0)'); }
+    fade=HZ?ctx.createLinearGradient(0,0,cv.width,0):ctx.createLinearGradient(0,0,0,cv.height);
+    var e0=HZ?.06:.13;
+    fade.addColorStop(0,'rgba(0,0,0,0)'); fade.addColorStop(e0,'#000'); fade.addColorStop(1-e0,'#000'); fade.addColorStop(1,'rgba(0,0,0,0)'); }
   function proj(t){ return R*Math.sin(t)*D/(D+R*(1-Math.cos(t))); }       // angle on the drum → height on screen
   function depthK(t){ return D/(D+R*(1-Math.cos(t))); }                     // how much smaller it looks there
   /* the drum has a flat face on the payline, exactly as tall as the point standing there:
@@ -3344,6 +3373,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,cv.width,cv.height);
     if(!strip) return;
     F=flatHalf(pos)+6; placeBox();
+    if(HZ){ drawSide(); return; }
     var speed=Math.min(1,Math.abs(vel)/2400), step=1/SS, span=Math.ceil((F+R*TMAX)*SS);
     // the flat face in one piece: pixel for pixel, no seams
     var fy0=Math.max(0,pos-F), fy1=Math.min(STRIP_H,pos+F);
@@ -3392,6 +3422,53 @@ html.m #contacts .bar a:active{color:var(--accent)}
     if(fade){ ctx.globalCompositeOperation='destination-in'; ctx.fillStyle=fade; ctx.fillRect(0,0,cv.width,cv.height); ctx.globalCompositeOperation='source-over'; }
   }
 
+  /* the sideways drum: the same reel turned on its side. The point in the frame lies flat (pixel for pixel); past the
+     frame's left and right edges the band curves away round the drum, narrower and fainter, and lower and higher rows
+     shrink towards the middle line as it turns away */
+  function drawSide(){
+    var FX=TW/2+6;                                                     // the flat face: the point in the frame and a little air
+    var speed=Math.min(1,Math.abs(vel)/2400), step=1/SS, span=Math.ceil((FX+R*TMAX)*SS);
+    var by=Y0-BAND_H/2;
+    function xmap(u){ var a=Math.abs(u); if(a<=FX) return u; return (u<0?-1:1)*(FX+proj((a-FX)/R)); }
+    var fx0=Math.max(0,pos-FX), fx1=Math.min(STRIP_W,pos+FX);
+    if(fx1>fx0){
+      var dX=(X0-(pos-fx0))*CS, dW=(fx1-fx0)*CS;
+      if(speed<.01){ ctx.globalAlpha=1; ctx.drawImage(strip,fx0*SS,0,(fx1-fx0)*SS,strip.height,dX,by*CS,dW,BAND_H*CS); }
+      else { var q=Math.min(1,speed*.95);
+        ctx.globalAlpha=1-q; ctx.drawImage(strip,fx0*SS,0,(fx1-fx0)*SS,strip.height,dX,by*CS,dW,BAND_H*CS);
+        ctx.globalAlpha=q;   ctx.drawImage(blurA,fx0*SS,0,(fx1-fx0)*SS,blurA.height,dX,by*CS,dW,BAND_H*CS); }
+    }
+    for(var v=-span;v<span;){
+      var u=v*step, n=1;
+      if(Math.abs(u+step/2)<=FX){ v++; continue; }
+      var d1=(xmap(u+step)-xmap(u))*CS;
+      n=Math.min(40,Math.max(1,Math.floor((speed>.04?6:2.4)/Math.max(d1,.12))));
+      if(u<0&&u+n*step>-FX) n=Math.max(1,Math.floor((-FX-u)/step));
+      if(v+n>span) n=span-v;
+      v+=n;
+      var sx=pos+u; if(sx<0||sx+n*step>=STRIP_W-1) continue;
+      var x1=X0+xmap(u), x2=X0+xmap(u+n*step), dw=x2-x1;
+      if(x2<0||x1>W) continue;
+      var e=Math.abs(u+n*step/2)-FX, th=e/R;
+      if(th>TMAX) continue;
+      var k=depthK(th);
+      var a=(.38+.62*Math.exp(-e/14))*Math.pow(Math.cos(th),1.3);
+      if(a<.02) continue;
+      var dh=BAND_H*k, dy=(Y0-dh/2)*CS;
+      var f=Math.min(1,.25+th/.75+speed*.95);
+      var dx=x1*CS, dww=Math.max(dw*CS,.2*n);
+      if(f<.5){ var w1=f/.5;
+        if(w1<.995){ ctx.globalAlpha=a*(1-w1); ctx.drawImage(strip,sx*SS,0,n,strip.height,dx,dy,dww,dh*CS); }
+        if(w1>.005){ ctx.globalAlpha=a*w1;     ctx.drawImage(blurA,sx*SS,0,n,blurA.height,dx,dy,dww,dh*CS); }
+      } else { var w2=(f-.5)/.5;
+        if(w2<.995){ ctx.globalAlpha=a*(1-w2); ctx.drawImage(blurA,sx*SS,0,n,blurA.height,dx,dy,dww,dh*CS); }
+        if(w2>.005){ ctx.globalAlpha=a*w2;     ctx.drawImage(blurB,sx*SS*.5,0,n*.5,blurB.height,dx,dy,dww,dh*CS); }
+      }
+    }
+    ctx.globalAlpha=1;
+    if(fade){ ctx.globalCompositeOperation='destination-in'; ctx.fillStyle=fade; ctx.fillRect(0,0,cv.width,cv.height); ctx.globalCompositeOperation='source-over'; }
+  }
+
   /* ---------- motion: a spring pulls the reel onto a point and it settles with a small mechanical bounce ---------- */
   var goal=0, target=0, zeta=.62, raf=0, last=0, dragging=false, shown=-1;
   function nearest(p){ var b=0,bd=1e9; for(var i=0;i<N;i++){ var d=Math.abs(centers[i]-p); if(d<bd){bd=d;b=i;} } return b; }
@@ -3419,64 +3496,64 @@ html.m #contacts .bar a:active{color:var(--accent)}
     draw(); status();
     raf=requestAnimationFrame(tick);
   }
-  /* ---------- a phone (the screen scrolls past like any other screen; it no longer stands still while the page runs under it).
-     The finger is read with touch events, which every phone (Safari on an iPhone too) lets the page stop from scrolling.
-     - A vertical swipe that starts ON THE DRUM turns it one point: the drum follows the finger, and on release it goes
-       to the next point. The page does not move. Everywhere else on the screen (the title, her photo, the space under
-       the drum) the finger scrolls the page as usual, so the visitor can always leave.
-     - The drum takes the finger only when the page has been at rest for a moment and the screen is near its place:
-       a finger that lands on it while the page is still scrolling (or has only just been stopped) goes on scrolling the page.
-     - A swipe up on the last point, or down on the first, is left to the browser: the page scrolls on, with its own momentum.
-     - The buttons and sideways swipes are left alone.
-     - Nothing ever moves the page by itself here (a "magnet" that set the screen into place made it jump on an iPhone).
-     - The first time the screen comes to rest in view, the drum gives a small nudge, so the visitor sees that it turns ---------- */
+  /* ---------- a phone: the drum turns sideways (see HZ), and so does the finger that turns it.
+     The first move of a touch decides: mostly sideways, the drum takes it (the page stays still); mostly up or down,
+     it is the page's and the browser scrolls it as always. So the page is never held, and the drum never misses a swipe.
+     The drum follows the finger; on release it goes one point on (a short swipe is enough). A tap on the neighbour
+     peeking in at the left or right edge turns to it as well. The arrows and the button are left alone ---------- */
   var PHONE=false, hit=$('vHit');
-  var tMode=2, tx0=0, ty0=0, tp0=0, ti0=0, tlt=0, lastScroll=0;   // tMode: 0 not decided yet, 1 the drum has it, 2 the page has it
-  window.addEventListener('scroll',function(){ lastScroll=performance.now(); if(PHONE) idleSoon(); },{passive:true});
-  function inPlace(){ return Math.abs(sec.getBoundingClientRect().top)<VREF.h*.25; }
-  function onDrum(x,y){ var r=hit.getBoundingClientRect(); return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom; }
+  var tMode=2, tx0=0, ty0=0, tp0=0, ti0=0, tlt=0;   // tMode: 0 not decided yet, 1 the drum has it, 2 the page has it
   sec.addEventListener('touchstart',function(e){
     tMode=2;
-    if(!PHONE||!strip||e.touches.length!==1||(e.target.closest&&e.target.closest('#vCtl,#vCta'))) return;
-    var t=e.touches[0];
-    if(!onDrum(t.clientX,t.clientY)||!inPlace()||performance.now()-lastScroll<350) return;
-    tx0=t.clientX; ty0=t.clientY; tMode=0;
+    if(!HZ||!strip||e.touches.length!==1||(e.target.closest&&e.target.closest('#vCtl,#vCta'))) return;
+    var t=e.touches[0]; tx0=t.clientX; ty0=t.clientY; tMode=0;
   },{passive:true});
   sec.addEventListener('touchmove',function(e){
     if(tMode===2) return;
-    if(e.touches.length!==1){ if(tMode===1) tEnd(); tMode=2; return; }
+    if(e.touches.length!==1){ if(tMode===1) tEnd(e); tMode=2; return; }
     var t=e.touches[0], dx=t.clientX-tx0, dy=t.clientY-ty0;
     if(tMode===0){
-      // the first move decides, before the browser starts to scroll
-      var dir=dy<0?1:-1;
-      if(Math.abs(dx)>Math.abs(dy)||(dir>0&&goal>=N-1)||(dir<0&&goal<=0)){ tMode=2; return; }
+      if(Math.abs(dx)<4&&Math.abs(dy)<4) return;                       // not yet a direction
+      if(Math.abs(dx)<=Math.abs(dy)){ tMode=2; return; }               // up or down: the page scrolls
       tMode=1; stopIntro(); dragging=true; tp0=pos; ti0=goal; vel=0; tlt=performance.now(); kick();
     }
     if(e.cancelable) e.preventDefault();
-    // the drum follows the finger, at most one point either way
+    // the drum follows the finger, at most one point either way, with a soft give past the first and the last
     var stp=(centers[N-1]-centers[0])/(N-1);
-    var p=tp0-dy/sl*.8, lo=Math.max(centers[0],centers[ti0]-stp), hi=Math.min(centers[N-1],centers[ti0]+stp);
-    if(p<lo) p=lo-(lo-p)*.25; if(p>hi) p=hi+(p-hi)*.25;
+    var q=tp0-dx/sl*.9, lo=Math.max(centers[0],centers[ti0]-stp), hi=Math.min(centers[N-1],centers[ti0]+stp);
+    if(q<lo) q=lo-(lo-q)*.25; if(q>hi) q=hi+(q-hi)*.25;
     var now=performance.now(), dt=(now-tlt)/1000;
-    if(dt>0){ vel=.7*vel+.3*((p-pos)/dt); tlt=now; }
-    pos=p; kick();
+    if(dt>0){ vel=.7*vel+.3*((q-pos)/dt); tlt=now; }
+    pos=q; kick();
   },{passive:false});
-  function tEnd(){
+  function tEnd(e){
+    if(tMode===0&&e&&e.changedTouches&&e.changedTouches[0]){
+      // a tap on a neighbour peeking in at the edge
+      tMode=2;
+      var c=e.changedTouches[0], r=$('vBox').getBoundingClientRect(), wr=$('vWin').getBoundingClientRect();
+      if(c.clientY>=r.top-20&&c.clientY<=r.bottom+20&&c.clientY>=wr.top){
+        if(c.clientX>r.right) go(goal+1); else if(c.clientX<r.left) go(goal-1);
+      }
+      return;
+    }
     if(tMode!==1){ tMode=2; return; }
     tMode=2; dragging=false;
     var stp=(centers[N-1]-centers[0])/(N-1), delta=pos-centers[ti0], n=0;
-    if(Math.abs(delta)>stp*.1||Math.abs(vel)>220) n=(Math.abs(delta)>stp*.1?delta:vel)>0?1:-1;   // a short swipe is enough (a still finger is not)
+    if(Math.abs(delta)>stp*.08||Math.abs(vel)>220) n=(Math.abs(delta)>stp*.08?delta:vel)>0?1:-1;   // a short swipe is enough
     go(ti0+n);
   }
   sec.addEventListener('touchend',tEnd,{passive:true});
-  sec.addEventListener('touchcancel',tEnd,{passive:true});
+  sec.addEventListener('touchcancel',function(){ if(tMode===1){ tMode=2; dragging=false; go(goal); } else tMode=2; },{passive:true});
 
-  // the nudge: the first time the page comes to rest with the drum in view, it leans towards the next point and comes back
+  // the nudge: the first time the page comes to rest with the screen in view, the drum leans towards the next point and back
   var idleT=0, hinted=false;
-  function idleSoon(){ if(hinted) return; clearTimeout(idleT); idleT=setTimeout(function(){
-    if(!PHONE||!strip||hinted||!inPlace()) return;
-    hinted=true; if(reduce||dragging||goal!==0) return; vel=900; kick();
-  },300); }
+  window.addEventListener('scroll',function(){
+    if(!HZ||hinted) return; clearTimeout(idleT);
+    idleT=setTimeout(function(){
+      if(!HZ||!strip||hinted||Math.abs(sec.getBoundingClientRect().top)>VREF.h*.25) return;
+      hinted=true; if(reduce||dragging||goal!==0) return; vel=1100; kick();
+    },300);
+  },{passive:true});
   $('vPv').addEventListener('click',function(){ go(goal-1); });
   $('vNx').addEventListener('click',function(){ go(goal+1); });
 
@@ -3592,7 +3669,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     var stick=$('vStick'); sec.style.height=''; stick.style.position=''; stick.style.top=''; stick.style.height='';
     // a phone has no roll-in: the drum stands on the first point from the start. The roll-in waited for the page to stop,
     // so on a phone it came late, and a finger on the drum meanwhile left it stuck on the 4th point
-    // pan-y: the browser may scroll the page from the drum too (the touch handlers stop it while the drum has the finger)
+    // pan-y: up and down are always the page's; sideways is the drum's (the touch handlers above)
     if(PHONE){ hit.style.cursor='default'; hit.style.touchAction='pan-y'; intro=true; stopIntro(); goal=Math.min(goal,N-1); }
     else { hit.style.touchAction=''; hit.style.cursor=''; }
     if(portrait){
