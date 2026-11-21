@@ -2104,7 +2104,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   }
   function initGL(){
     try{
-      gl=glc.getContext('webgl',{antialias:!tq('aa0'),alpha:true,premultipliedAlpha:true})||glc.getContext('experimental-webgl',{antialias:true});
+      gl=glc.getContext('webgl',{antialias:!tq('aa0'),alpha:!tq('opq'),premultipliedAlpha:true})||glc.getContext('experimental-webgl',{antialias:true});
       if(!gl) return false;
       var ca=gl.getContextAttributes&&gl.getContextAttributes(); glSS=(ca&&ca.antialias)?1:1.5;
       if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<4096||tq('sm')){ SMS=1024; SMS2=1024; }
@@ -2394,11 +2394,23 @@ html.m #contacts .bar a:active{color:var(--accent)}
      as before; the album is only drawn, once, as it comes near (glDirty) */
   // (false until the first look says otherwise; without IntersectionObserver it is always true)
   var albumNear=!('IntersectionObserver' in window), glDirty=false;
+  /* cp (test): the picture is copied after every drawing into a plain 2D canvas, which is what the visitor sees; the WebGL canvas itself
+     is hidden. That takes the browser's own way of showing a WebGL layer out of the chain. opq (test): the canvas is opaque (no see-through
+     edges; the table colour is guessed). Both only with ?t=cp / ?t=opq */
+  var cv2d=null, cx2d=null;
+  function mirror2d(){
+    if(!cv2d){ cv2d=document.createElement('canvas'); cx2d=cv2d.getContext('2d'); cv2d.setAttribute('aria-hidden','true');
+      cv2d.style.cssText='position:absolute;pointer-events:none;z-index:1;transition:translate .75s cubic-bezier(.3,.7,.2,1)'; glc.parentNode.insertBefore(cv2d,glc.nextSibling); glc.style.visibility='hidden'; }
+    var st=glc.style; ['left','top','width','height','translate'].forEach(function(k){ if(cv2d.style[k]!==st[k]) cv2d.style[k]=st[k]; });
+    if(cv2d.width!==glc.width||cv2d.height!==glc.height){ cv2d.width=glc.width; cv2d.height=glc.height; }
+    cx2d.clearRect(0,0,cv2d.width,cv2d.height); cx2d.drawImage(glc,0,0);
+  }
   var render0=render;
   render=function(){
     if(!albumNear){ glDirty=true; return; }
     glDirty=false;
     fadeLive=false; render0.apply(this,arguments);
+    if(tq('cp')) mirror2d();
     if(fadeLive&&!fadeRaf&&!moving()) fadeRaf=requestAnimationFrame(function(){ fadeRaf=0; render(); });
   };
   function dropStrips(a){ a.forEach(function(b){ if(b&&b.close) b.close(); }); }
@@ -2984,7 +2996,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     var cw=2*XR, D=8*S, st=Math.sin(TILT), ct=Math.cos(TILT);
     var E=[0,S/2+D*st,D*ct];
     gl.viewport(0,0,glc.width,glc.height);
-    gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    if(tq('opq')) gl.clearColor(.9,.9,.9,1); else gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
     function cam(pr){
       var u=pr.u;
       gl.uniform3f(u.uE,E[0],E[1],E[2]); gl.uniform3f(u.uR,1,0,0); gl.uniform3f(u.uD,0,ct,-st); gl.uniform3f(u.uF,0,-st,-ct);
