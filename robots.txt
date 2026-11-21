@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /site/
+Disallow: /tools/
+Disallow: /hero-a.html
+Disallow: /hero-b.html
+
+Sitemap: https://royse.pro/sitemap.xml
