@@ -171,14 +171,6 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 /* her floor shadow reaches past the screen's bottom: let it show over the footer instead of being cut in a straight line */
 #values{overflow-x:clip;overflow-y:visible}
 #values .design{margin:0 auto}
-/* on a phone the screen stands still while the page scrolls past it, and every point of the drum is a place the page
-   snaps to and stops at (scroll-snap-stop): one swipe turns exactly one point, however hard the flick.
-   The standing part is a plain wrapper (#vStick): sticky on the zoomed screen itself made it shake on phones */
-#vSnaps{position:absolute;left:0;top:0;width:1px;height:0;pointer-events:none}
-#vSnaps i{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start;scroll-snap-stop:always}
-html.vsnap{scroll-snap-type:y proximity}
-/* while the page glides by itself ("на главную", a link) the snap places must not catch it on its way */
-html.vsnap.noSnap{scroll-snap-type:none}
 .vkick{position:absolute;font-weight:600;color:var(--accent);z-index:2;line-height:.8;letter-spacing:-.065em;white-space:nowrap}
 .vbig{position:absolute;font-weight:800;line-height:.8;letter-spacing:-.05em;white-space:nowrap;z-index:1}
 #vLead{position:absolute;margin:0;font-weight:600;font-size:15px;line-height:1.35;z-index:3;pointer-events:none;white-space:nowrap}
@@ -562,7 +554,6 @@ html.m #contacts .bar a:active{color:var(--accent)}
 
 <!-- ===== SCREEN 5: what matters to Veronika, on a turning drum ===== -->
 <section class="screen" id="values" aria-label="Что для меня важно">
-<div id="vSnaps" aria-hidden="true"></div>
 <div id="vStick">
 <div class="design">
 <div class="vkick" id="vKick" aria-hidden="true">what</div>
@@ -1259,14 +1250,13 @@ html.m #contacts .bar a:active{color:var(--accent)}
   /* "на главную" and the links to a part of the page (контакты): a quick start and a long, gentle settle.
      The wheel, the keys or the scrollbar stop it at once */
   var auto=0, autoV=0;
-  function stopAuto(){ if(auto){ cancelAnimationFrame(auto); auto=0; } autoV=0; root.classList.remove('noSnap'); }
+  function stopAuto(){ if(auto){ cancelAnimationFrame(auto); auto=0; } autoV=0; }
   function glideTo(y,D){
     gliding=false; sv=0; stopAuto();
     y=Math.max(0,Math.min(maxY(),y));
     if(reduce){ window.scrollTo(0,y); sy=ty=tg=y; return; }
     var from=window.scrollY, t0=null, lastNow=0, lastY=from, setA=-1;
-    root.classList.add('noSnap');                         // the drum's snap places on a phone would stop the glide on its way
-    function done(){ auto=0; autoV=0; sy=ty=tg=window.scrollY; root.classList.remove('noSnap'); }
+    function done(){ auto=0; autoV=0; sy=ty=tg=window.scrollY; }
     // short soft start (quadratic over the first 15%), then a long quintic glide that settles gently
     var a=0.15, B=1/(Math.pow(1-a,4)*(2.5*a+(1-a))), A=5*B*Math.pow(1-a,4)/(2*a);
     function step(now){
@@ -3223,9 +3213,6 @@ html.m #contacts .bar a:active{color:var(--accent)}
   /* ---------- layout ---------- */
   var sl=1, LW=1440, LH=900, portrait=false;
   var W=650, H=560, Y0=280, TW=620, Y=540;           // canvas, payline in it, text column, payline on the screen
-  /* on a phone the drum is not dragged (a finger on it could not scroll the page): the screen stops for a moment
-     while the page scrolls on, and the scroll itself turns the drum, one point every STEP px; then the page goes on */
-  var SCRUB=false, STEP=0;
   function px(el,o){ for(var k in o) el.style[k]=(typeof o[k]==='number')?o[k]+'px':o[k]; }
   function layout(){
     var w=VREF.w, h=VREF.h;
@@ -3404,7 +3391,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   function stopIntro(){ if(introRaf){ cancelAnimationFrame(introRaf); introRaf=0; vel=0; } }
   function go(i,z){
     stopIntro();
-    goal=Math.max(0,Math.min(N-1,i)); target=centers[goal]; zeta=z||.62;
+    goal=Math.max(0,Math.min(N-1,i)); target=centers[goal]; zeta=z||(PHONE?.8:.62);
     $('vNow').textContent=ITEMS[goal];
     if(reduce){ pos=target; vel=0; draw(); status(); return; }
     kick();
@@ -3414,51 +3401,44 @@ html.m #contacts .bar a:active{color:var(--accent)}
     raf=0;
     var dt=last?Math.min(.034,(now-last)/1000):.016; last=now;
     if(!dragging){
-      var w=2*Math.PI*1.25, acc=w*w*(target-pos)-2*zeta*w*vel;
+      var w=2*Math.PI*(PHONE?2.1:1.25), acc=w*w*(target-pos)-2*zeta*w*vel;
       vel+=acc*dt; pos+=vel*dt;
       if(Math.abs(target-pos)<.2&&Math.abs(vel)<4){ pos=target; vel=0; draw(); status(); return; }
     }
     draw(); status();
     raf=requestAnimationFrame(tick);
   }
-  // scrub mode: the arrows scroll the page to that point's place, and the scroll turns the drum
-  function scrubTo(i){
-    i=Math.max(0,Math.min(N-1,i));
-    var y=sec.getBoundingClientRect().top+window.scrollY+i*STEP;
-    window.scrollTo({top:y,behavior:reduce?'auto':'smooth'});
+  /* ---------- a phone: the screen scrolls past like any other screen (it no longer stands still while the page runs
+     under it: phones shook such a standing screen up and down). A swipe on the drum itself turns it one point.
+     While the screen is still far from its place (more than a quarter of a screen away) a finger on the drum simply
+     scrolls the page; once it is near, the drum takes the swipe and the screen settles into place.
+     Past the first or the last point the finger moves the page, and the page coasts on after it is let go ---------- */
+  var PHONE=false, coastRaf=0, hit=$('vHit');
+  function stopCoast(){ if(coastRaf){ cancelAnimationFrame(coastRaf); coastRaf=0; } }
+  function coast(v){                                   // v: the page's speed in px/s; it dies out like a native fling
+    stopCoast(); if(Math.abs(v)<80) return;
+    var lt2=0;
+    coastRaf=requestAnimationFrame(function f(now){
+      var dt=lt2?Math.min(.05,(now-lt2)/1000):.016; lt2=now;
+      v*=Math.exp(-dt/.33); window.scrollBy(0,v*dt);
+      coastRaf=Math.abs(v)>25?requestAnimationFrame(f):0;
+    });
   }
-  /* one swipe, one point: the snap places stop a flick at the next point, and a long pull of the finger is held to one point
-     as well — while the finger is down (and the page coasts after it) the drum turns at most one point from where the swipe
-     began, and once the page has come to rest it is brought to that point's place */
-  var gStart=null, touching=false, restT=0;
-  function onScrub(){
-    if(!SCRUB||!strip) return;
-    var p=-sec.getBoundingClientRect().top/STEP, i=Math.max(0,Math.min(N-1,Math.round(p)));
-    if(i!==goal) go(i,1);                                              // settles without a bounce: nothing wobbles on a phone
-  }
-  function atRest(){
-    return;                                                            // the page is never pulled back: it stays where the finger left it
-    if(touching||!SCRUB||gStart==null) return;
-    var top=-sec.getBoundingClientRect().top, p=top/STEP; gStart=null;
-    if(p<-.05||p>N-1+.05) return;                                      // the page has left the drum: nothing to hold
-    var want=goal*STEP;
-    if(Math.abs(top-want)>3) window.scrollTo({top:window.scrollY+(want-top),behavior:reduce?'auto':'smooth'});
-  }
-  window.addEventListener('scroll',onScrub,{passive:true});
-  sec.addEventListener('touchstart',function(){ if(!SCRUB) return; touching=true; if(gStart==null) gStart=goal; },{passive:true});
-  function tEnd(){ if(!touching) return; touching=false; clearTimeout(restT); restT=setTimeout(atRest,180); }
-  sec.addEventListener('touchend',tEnd,{passive:true}); sec.addEventListener('touchcancel',tEnd,{passive:true});
-  $('vPv').addEventListener('click',function(){ if(SCRUB) scrubTo(goal-1); else go(goal-1); });
-  $('vNx').addEventListener('click',function(){ if(SCRUB) scrubTo(goal+1); else go(goal+1); });
+  function nearPlace(){ return Math.abs(sec.getBoundingClientRect().top)<VREF.h*.25; }
+  // the browser reads touch-action when a finger comes down: near its place the drum takes the finger, elsewhere the page scrolls natively
+  function setTouch(){ if(!PHONE) return; var t=nearPlace()?'none':'pan-y'; if(hit.style.touchAction!==t) hit.style.touchAction=t; }
+  window.addEventListener('scroll',setTouch,{passive:true});
+  $('vPv').addEventListener('click',function(){ go(goal-1); });
+  $('vNx').addEventListener('click',function(){ go(goal+1); });
 
   /* ---------- drag: the reel follows the hand a little slower than the hand; on release it goes to the next point
      in the direction of the drag, and only a long drag carries it further ---------- */
-  var hit=$('vHit'), y0=0, p0=0, moved=0, lt=0, i0=0, tOver=0;
+  var y0=0, p0=0, moved=0, lt=0, i0=0, tOver=0, fy=0, fv=0, ft=0;
   hit.addEventListener('pointerdown',function(e){
-    if(SCRUB&&e.pointerType!=='mouse') return;            // a finger scrolls the page (and so turns the drum)
-    stopIntro();
+    if(PHONE&&e.pointerType!=='mouse'&&!nearPlace()) return;   // far from its place a finger scrolls the page
+    stopIntro(); stopCoast();
     if(!strip||e.button>0) return;
-    dragging=true; moved=0; y0=e.clientY; p0=pos; lt=performance.now(); vel=0; i0=goal; tOver=0;
+    dragging=true; moved=0; y0=e.clientY; p0=pos; lt=performance.now(); vel=0; i0=goal; tOver=0; fy=e.clientY; fv=0; ft=lt;
     try{ hit.setPointerCapture(e.pointerId); }catch(err){}
     hit.classList.add('drag'); kick();
   });
@@ -3470,6 +3450,8 @@ html.m #contacts .bar a:active{color:var(--accent)}
       // a finger past the first or the last point scrolls the page on, so the drum never traps the page on a phone
       var ov=p<lo?p-lo:p>hi?p-hi:0;
       if(ov!==tOver){ window.scrollBy(0,(ov-tOver)/.8*sl); tOver=ov; }
+      var tn=performance.now(), fdt=(tn-ft)/1000;          // the finger's speed, for the page's coast after it
+      if(fdt>0){ fv=.6*fv+.4*((e.clientY-fy)/fdt); fy=e.clientY; ft=tn; }
       p=Math.max(lo,Math.min(hi,p));
     } else {
       if(p<lo) p=lo-(lo-p)*.35; if(p>hi) p=hi+(p-hi)*.35;            // soft stop at the ends
@@ -3494,6 +3476,12 @@ html.m #contacts .bar a:active{color:var(--accent)}
     var stp=(centers[N-1]-centers[0])/(N-1), delta=pos-centers[i0], n=Math.round(delta/stp);
     if(n===0&&(Math.abs(delta)>26||Math.abs(vel)>450)) n=(Math.abs(delta)>26?delta:vel)>0?1:-1;
     if(n!==0&&Math.abs(vel)>1600&&(vel>0)===(n>0)) n+=n>0?1:-1;
+    if(PHONE&&e.pointerType==='touch'){
+      if(tOver!==0){ go(i0); coast(-fv); return; }          // the finger ran past the end: the page goes on after it
+      n=Math.max(-1,Math.min(1,n));                          // one swipe, one point
+      var top=sec.getBoundingClientRect().top;               // and the screen settles into its place
+      if(n!==0&&Math.abs(top)>1&&window.vrGlideTo) window.vrGlideTo(window.scrollY+top,Math.min(500,Math.max(250,Math.abs(top)*1.2)));
+    }
     go(i0+n);
   }
   hit.addEventListener('pointerup',release);
@@ -3521,7 +3509,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     var dir=dy>0?1:-1, now=performance.now(), ab=Math.abs(dy);
     // only the drum itself takes the wheel: with the pointer anywhere else on this screen
     // (the title, the photo, the empty floor) the page scrolls as everywhere else
-    if(SCRUB||!overDrum(e.clientX,e.clientY)) return;
+    if(PHONE||!overDrum(e.clientX,e.clientY)) return;
     var top=sec.getBoundingClientRect().top, vh=VREF.h;
     var near=Math.abs(top)<=12;
     var coming=(dir>0&&top>0&&top<vh*.2)||(dir<0&&top<0&&top>-vh*.2);
@@ -3559,29 +3547,10 @@ html.m #contacts .bar a:active{color:var(--accent)}
   function rebuild(){
     if(!root.clientWidth||!window.innerHeight) return;               // a hidden tab: build once it has a size
     layout(); sizeCanvas(); buildStrip(); fixBox();
-    SCRUB=portrait&&!!window.vrMobile;
-    var stick=$('vStick'), snaps=$('vSnaps');
-    snaps.textContent='';
-    if(SCRUB){
-      STEP=Math.round(VREF.h*.34);
-      sec.style.height=(VREF.h+(N-1)*STEP+Math.round(STEP*.5))+'px';   // a little dwell on the last point before the page goes on
-      stick.style.position='sticky'; stick.style.top='0px'; stick.style.height=VREF.h+'px';
-      // one snap place per point, where the scroll shows that point (see onScrub)
-      for(var si=0;si<N;si++){ var m=document.createElement('i'); m.style.top=(si*STEP)+'px'; snaps.appendChild(m); }
-      // and one where the screen ends, so a swipe on the last point goes straight on to the footer (not back onto that point)
-      var me=document.createElement('i'); me.style.top=((N-1)*STEP+Math.round(STEP*.5)+VREF.h)+'px'; snaps.appendChild(me);
-      // the snap places are on: one swipe turns exactly one point (scroll-snap-stop), however hard or soft the flick.
-      // Without them a flick flew past several points and a short swipe stopped between two
-      root.classList.add('vsnap');
-      // the standing screen gets a layer of its own, so the phone moves it without repainting it
-      stick.style.willChange='transform';
-      hit.style.touchAction='pan-y'; hit.style.cursor='default';
-      intro=true;                                                       // no roll-in: the scroll drives the drum
-    } else {
-      sec.style.height=''; stick.style.position=''; stick.style.top=''; stick.style.height=''; stick.style.willChange='';
-      root.classList.remove('vsnap');
-      hit.style.touchAction=''; hit.style.cursor='';
-    }
+    PHONE=portrait&&!!window.vrMobile;
+    var stick=$('vStick'); sec.style.height=''; stick.style.position=''; stick.style.top=''; stick.style.height='';
+    if(PHONE){ hit.style.cursor='default'; hit.style.touchAction=''; setTouch(); }
+    else { hit.style.touchAction=''; hit.style.cursor=''; }
     if(portrait){
       // the control sits under the drum: the drum shows the next point turning away and ends just above the control
       var mh=Math.max.apply(null,halfH)+6, ct=Math.round(Y+mh+18+120), wt=parseFloat($('vWin').style.top);
