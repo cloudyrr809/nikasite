@@ -2119,8 +2119,18 @@ html.m #contacts .bar a:active{color:var(--accent)}
       // the fade of a page from its small copy to its full-size picture needs two more picture slots; a graphics card with
       // fewer than 12 (rare) draws the pages straight from the one picture, as before
       PG_X=gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)>=12;
-      P3=mkProg(VS3,PG_X?FS3:FS3.replace(/texture2D\(uPgA0,/g,'texture2D(uPgA,').replace(/texture2D\(uPgB0,/g,'texture2D(uPgB,')); PZ=mkProg('attribute vec3 aP;'+PROJ+'void main(){gl_Position=proj(aP);}','precision mediump float;void main(){gl_FragColor=vec4(0.);}');
-      PG=mkProg(VSG,FSG); PD=mkProg(VSD,FSD); PV=mkProg(VSQ,FSV); PB=mkProg(VSQ,FSB);
+      /* test switches that take one part of the picture's maths out of the shaders, to find which part a given graphics card draws wrongly:
+         ns1 no soft shadows of moving sheets · ns2 no shadow of the lying pages · nr no random turn in the soft shadows ·
+         nb no sharpening bias on the page pictures · nbl no blur of the shadow · nao no darkening round the foot of the book */
+      var FS3x=FS3, FSVx=FSV, FSBx=FSB;
+      if(tq('ns1')) FS3x=FS3x.replace('float soft(vec3 P){vec3 s=lsp(P);','float soft(vec3 P){return 1.;vec3 s=lsp(P);');
+      if(tq('ns2')) FS3x=FS3x.replace('float visMap(vec3 P){','float visMap(vec3 P){return 1.;').replace('float visOld(vec3 P){','float visOld(vec3 P){return 1.;');
+      if(tq('nr')) FS3x=FS3x.replace('float rot=fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))))*6.2832;','float rot=0.;');
+      if(tq('nb')) FS3x=FS3x.split(',-.5)').join(')');
+      if(tq('nbl')) FSBx=FSBx.replace('if(r1>.7){','if(false){').replace('if(r2>.7){','if(false){');
+      if(tq('nao')) FSVx=FSVx.replace('if(h0<.01){float oc=0.;','if(false){float oc=0.;');
+      P3=mkProg(VS3,PG_X?FS3x:FS3x.replace(/texture2D\(uPgA0,/g,'texture2D(uPgA,').replace(/texture2D\(uPgB0,/g,'texture2D(uPgB,')); PZ=mkProg('attribute vec3 aP;'+PROJ+'void main(){gl_Position=proj(aP);}','precision mediump float;void main(){gl_FragColor=vec4(0.);}');
+      PG=mkProg(VSG,FSG); PD=mkProg(VSD,FSD); PV=mkProg(VSQ,FSVx); PB=mkProg(VSQ,FSBx);
       var sm=mkTarget(SMS,SMS,gl.NEAREST,true); smT=sm.t; smF=sm.f;
       var sm2=mkTarget(SMS2,SMS2,gl.NEAREST,true); smT2=sm2.t; smF2=sm2.f;
       VH=Math.round(VW*2.2/2.6);
