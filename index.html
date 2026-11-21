@@ -1842,7 +1842,20 @@ html.m #contacts .bar a:active{color:var(--accent)}
      msLevel: on a phone the canvas changes size in two big steps, not five small ones. Each change of its size makes the
      browser set up the whole picture buffer again, a hitch of its own, and on quick clicks that kept happening */
   function msLevel(m){ return MOB?(m>=0.95?1:m>=0.68?0.75:0.5):m; }
+  /* on a phone the picture no longer goes coarse for each turn and sharp again as it lands: that switch was what showed
+     as "a page is blurry first and sharp a second later", and each change of the canvas size was a hitch of its own.
+     The picture keeps one size. Only a phone that fell behind (under ~42 frames a second) through a whole turn gets a
+     slightly coarser picture, once, for good, changed the moment a turn ends. A phone held at an even 30 frames a second
+     (iPhone Low Power Mode, a hidden tab) is not slow, only capped, and keeps its sharp picture */
+  var mobLv=1, mobSum=0, mobN=0, mob30=0;
+  function mobRes(more,dt){
+    if(more){ if(dt>0&&dt<50){ mobSum+=dt; mobN++; if(Math.abs(dt-33.3)<2.5) mob30++; } return; }
+    if(mobN>=30&&mobSum/mobN>24&&mob30<mobN*0.75&&mobLv>0.75) mobLv=0.75;
+    mobSum=0; mobN=0; mob30=0;
+    if(glMS!==mobLv){ glMS=mobLv; sizeGL(true); }
+  }
   function motionRes(more,dt,now,settle){
+    if(MOB){ mobRes(more,dt); return; }
     if(more&&settle){ if(glMS!==1){ glMS=1; sizeGL(true); } return; }
     if(more){
       emaDt=emaDt*0.85+dt*0.15;
@@ -2102,6 +2115,10 @@ html.m #contacts .bar a:active{color:var(--accent)}
       if(!gl) return false;
       var ca=gl.getContextAttributes&&gl.getContextAttributes(); glSS=(ca&&ca.antialias)?1:1.5;
       if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<4096){ SMS=1024; SMS2=1024; }
+      /* on a phone the whole album is ~460 css px wide: two 2048 px depth maps were ~4 texels per css px, and drawing and
+         clearing them (8 million spots, every frame of a turn) was most of the graphics card's work on an older iPhone.
+         1024 px is still ~1 texel per screen pixel there; the light map of the lying surfaces is made smaller the same way */
+      if(MOB){ SMS=1024; SMS2=1024; VW=320; }
       // the fade of a page from its small copy to its full-size picture needs two more picture slots; a graphics card with
       // fewer than 12 (rare) draws the pages straight from the one picture, as before
       PG_X=gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)>=12;
@@ -2430,9 +2447,14 @@ html.m #contacts .bar a:active{color:var(--accent)}
     // (on a phone one spread back and three ahead, and the rest let go at once: ~10 pages, ~55 MB, instead of up to 18;
     // the small copies cover the rest, and on a phone they are nearly as sharp)
     var at=Math.max(1,Math.min(SPREADS,committed)), keep={}, back=MOB?1:PG_SIZE>1024?1:2, ahead=PG_SIZE>1024?2:3, far=MOB?0:ahead+1;
-    for(var sp=at-back;sp<=at+ahead;sp++) if(sp>=1&&sp<=SPREADS) pgOfSpread(sp).forEach(function(p){ keep[p]=1; });
+    /* a phone whose page is drawn no taller than the small copy (512 px: an iPhone 11 draws it ~390 px tall) gets nothing
+       sharper from the full-size pictures, measured side by side. They are not loaded there at all: their decoding and
+       their upload to the graphics card fell right into the turns and made them stutter, and their swap over the small
+       copy showed as "blurry first". A pinch zoom (vvZ) or a sharper, bigger screen brings them back */
+    var thOnly=MOB&&book.getBoundingClientRect().height*(window.devicePixelRatio||1)*vvZ<=TH_SIZE*1.1;
+    if(!thOnly) for(var sp=at-back;sp<=at+ahead;sp++) if(sp>=1&&sp<=SPREADS) pgOfSpread(sp).forEach(function(p){ keep[p]=1; });
     // the bytes of a few more spreads ahead (and two back) are fetched in advance; far ones are let go
-    if(warmOK){
+    if(warmOK&&!thOnly){
       var near={};
       for(var ws=at-2;ws<=at+5;ws++) if(ws>=1&&ws<=SPREADS) pgOfSpread(ws).forEach(function(p){ var u=pgUrl(p); if(u){ near[u]=1; getBlob(u).catch(function(){}); } });
       Object.keys(blobs).forEach(function(u){ if(!near[u]) delete blobs[u]; });
@@ -2440,8 +2462,8 @@ html.m #contacts .bar a:active{color:var(--accent)}
     // a 2048 px picture taken while zoomed in is let go once its spread is no longer open (it comes back at 1024)
     if(MOB) Object.keys(pgTex).forEach(function(p){ if((pgSz[p]||0)>PG_SIZE&&pgSp(+p)!==at){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; delete pgSz[p]; } });
     // the spread that opens first loads before the others
-    pgOfSpread(at).concat(pgOfSpread(at+1)).concat(Object.keys(keep).map(Number)).forEach(function(p){ pgLoad(p); });
-    Object.keys(pgTex).forEach(function(p){ if(!keep[p]&&Math.abs(pgSp(+p)-at)>far){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; delete pgSz[p]; } });
+    if(!thOnly) pgOfSpread(at).concat(pgOfSpread(at+1)).concat(Object.keys(keep).map(Number)).forEach(function(p){ pgLoad(p); });
+    Object.keys(pgTex).forEach(function(p){ if(!keep[p]&&(thOnly||Math.abs(pgSp(+p)-at)>far)){ gl.deleteTexture(pgTex[p]); delete pgTex[p]; delete pgSz[p]; } });
     Object.keys(pgLoading).forEach(function(p){ if(!keep[p]) delete pgLoading[p]; });
     pgQueue=pgQueue.filter(function(it){ if(keep[it.p]) return true; dropStrips(it.strips); return false; });
   }
