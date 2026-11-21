@@ -1773,9 +1773,11 @@ html.m #contacts .bar a:active{color:var(--accent)}
     if(ROT){ pager.style.bottom='22px'; } else pager.style.bottom='';
     if(AM){
       // the hint and the closing button stand centred under the album
+      // (the closed album lies on the right half at the start and on the left half at the end, so each stands under it)
       var hy=Math.round(cy+S/2+48);
-      hint.style.right='auto'; hint.style.left=(dw/2)+'px'; hint.style.top=hy+'px'; hint.style.transform='translate(-50%,-50%)';
-      endCta.style.left=(dw/2)+'px'; endCta.style.top=hy+'px'; endCta.style.transform='translate(-50%,-50%)';
+      // (the hint is wider than the album: it ends at the album's right edge, so it never runs off the screen)
+      hint.style.right='auto'; hint.style.left=(dw/2+S)+'px'; hint.style.top=hy+'px'; hint.style.transform='translate(-100%,-50%)';
+      endCta.style.left=(dw/2-S/2)+'px'; endCta.style.top=hy+'px'; endCta.style.transform='translate(-50%,-50%)';
     }
     // the button stays on the process screen; on the album screen its place is taken by the one at the album's end
     var tr=document.getElementById('dockTrack'), pr=document.getElementById('process');
@@ -2057,6 +2059,9 @@ html.m #contacts .bar a:active{color:var(--accent)}
       if(!gl) return false;
       var ca=gl.getContextAttributes&&gl.getContextAttributes(); glSS=(ca&&ca.antialias)?1:1.5;
       if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<4096){ SMS=1024; SMS2=1024; }
+      // on a phone the album is ~550 screen pixels tall: shadow maps of 1024 look the same there and cost a quarter as much
+      // (both are drawn again on every frame of a turn, which on a phone's graphics card was a good part of the stutter)
+      if(MOB){ SMS=1024; SMS2=1024; }
       // the fade of a page from its small copy to its full-size picture needs two more picture slots; a graphics card with
       // fewer than 12 (rare) draws the pages straight from the one picture, as before
       PG_X=gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)>=12;
@@ -2086,11 +2091,14 @@ html.m #contacts .bar a:active{color:var(--accent)}
     var CVH=PG_SIZE, CV=document.createElement('canvas'); CV.width=2*CVH; CV.height=CVH; var cvx=CV.getContext('2d');
     cvx.fillStyle='#fff'; cvx.fillRect(0,0,2*CVH,CVH); cvx.imageSmoothingQuality='high';
     function coverPut(url,ox){
-      if(!url) return; var im=new Image();
-      im.onload=function(){ if(!gl) return; cvx.drawImage(im,ox,0,CVH,CVH); gl.deleteTexture(coverTex); coverTex=mkTex(CV,false); if(anisoExt){ gl.bindTexture(gl.TEXTURE_2D,coverTex); gl.texParameterf(gl.TEXTURE_2D,anisoExt.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisoExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT))); } coverReady=true; render(); };
+      if(!url) return; var im=new Image(); im.decoding='async';
+      // the picture is decoded before it is drawn, so drawing it does not hold the page up
+      im.onload=function(){ (im.decode?im.decode():Promise.resolve()).catch(function(){}).then(draw); };
+      function draw(){ if(!gl) return; cvx.drawImage(im,ox,0,CVH,CVH); gl.deleteTexture(coverTex); coverTex=mkTex(CV,false); if(anisoExt){ gl.bindTexture(gl.TEXTURE_2D,coverTex); gl.texParameterf(gl.TEXTURE_2D,anisoExt.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisoExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT))); } coverReady=true; render(); }
       im.src=url;
     }
-    coverPut('cover1.png',0); coverPut(window.ALBUM_BACK||ALBUM_BACK,CVH);
+    // on a phone (1024 px pages) the covers come as light 1024 px copies too
+    coverPut(PG_SIZE>1024?'cover1.png':'album/t/cover1.webp',0); var bk=window.ALBUM_BACK||ALBUM_BACK; coverPut(PG_SIZE>1024?bk:pgSmall(bk,'t/'),CVH);
     thLoadAll();
     glc.addEventListener('webglcontextlost',function(e){ e.preventDefault(); });
     glc.addEventListener('webglcontextrestored',function(){ initGL(); render(); });
@@ -2125,11 +2133,19 @@ html.m #contacts .bar a:active{color:var(--accent)}
   function pgList(){ return window.ALBUM_PAGES||ALBUM_PAGES; }
   // ?v=2048: the page files were re-saved at 2048 px; the mark makes a browser that kept the old 2000 px files fetch the new ones
   var PG_VER='?v=2048';
-  function pgUrl(p){
+  function pgSrc(p){
     var E=window.ALBUM_ENDPAPERS||ALBUM_ENDPAPERS, u=null;
     if(p===EP_F) u=E[0]||null; else if(p===EP_B) u=E[1]||null;
     else { var L=pgList(); u=p>0&&p<=L.length&&L[p-1]?L[p-1]:null; }
-    return u?u+PG_VER:null;
+    return u;
+  }
+  /* the lighter copies of a page, in WebP (a third lighter than JPEG at the same look): album/t/ 1024 px, album/m/ 512 px.
+     A phone takes the 1024 px ones (its pages are never drawn bigger than that): before, it fetched the 2048 px files,
+     ~0.5–0.9 MB each, and shrank them itself, which was slow and held the page up */
+  function pgSmall(u,dir){ return /\.jpe?g$/i.test(u)?u.replace(/([^\/]+)\.jpe?g$/i,dir+'$1.webp'):u.replace(/([^\/]+)$/,dir+'$1'); }
+  function pgUrl(p){
+    var u=pgSrc(p); if(!u) return null;
+    return PG_SIZE>1024?u+PG_VER:pgSmall(u,'t/');
   }
   // the pages of spread sp (1…SPREADS): the left one is the back of sheet sp-1 (on the first spread, the front endpaper),
   // the right one the front of sheet sp (on the last spread, the back endpaper)
@@ -2144,12 +2160,12 @@ html.m #contacts .bar a:active{color:var(--accent)}
     // on a quick turn no longer sends for its big picture)
     return thTex[p]||null;
   }
-  function thUrl(u){ return u.replace(/\?.*$/,'').replace(/([^\/]+)$/,'m/$1'); }
+  function thUrl(u){ return pgSmall(u,'m/'); }
   function thLoadAll(){
     if(thStarted) return; thStarted=true;
     var all=[EP_F,EP_B]; for(var p=1;p<=2*SHEETS;p++) all.push(p);
     all.forEach(function(p){
-      var url=pgUrl(p); if(!url) return;
+      var url=pgSrc(p); if(!url) return;
       decodeTo(thUrl(url),TH_SIZE).then(function(src){ thQueue.push({p:p,src:src}); pgPump(); },function(){});
     });
   }
@@ -3057,9 +3073,9 @@ html.m #contacts .bar a:active{color:var(--accent)}
     pgPrev.disabled=committed<=0; pgNext.disabled=committed>=MAXC;
     // on a phone the closed album at the end keeps only its button: the counter and arrows go
     pager.classList.toggle('show',committed>0 && !(AM && committed>=MAXC));
-    // on a phone the closed album lies in the middle of the screen; opened, it slides so its spine is the middle
-    // (one page fills the screen: the view shows the left or the right page of the open spread, see mFwd)
-    var sh=AM?(committed<=0?-BS/2:committed>=MAXC?BS/2:(PW?(mView==='R'?-BS/2:BS/2):0)):0;
+    // on a phone, as on a computer, the spine stays in the middle of the screen: closed, the album lies on the right half,
+    // opened, the spread is centred, and nothing slides. Only page-by-page reading (PW) moves the view to the left or right page
+    var sh=(AM&&PW&&committed>0&&committed<MAXC)?(mView==='R'?-BS/2:BS/2):0;
     if(sh!==bookShift){ bookShift=sh; book.style.translate=glc.style.translate=sh?sh+'px 0':''; }
     // the hint is there whenever the closed album is on screen, also after it was opened and closed again
     hint.classList.toggle('show',committed===0 && inView && leaves[0].a<20 && !leaves[0].moving && !drag);
