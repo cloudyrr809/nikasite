@@ -472,7 +472,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 </div>
 <span class="nav-name" style="font-weight:800;font-size:17px;letter-spacing:.01em;text-transform:uppercase">Veronika Royse</span>
 <nav aria-label="Разделы" class="nav-links" style="display:flex;flex-direction:column;align-items:flex-end;gap:0;font-weight:600;font-size:13px;line-height:1.35">
-<a class="cta" href="#">портфолио</a><a class="cta" href="#contacts">контакты</a>
+<a class="cta" href="#album">портфолио</a><a class="cta" href="#contacts">контакты</a>
 </nav>
 </div>
 
@@ -1399,24 +1399,55 @@ html.m #contacts .bar a:active{color:var(--accent)}
        decoded on the way, the floor words) showed as a jump. The browser's own scroll is run by the phone itself, outside the
        page's script, so it keeps an even pace whatever the page is busy with; a finger on the screen stops it as usual.
        (Old phones without it: the frame-by-frame ride as before) */
-    if(MOB){
-      if('scrollBehavior' in document.documentElement.style&&!reduce){
-        stopAuto(); gliding=false; cancelAnimationFrame(topRaf);
-        window.scrollTo({top:0,left:0,behavior:'smooth'});
-      } else phoneTop();
-      return;
-    }
-    // the wide screen: a calmer ride than the links' (a longer soft start, 1.7–2.3 s with the distance)
-    var from=window.scrollY;
-    glideTo(0,Math.min(2300,Math.max(1700,1500+from*0.08)),0.25);
+    if(MOB){ if(!rideM(0)) phoneTop(); return; }
+    calmRide(0);
   }
+  // the wide screen: "наверх", "контакты", "портфолио": a calm ride (a longer soft start, 1.7–2.3 s with the distance)
+  function calmRide(y){
+    var d=Math.abs(Math.max(0,Math.min(maxY(),y))-window.scrollY);
+    glideTo(y,Math.min(2300,Math.max(1700,1500+d*0.08)),0.25);
+  }
+  /* a phone: a slow, even ride that the phone itself plays. The browser's own smooth scroll was even but far too quick
+     (Safari gives it a fixed fraction of a second, however far), and moving the page from the script every frame jerked.
+     So the page is put at its goal at once and, in the same instant, shifted back by the whole way (#page is moved, so
+     nothing on screen changes); then that shift slides away to nothing. The slide is an animation of the page's position
+     on screen only, which the phone runs on its own, outside the page's script: it keeps an even pace whatever the page
+     is busy with. A finger on the screen stops it where it is (the page is then really scrolled to that spot) */
+  var rideA=null;
+  function rideM(y){
+    var pg=document.getElementById('page');
+    if(!pg||!pg.animate) return false;
+    stopRide(); stopAuto(); gliding=false; cancelAnimationFrame(topRaf);
+    var from=window.scrollY; y=Math.max(0,Math.min(maxY(),y)); var off=y-from;
+    if(Math.abs(off)<1) return true;
+    if(reduce){ window.scrollTo(0,y); return true; }
+    var D=Math.round(Math.min(2400,Math.max(1500,1300+Math.abs(off)*0.2)));
+    window.scrollTo(0,y); sy=ty=tg=window.scrollY;
+    var a=pg.animate([{transform:'translate3d(0,'+off+'px,0)'},{transform:'translate3d(0,0,0)'}],
+      {duration:D,easing:'cubic-bezier(.45,0,.15,1)'});   // a soft start and a long, gentle stop
+    rideA=a;
+    // the floor words and the white room of the album follow where the page now stands on screen
+    (function tick(){ if(rideA!==a) return; room(); kick(); requestAnimationFrame(tick); })();
+    function end(){ if(rideA!==a) return; rideA=null; window.removeEventListener('touchstart',grab); room(); kick(); }
+    // a finger: the page stays exactly where it is on screen, now by a real scroll
+    function grab(){
+      if(rideA!==a) return;
+      var m=new DOMMatrix(getComputedStyle(pg).transform), cur=m.m42||0;
+      a.cancel(); window.scrollTo(0,Math.max(0,window.scrollY-cur)); sy=ty=tg=window.scrollY; end();
+    }
+    a.onfinish=end; a.oncancel=end;
+    window.addEventListener('touchstart',grab,{passive:true});
+    return true;
+  }
+  function stopRide(){ if(rideA){ var a=rideA; a.cancel(); } }
   function onLink(ev){
     if(ev.defaultPrevented||ev.button>0||ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.altKey) return;
     var a=ev.target.closest&&ev.target.closest('a[href^="#"]'); if(!a||a.hasAttribute('data-totop')) return;
     var id=a.getAttribute('href').slice(1), el=id&&document.getElementById(id); if(!el) return;
     ev.preventDefault();
     var y=el.getBoundingClientRect().top+window.scrollY;
-    glideTo(y,Math.max(700,Math.min(1400,450+Math.abs(y-window.scrollY)*0.3)));
+    if(MOB) glideTo(y,Math.max(700,Math.min(1400,450+Math.abs(y-window.scrollY)*0.3)));
+    else calmRide(y);   // the same calm ride as "наверх"
   }
   /* ---- the stage: positions are stored on a fixed 1440×900 reference grid (data-x / data-y)
      and stretched to the real screen, so the line always runs edge to edge and nothing changes its place ---- */
