@@ -2052,7 +2052,13 @@ html.m #contacts .bar a:active{color:var(--accent)}
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
     var f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f);
     gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
-    if(depth){ var rb=gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER,rb); gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,w,h); gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb); }
+    if(depth){
+      var rb=gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER,rb);
+      /* d24 (test): the lamp's depth picture gets a deeper depth buffer (DEPTH_STENCIL, 24 or 32 bit) instead of the 16-bit one.
+         With 16 bits the nearly flat sheets of the stack can swap places in the shadow picture, differently on each graphics card */
+      if(tq('d24')){ gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_STENCIL,w,h); gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_STENCIL_ATTACHMENT,gl.RENDERBUFFER,rb); }
+      else { gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,w,h); gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb); }
+    }
     var ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);
     if(!ok) throw new Error('framebuffer');
