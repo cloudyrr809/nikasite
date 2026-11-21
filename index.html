@@ -1,6 +1,8 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Veronika Royse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- the font files themselves come from this second server: connecting to it in advance saves a round trip before the letters show -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* Layout: two full-height screens drawn on a 1440-wide design grid (CSS zoom), over one fixed studio-grey backdrop.
@@ -435,9 +437,10 @@ html.m #contacts .bar a:active{color:var(--accent)}
 </div>
 
 <div id="figure" style="position:absolute;left:0;top:0;width:1440px;height:900px;pointer-events:none">
-<img class="fig-sh" src="veronika.png" alt="" aria-hidden="true" style="position:absolute;left:502px;top:761px;width:393px;height:690px;transform-origin:50% 0%;transform:scaleY(-.3) skewX(58deg);filter:brightness(0) blur(18px);opacity:.22">
+<!-- every big picture comes as WebP (5–7× lighter, the same picture to the eye); a browser without WebP takes the PNG -->
+<picture><source srcset="veronika.webp" type="image/webp"><img class="fig-sh" src="veronika.png" alt="" aria-hidden="true" decoding="async" style="position:absolute;left:502px;top:761px;width:393px;height:690px;transform-origin:50% 0%;transform:scaleY(-.3) skewX(58deg);filter:brightness(0) blur(18px);opacity:.22"></picture>
 <div class="fig-el" aria-hidden="true" style="position:absolute;left:470px;top:728px;width:380px;height:54px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.42),rgba(0,0,0,.12) 60%,rgba(0,0,0,0));filter:blur(5px)"></div>
-<img class="fig-img" src="veronika.png" alt="Veronika Royse, фотограф" style="position:absolute;left:452px;top:65px;width:393px;height:690px">
+<picture><source srcset="veronika.webp" type="image/webp"><img class="fig-img" src="veronika.png" alt="Veronika Royse, фотограф" fetchpriority="high" style="position:absolute;left:452px;top:65px;width:393px;height:690px"></picture>
 </div>
 
 <nav aria-label="Соцсети" class="abs h-soc" style="right:44px;bottom:30px;display:flex;align-items:center;gap:20px;z-index:3">
@@ -537,7 +540,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 
 <!-- on a phone: both formats on one screen inside the hand-drawn frame (the blocks above are hidden there) -->
 <div class="fmtM">
-<img class="mdraw" src="choice_m_pencil.png" alt="" aria-hidden="true">
+<picture><source srcset="choice_m_pencil.webp" type="image/webp"><img class="mdraw" src="choice_m_pencil.png" alt="" aria-hidden="true" decoding="async" fetchpriority="low"></picture>
 <div class="mf mf1">
 <h2>Книга класса</h2>
 <p class="n">30–40 полных разворотов</p>
@@ -596,8 +599,8 @@ html.m #contacts .bar a:active{color:var(--accent)}
 </div>
 <p class="sr" id="vNow" aria-live="polite"></p>
 <ol class="sr" id="vList"></ol>
-<div id="vSh" aria-hidden="true"><img src="veronika_cam.png" alt=""></div>
-<div id="vFig"><div class="floor"></div><img src="veronika_cam.png" alt="Veronika Royse с фотоаппаратом"></div>
+<div id="vSh" aria-hidden="true"><picture><source srcset="veronika_cam.webp" type="image/webp"><img src="veronika_cam.png" alt="" decoding="async" fetchpriority="low"></picture></div>
+<div id="vFig"><div class="floor"></div><picture><source srcset="veronika_cam.webp" type="image/webp"><img src="veronika_cam.png" alt="Veronika Royse с фотоаппаратом" decoding="async" fetchpriority="low"></picture></div>
 <a class="cta" id="vCta" href="https://t.me/vichinks">получить альбом <span class="arr ha a1" aria-hidden="true"></span></a>
 </div>
 </div>
@@ -1356,8 +1359,17 @@ html.m #contacts .bar a:active{color:var(--accent)}
       var c=document.createElement('canvas'); c.width=w; c.height=hh;
       var x=c.getContext('2d'); x.imageSmoothingEnabled=smooth; x.drawImage(im,0,0,w,hh); return x.getImageData(0,0,w,hh).data;
     }
-    load('hand2.png',n);
-    HAND_T.forEach(function(m,i){ load('hand_t/'+(i<10?'0':'')+i+'.png?v='+HAND_V,i); });
+    /* the maps are loaded and the writing prepared (a few hundred ms of work on a phone) only once the footer is two screens
+       away: before, it all ran while the page opened, on top of the first screen. It is ready long before the footer
+       scrolls in, and the writing itself starts exactly as before (see check) */
+    function begin(){
+      load('hand2.png',n);
+      HAND_T.forEach(function(m,i){ load('hand_t/'+(i<10?'0':'')+i+'.png?v='+HAND_V,i); });
+    }
+    if('IntersectionObserver' in window){
+      var hio=new IntersectionObserver(function(en){ if(en[0].isIntersecting){ hio.disconnect(); begin(); } },{rootMargin:'200% 0px 200% 0px'});
+      hio.observe(h.parentNode);
+    } else begin();
     function build(){
       var ink, i, x, y, k;
       // the letters' maps, laid out on the picture: which letter, when (ms) and how much of each picture pixel
@@ -2153,7 +2165,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   /* the size a page is wanted at: on a phone zoomed in by a finger (1.5× or more) the open spread takes the 2048 px
      pictures, the rest stay at 1024 (each 2048 px picture is 22 MB on the graphics card, too much to keep many on a phone) */
   var pgSz={}, pgLdSz={}, decRedo={};
-  function pgWant(p){ return (MOB&&vvZ>=1.5&&pgSp(p)===Math.max(1,Math.min(SPREADS,committed)))?2048:PG_SIZE; }
+  function pgWant(p){ return PG_SIZE; }   // (one size per device; a pinch zoom no longer asks for 22 MB pictures)
   // the pages of spread sp (1…SPREADS): the left one is the back of sheet sp-1 (on the first spread, the front endpaper),
   // the right one the front of sheet sp (on the last spread, the back endpaper)
   function pgOfSpread(sp){ return [sp>1?2*(sp-1):EP_F, sp<SPREADS?2*sp-1:EP_B]; }
@@ -2276,7 +2288,10 @@ html.m #contacts .bar a:active{color:var(--accent)}
   function moving(){ return !!drag||leaves.some(function(L){ return L.moving; }); }
   function pgPump(){
     if(pgPumpT||!gl) return;
-    if(introOn&&(thQueue.length||pgQueue.length||upJob)){ pgPumpT=setTimeout(function(){ pgPumpT=0; pgPump(); },150); return; }
+    // (the wait is only while the line is what the visitor looks at: once the album itself fills the screen, its pictures
+    // go up at once. Before, someone who scrolled quickly past the process screen found the album still empty for up to
+    // ~6.5 s on a phone, until the line, by then out of sight, had finished drawing)
+    if(introOn&&!inView&&(thQueue.length||pgQueue.length||upJob)){ pgPumpT=setTimeout(function(){ pgPumpT=0; pgPump(); },150); return; }
     if(thQueue.length){
       pgPumpT=setTimeout(function(){
         pgPumpT=0;
@@ -2293,7 +2308,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
       pgPumpT=0;
       var dt=pumpT?now-pumpT:0; pumpT=now;
       if(dt>0&&dt<60) frBase=Math.min(frBase*1.003+0.01,dt);       // the screen's own frame time, learned as we go
-      if(introOn){ pgPump(); return; }
+      if(introOn&&!inView){ pgPump(); return; }
       /* while sheets move, only the two pages of the spread being opened go up, one 1 MB strip a frame, and only while the
          frames come on time (the graphics card is not drawing the album coarser to keep up, the last frame was not late).
          So the page under the turning sheet is usually sharp by the time it lands, instead of half a second later.
@@ -2313,8 +2328,16 @@ html.m #contacts .bar a:active{color:var(--accent)}
   var pumpT=0, frBase=17;  var PG_X=true, upJob=null, pgFade={}, FADE=260, fadeLive=false, fadeRaf=0;
   // while a full-size picture fades in on a still album, the album draws itself on each frame until the fade is done
   // (while sheets move it is drawn every frame anyway)
+  /* albumNear: the album is on screen or less than a screen away from it (see setupAlbum). Far from it nothing is drawn:
+     every small page picture that arrived used to redraw the whole 3D album with its shadows (~35 times at the start), and
+     that work on the graphics card fell exactly on the first screen's scrolling. The pictures still load and go onto the card
+     as before; the album is only drawn, once, as it comes near (glDirty) */
+  // (false until the first look says otherwise; without IntersectionObserver it is always true)
+  var albumNear=!('IntersectionObserver' in window), glDirty=false;
   var render0=render;
   render=function(){
+    if(!albumNear){ glDirty=true; return; }
+    glDirty=false;
     fadeLive=false; render0.apply(this,arguments);
     if(fadeLive&&!fadeRaf&&!moving()) fadeRaf=requestAnimationFrame(function(){ fadeRaf=0; render(); });
   };
@@ -2384,16 +2407,6 @@ html.m #contacts .bar a:active{color:var(--accent)}
     Object.keys(pgLoading).forEach(function(p){ if(!keep[p]) delete pgLoading[p]; });
     pgQueue=pgQueue.filter(function(it){ if(keep[it.p]) return true; dropStrips(it.strips); return false; });
   }
-  // a pinch zoom: the picture is drawn finer and, on a phone, the open spread takes its big pictures
-  // (asked once the fingers have rested a moment; the scale is rounded so tiny changes do nothing)
-  var vvT=0;
-  if(window.visualViewport) window.visualViewport.addEventListener('resize',function(){
-    clearTimeout(vvT); vvT=setTimeout(function(){
-      var z=Math.max(1,Math.min(3,window.visualViewport.scale||1)); z=Math.round(z*4)/4;
-      if(z===vvZ) return; vvZ=z;
-      if(gl){ sizeGL(); pgLastAt=-2; pgPrefetchNow(); }
-    },200);
-  });
   function pgBind(pA,pB,mode){
     // each page is drawn from its small copy and its full-size picture, mixed: a full-size picture that has just arrived
     // fades in over the small copy (FADE ms) instead of snapping in, so the page is never seen "loading"
@@ -3222,6 +3235,11 @@ html.m #contacts .bar a:active{color:var(--accent)}
         inView=en[0].intersectionRatio>0.5;
         refresh();
       },{threshold:[0,0.5,0.6]}).observe(albumEl);
+      // albumNear (see render): 0.6 of a screen's height of margin above and below, so the album is drawn before it scrolls in
+      new IntersectionObserver(function(en){
+        albumNear=en[0].isIntersecting;
+        if(albumNear&&glDirty) render();
+      },{rootMargin:'60% 0px 60% 0px'}).observe(albumEl);
     } else { inView=true; hintOn=true; }
     render(); refresh(); schedulePeek();
   }
