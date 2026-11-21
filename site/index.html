@@ -217,6 +217,10 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 #vCta{position:absolute;z-index:5;display:flex;align-items:center;gap:12px;font-weight:700;font-size:21px;line-height:1;letter-spacing:-.01em;text-decoration:none}
 /* on a phone the words were small next to the long drawn arrow */
 html.m #vCta{font-size:29px;gap:12px}
+/* "что для меня важно:" on a phone: a label in capitals, spaced out, so the eye takes it first and then the point */
+#values.hz #vLead{font-size:19px;font-weight:700;line-height:1.2;letter-spacing:.16em;text-transform:uppercase}
+/* its two letters О in our red */
+#values.hz #vLead .o{color:var(--accent)}
 html.m #vCta .a1{width:48px;height:10px}
 /* her long shadow, cast far back across the floor like on the first screen; it lies under the drum */
 #vSh{position:absolute;pointer-events:none;z-index:0}
@@ -378,11 +382,11 @@ html.m #contacts .ideas{width:60%;margin-top:-9%}
 html.m #contacts .ideas .h{font-size:15px;margin-bottom:10px}
 html.m #contacts .ideas ul{gap:6px;font-size:12.5px;line-height:1.38}
 html.m #contacts .ideas b{white-space:nowrap}
-html.m #contacts .bar{margin-top:60px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 12px}
+html.m #contacts .bar{margin-top:60px;display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:6px 12px}
 html.m #contacts .bar .nm{grid-column:1;grid-row:1}
 html.m #contacts .bar .mid,html.m #contacts .nm-hand{display:none}
-/* on a phone "наверх" stands on the right, across both lines of the name; a big enough spot to tap */
-html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;align-self:center;font-size:19px;padding:10px 4px 12px;-webkit-tap-highlight-color:transparent}
+/* on a phone "наверх" stands on the right, on the same line as the name (letters on one baseline); a big enough spot to tap */
+html.m #contacts .bar a{grid-column:2;grid-row:1;justify-self:end;align-self:baseline;font-size:19px;padding:10px 4px 12px;-webkit-tap-highlight-color:transparent}
 html.m #contacts .totop .ul{bottom:-3px}
 html.m #contacts .bar a:active{color:var(--accent)}
 </style>
@@ -575,7 +579,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 <div class="design">
 <div class="vkick" id="vKick" aria-hidden="true">what</div>
 <div class="vbig" id="vBig" aria-hidden="true">MATTERS</div>
-<h2 id="vLead">что для меня важно:</h2>
+<h2 id="vLead">чт<span class="o">о</span> для меня важн<span class="o">о</span>:</h2>
 <div id="vWin"><canvas id="vReel" aria-hidden="true"></canvas></div>
 <div id="vHit" aria-hidden="true"></div>
 <div id="vBox" aria-hidden="true"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
@@ -3239,6 +3243,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     var w=VREF.w, h=VREF.h;
     portrait=h>w*1.1;
     HZ=portrait&&!!window.vrMobile; sec.classList.toggle('hz',HZ);
+    FONT_PX=HZ?32:36; LINE=HZ?37:41;                      // a phone: the points a size smaller
     if(!portrait){ sl=h/900; if(w/sl<1200) sl=w/1200; }   // the same rule as the other screens
     else sl=w/Math.max(600,Math.min(1000,w*1.15));         // upright: a narrower grid, so the type stays readable
     LW=w/sl; LH=h/sl;
@@ -3269,7 +3274,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
       Y=Math.round((zt+zb)/2);
       winT=zt-30; H=zb-winT+30; Y0=Y-winT;
       var bl=HZ?Math.round((LW-TW)/2):tl;                   // the frame: centred on the sideways drum
-      px(lead,{left:bl,transform:'none'});                   // its height follows the frame (see placeBox)
+      px(lead,{left:HZ?bl-14:bl,transform:'none'});        // on a phone: from the frame's top-left corner                   // its height follows the frame (see placeBox)
       // the control sits just under the frame at its tallest, so it never jumps and never covers a point (see rebuild)
       px(box,{left:bl-14,width:TW+28});
       box.querySelector('.vinfo').style.display='none';
@@ -3286,7 +3291,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
   }
 
   /* ---------- the printed band: all points one under another, like the paper strip on a reel ---------- */
-  var FONT_PX=36, LINE=41, GAP=74, PAD=330, R=250, D=820, TMAX=84*Math.PI/180;
+  var FONT_PX=FONT_PX||36, LINE=LINE||41, GAP=74, PAD=330, R=250, D=820, TMAX=84*Math.PI/180;
   var strip=null, blurA=null, blurB=null, SS=1, centers=[], tops=[], bottoms=[], halfH=[], STRIP_H=0;
   function setFont(c){ c.font='700 '+FONT_PX+'px Montserrat, "Helvetica Neue", Arial, sans-serif'; try{ c.letterSpacing=(-.03*FONT_PX)+'px'; }catch(e){} }
   function wrap(c,text){
@@ -3334,7 +3339,11 @@ html.m #contacts .bar a:active{color:var(--accent)}
     blocks.forEach(function(lines,i){
       var t=document.createElement('canvas'); t.width=Math.ceil((TW+2*TM)*SS); t.height=Math.ceil(BAND_H*SS);
       var c=t.getContext('2d'); c.setTransform(SS,0,0,SS,0,0); setFont(c); c.fillStyle='#111111';
-      var t0=(BAND_H-hs[i])/2; lines.forEach(function(l,k){ c.fillText(l,TM,t0+k*LINE+30); });
+      // the block of lines (each line still starts on the block's left edge) stands in the middle of its place:
+      // with the lines hanging from the left, the neighbour peeking in on the left showed only its empty right end
+      var bw=0; lines.forEach(function(l){ bw=Math.max(bw,c.measureText(l).width); });
+      var ox=TM+Math.max(0,(TW-bw)/2), t0=(BAND_H-hs[i])/2, base=Math.round(FONT_PX*.83);
+      lines.forEach(function(l,k){ c.fillText(l,ox,t0+k*LINE+base); });
       tiles.push(t); tilesA.push(smear(t,1,4,6,true)); tilesB.push(smear(t,.5,11,8,true));
     });
     strip=tiles[0]; blurA=tilesA[0]; blurB=tilesB[0];
@@ -3369,7 +3378,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     box.style.top=boxTop0.toFixed(1)+'px'; box.style.height=boxH0+'px';
     cTop=[box.querySelector('.tl'),box.querySelector('.tr'),box.querySelector('.vinfo')];
     cBot=[box.querySelector('.bl'),box.querySelector('.br')];
-    if(portrait){ cTop.push($('vLead')); $('vLead').style.top=(boxTop0-30).toFixed(1)+'px'; }
+    if(portrait){ cTop.push($('vLead')); $('vLead').style.top=(boxTop0-(HZ?16+23:30)).toFixed(1)+'px'; }
     lastD=null;
   }
   function placeBox(){
@@ -3692,14 +3701,15 @@ html.m #contacts .bar a:active{color:var(--accent)}
          (and follows its lower edge, see placeBox), so it reads as part of the drum. The button is the page's action:
          it stands on the outer left margin, the same line as "what MATTERS" above, low in the free space left of her */
       // the drum block hangs from the title: the lead-in a short step under "MATTERS", the frame right under it
-      var bh=Math.round(2*(Math.max.apply(null,halfH)+6)+36), bt=232;
+      var bh=Math.round(2*(Math.max.apply(null,halfH)+6)+36), bt=250;
       Y=Math.round(bt+bh/2);
       var wt=Math.round(Y-BAND_H/2-8); H=BAND_H+16; Y0=Y-wt;
       px($('vWin'),{top:wt,height:H}); px(cv,{height:H}); px($('vHit'),{top:wt,height:H}); sizeCanvas(); fixBox();
       px($('vCtl'),{left:LW/2,top:Math.round(boxTop0+boxH0+12)});
       lastD=null; placeBox();
-      // the button: under the pager, on the left edge of the text in the frame (the line of the lead-in as well)
-      px($('vCta'),{left:Math.round((LW-TW)/2),top:Math.round(boxTop0+boxH0+12+44+16),bottom:'auto'});
+      // the button: low on the outer left margin (the line of "what MATTERS"), right over her long shadow on the floor,
+      // clear of her dress (it scales with the screen's height like her picture does)
+      px($('vCta'),{left:28,top:'auto',bottom:Math.round(LH*.075)});
     } else if(portrait){
       // the control sits under the drum: the drum shows the next point turning away and ends just above the control
       var mh=Math.max.apply(null,halfH)+6, ct=Math.round(Y+mh+18+120), wt=parseFloat($('vWin').style.top);
