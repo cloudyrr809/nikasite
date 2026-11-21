@@ -749,7 +749,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
     vhD=h/s; dw=w/s;
     // the floor letters' stretch at the screen edges (see pcStretch): measured against this screen's width
     DDW=dw; var hs=getComputedStyle(hero), hv=function(n,d){ var v=parseFloat(hs.getPropertyValue(n)); return isNaN(v)?d:v; };
-    DXL=hv('--dfl',.4); DXU=hv('--dfu',.35); DXB=hv('--dfb',.6); DXD=hv('--dfd',.2);
+    DXL=hv('--dfl',.4); DXU=hv('--dfu',.35); DXB=hv('--dfb',.6); DXD=hv('--dfd',.15);
     root.style.setProperty('--s',s);
     root.style.setProperty('--vh',vhD+'px');
     root.style.setProperty('--dw',dw+'px');
@@ -860,7 +860,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
      phone, so the edge of the words follows one smooth line. Letters away from the edges keep their plain transform.
      --dfl: how far from the left edge it reaches (share of the width), --dfu: how much at the edge;
      --dfb: where it starts for ROYSE on the right, --dfd: how much at the right edge (all on #hero) */
-  var DXL=.4, DXU=.35, DXB=.6, DXD=.2, DDW=1440, FPD=null;
+  var DXL=.4, DXU=.35, DXB=.6, DXD=.15, DDW=1440, FPD=null;
   function pcStretch(sp,X,Y,th,r){
     if(!(r?DXD:DXU)) return '';
     // #plane: left -380, top 400, origin (880,400); #floor at (-500,-800) inside it; #floorClip sits at the screen's 0,0
