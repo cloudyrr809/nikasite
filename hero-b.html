@@ -126,6 +126,7 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 /* "Ну и самое главное": the hand-written picture keeps the layout of the sketch; the list sits under the heart,
    left of "главное", lined up with the rest of the footer at 44px */
 #contacts .main{position:absolute;left:0;top:380px;width:1000px;height:440px}
+#hand{visibility:hidden}
 #contacts .hand{position:absolute;left:59px;top:40px;width:849px;height:300px;overflow:visible;user-select:none;-webkit-user-select:none;pointer-events:none}
 #contacts .ideas{position:absolute;left:44px;top:262px;width:600px}
 #contacts .ideas .h{margin:0 0 22px;font-weight:700;font-size:22px;line-height:1.2;letter-spacing:-.01em}
@@ -145,7 +146,7 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 #contacts .bar .mid{color:var(--ink-soft)}
 #contacts .bar a{position:relative;display:inline-block;padding:0 2px 6px;font-weight:700;font-size:21px;line-height:1;letter-spacing:-.01em;text-decoration:none}
 /* "наверх": underlined by hand — a crooked pencil stroke, thin on the left, heavier to the right, flicked up at the end; drawn again on hover */
-#contacts .totop .ul{position:absolute;left:-6px;bottom:-12px;width:calc(100% + 22px);height:24px;overflow:visible;fill:currentColor;pointer-events:none}
+#contacts .totop .ul{position:absolute;left:-6px;bottom:-11px;width:calc(100% + 14px);height:18px;overflow:visible;fill:currentColor;pointer-events:none}
 #contacts .totop:hover .ul{animation:ulDraw .6s ease}
 @keyframes ulDraw{from{clip-path:inset(-4px 100% -4px 0)}to{clip-path:inset(-4px 0 -4px 0)}}
 @media (prefers-reduced-motion: reduce){#contacts .totop:hover .ul{animation:none}}
@@ -288,6 +289,7 @@ html.m .p-kick,html.m .p-big,html.m .p-sub{position:relative!important;left:auto
 html.m .p-kick{font-size:calc(var(--mw)*.2)!important}
 html.m .p-big{font-size:calc(var(--mw)*.2)!important;margin-top:calc(var(--mw)*-.04)}
 html.m .p-sub{margin-top:22px!important;font-size:15px!important}
+html.m .p-sub br,html.m #contacts .lead br{display:none}
 html.m #band{position:relative;margin-top:18px}
 html.m .lab{transform:translateY(-50%);text-align:left;white-space:normal;line-height:1.22;
   text-shadow:0 0 4px #ebebeb,0 0 8px #ebebeb,0 0 14px #ebebeb,0 0 20px #ebebeb}
@@ -346,7 +348,7 @@ html.m #contacts .k,html.m #contacts .b,html.m #contacts .lead,html.m #contacts 
 html.m #contacts .hand,html.m #contacts .ideas{position:relative;left:auto;right:auto;top:auto;bottom:auto}
 html.m #contacts .k{font-size:calc(var(--mw)*.2)}
 html.m #contacts .b{font-size:calc(var(--mw)*.226);margin-top:calc(var(--mw)*-.04)}
-html.m #contacts .lead{margin-top:22px}
+html.m #contacts .lead{margin-top:22px;font-size:15px}
 html.m #contacts .rows{margin-top:32px}
 html.m #contacts .row{grid-template-columns:minmax(96px,30%) 1fr auto;padding:19px 0}
 html.m #contacts .row small{font-size:10px}
@@ -354,14 +356,14 @@ html.m #contacts .row b{font-size:calc(var(--mw)*.066)}
 html.m #contacts .main{width:auto;height:auto;margin-top:56px}
 html.m #contacts .hand{width:100%;height:auto}
 html.m #contacts .ideas{width:auto;margin-top:18px}
-html.m #contacts .ideas .h{font-size:20px;margin-bottom:16px}
-html.m #contacts .ideas ul{gap:8px}
+html.m #contacts .ideas .h{font-size:18px;margin-bottom:14px}
+html.m #contacts .ideas ul{gap:8px;font-size:15px}
 html.m #contacts .bar{margin-top:60px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:6px 12px}
 html.m #contacts .bar .nm{grid-column:1;grid-row:1}
 html.m #contacts .bar .mid{grid-column:1;grid-row:2;font-size:12px}
 /* on a phone "наверх" stands on the right, across both lines of the name; a big enough spot to tap */
 html.m #contacts .bar a{grid-column:2;grid-row:1/span 2;justify-self:end;align-self:center;font-size:19px;padding:10px 4px 12px;-webkit-tap-highlight-color:transparent}
-html.m #contacts .totop .ul{bottom:-6px}
+html.m #contacts .totop .ul{bottom:-3px}
 html.m #contacts .bar a:active{color:var(--accent)}
 </style>
 
@@ -423,7 +425,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 <div class="design">
 <div aria-hidden="true" class="abs p-kick" style="left:42px;top:70px;font-weight:600;font-size:104px;color:var(--accent);z-index:2;line-height:.8;letter-spacing:-.065em;white-space:nowrap">the</div>
 <div aria-hidden="true" class="abs p-big" style="left:40px;top:132px;font-weight:800;font-size:118px;line-height:.8;letter-spacing:-.05em;white-space:nowrap">PROCESS</div>
-<h2 class="abs sel p-sub" style="left:44px;top:250px;margin:0;font-weight:600;font-size:15px;line-height:1.35">Как проходит работа над выпускным альбомом:<br>от брони даты до готовых альбомов в руках</h2>
+<h2 class="abs sel p-sub" style="left:44px;top:250px;margin:0;font-weight:600;font-size:15px;line-height:1.35">Как проходит работа над выпускным альбомом: <br>от брони даты до готовых альбомов в руках</h2>
 
 <div id="band">
 <svg id="road" viewBox="0 0 1366 768" preserveAspectRatio="none" aria-hidden="true" data-x="0" data-y="108"><defs><mask id="roadMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768"><path id="roadPen" fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 2" stroke-dashoffset="0"/><circle class="dab" cx="740" cy="456" r="28" fill="#fff" opacity="0"/><circle class="dab" cx="932" cy="449" r="21" fill="#fff" opacity="0"/><rect class="blk" x="499" y="477" width="15" height="15" fill="#000" data-ux="509.3" data-uy="473.8"/><rect class="blk" x="499" y="495" width="13" height="12" fill="#000" data-ux="504" data-uy="494"/></mask><filter id="pencil" filterUnits="userSpaceOnUse" x="0" y="0" width="1366" height="768" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><g mask="url(#roadMask)" id="roadInk"><image href="line5.png" x="0" y="0" width="1366" height="768" preserveAspectRatio="none" filter="url(#pencil)"/></g></svg>
@@ -536,7 +538,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 <footer id="contacts" aria-label="Контакты">
 <div class="design">
 <div class="k" aria-hidden="true">let's</div><div class="b" aria-hidden="true">TALK</div>
-<p class="lead sel">Напишите — расскажу про форматы альбомов,<br>свободные даты и как проходит съёмка</p>
+<p class="lead sel">Напишите — расскажу про форматы альбомов, <br>свободные даты и как проходит съёмка</p>
 <div class="rows">
 <a class="row cta" href="https://t.me/vichinks"><small>Telegram</small><b>@vichinks</b><span class="arr ha a3" aria-hidden="true"></span></a>
 <a class="row cta" href="#"><small>Telegram-канал</small><b>канал</b><span class="arr ha a1" aria-hidden="true"></span></a>
@@ -545,7 +547,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 </div>
 <!-- "and the main thing": the hand-written line with the heart, and under the heart what can be added to an album -->
 <section class="main" aria-label="Ну и самое главное">
-<svg class="hand" id="hand" viewBox="0 0 805 285" preserveAspectRatio="none" role="img" aria-label="Ну и самое главное"><defs><filter id="pencil3" filterUnits="userSpaceOnUse" x="0" y="0" width="805" height="285" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain3" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter><mask id="handMask" maskUnits="userSpaceOnUse" x="-10" y="-10" width="825" height="305"></mask></defs><g id="handInk" mask="url(#handMask)"><image href="hand2.png" x="0" y="0" width="805" height="285" preserveAspectRatio="none" filter="url(#pencil3)"/></g></svg>
+<svg class="hand" id="hand" viewBox="0 0 805 285" preserveAspectRatio="none" role="img" aria-label="Ну и самое главное"><defs><filter id="pencil3" filterUnits="userSpaceOnUse" x="0" y="0" width="805" height="285" color-interpolation-filters="sRGB"><feTurbulence id="pencilGrain3" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><g id="handInk"><image href="hand2.png" x="0" y="0" width="805" height="285" preserveAspectRatio="none" filter="url(#pencil3)"/></g></svg>
 <div class="ideas sel">
 <p class="h">Мы можем реализовать любые идеи</p>
 <ul>
@@ -556,7 +558,7 @@ html.m #contacts .bar a:active{color:var(--accent)}
 </ul>
 </div>
 </section>
-<div class="bar"><span class="nm">Veronika Royse</span><span class="mid">фотограф выпускных альбомов · 2027</span><a class="cta totop" href="#hero" data-totop>наверх<svg class="ul" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="pencilUl" filterUnits="userSpaceOnUse" x="0" y="0" width="120" height="26" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="8" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><path filter="url(#pencilUl)" d="M3 15C14 16.5 26 18.6 42 19.6C58 20.6 74 20 88 16.4C98 13.8 106 9 111 3.6C112.6 1.8 115.6 .6 117 1.6C118.4 2.8 116.8 5.6 114.4 8.4C107 16 97 21 86 23C70 25.6 52 25.4 38 23.6C24 21.8 12 18.6 2.6 16.4Z"/></svg></a></div>
+<div class="bar"><span class="nm">Veronika Royse</span><span class="mid">фотограф выпускных альбомов · 2027</span><a class="cta totop" href="#hero" data-totop>наверх<svg class="ul" viewBox="0 0 120 16" preserveAspectRatio="none" aria-hidden="true"><defs><filter id="pencilUl" filterUnits="userSpaceOnUse" x="0" y="0" width="120" height="16" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="8" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0" result="g"/><feGaussianBlur in="SourceAlpha" stdDeviation="0.35" result="b"/><feComposite in="g" in2="b" operator="arithmetic" k1="0" k2="3.2" k3="1.6" k4="-2.05" result="m"/><feComposite in="SourceGraphic" in2="m" operator="arithmetic" k1="0.86" k2="0" k3="0" k4="0"/></filter></defs><path filter="url(#pencilUl)" d="M2.5 8.7 L3.9 7.6 L4.6 7.7 L5.9 8.5 L7.4 9.4 L8.9 10.2 L10.4 11.0 L12.1 11.3 L13.8 11.1 L15.4 10.7 L16.9 10.4 L18.4 10.4 L19.9 10.5 L21.5 10.2 L23.1 9.5 L24.6 8.6 L25.9 7.9 L26.8 7.7 L27.5 7.9 L28.7 8.4 L30.4 9.2 L32.1 10.2 L33.8 11.0 L35.6 11.5 L37.3 11.7 L38.6 11.7 L39.7 11.7 L40.9 11.9 L42.4 12.3 L44.1 12.7 L45.8 12.8 L47.2 12.4 L48.4 11.9 L49.7 11.7 L51.2 12.0 L52.9 12.5 L55.0 12.5 L56.9 11.5 L58.4 10.1 L59.8 9.0 L60.8 8.7 L61.5 9.2 L62.3 9.7 L63.7 10.2 L65.4 10.4 L67.2 10.3 L68.6 10.2 L69.9 10.5 L71.2 11.0 L72.8 11.5 L74.6 11.8 L76.4 11.6 L78.1 11.4 L79.5 11.4 L80.5 11.7 L81.2 12.0 L82.4 12.5 L84.0 13.3 L86.0 13.9 L88.2 14.0 L90.1 13.3 L91.6 12.3 L92.8 11.2 L94.0 10.3 L95.4 9.9 L96.9 9.7 L98.5 9.4 L100.0 9.0 L101.1 8.7 L102.1 8.7 L103.3 9.2 L104.6 10.2 L106.2 11.2 L108.1 11.6 L109.9 11.1 L111.3 10.4 L112.7 9.7 L114.0 9.7 L115.4 10.1 L116.8 10.8 L117.2 10.0 L115.7 9.3 L114.1 9.0 L112.6 9.0 L111.0 9.2 L109.5 9.4 L108.4 9.2 L107.4 8.7 L106.1 7.9 L104.5 7.0 L102.8 6.2 L100.9 5.9 L99.1 6.2 L97.6 6.9 L96.3 7.7 L94.9 8.3 L93.4 8.6 L91.7 8.9 L90.0 9.4 L88.6 9.9 L87.6 10.3 L86.8 10.3 L85.9 9.7 L84.7 8.6 L82.9 7.5 L80.7 7.2 L78.8 7.9 L77.3 8.8 L76.1 9.3 L75.0 9.1 L73.9 8.5 L72.5 7.8 L70.9 7.3 L69.3 6.9 L67.8 6.4 L66.7 5.7 L65.5 4.9 L64.0 4.3 L61.9 4.2 L59.6 4.9 L57.8 6.1 L56.2 7.5 L54.8 8.6 L53.8 9.3 L53.0 9.6 L51.8 9.6 L50.4 9.0 L48.8 8.2 L47.0 7.6 L45.5 7.5 L44.3 7.7 L43.1 7.8 L41.7 7.7 L40.0 7.4 L38.2 7.3 L36.6 7.8 L35.4 8.5 L34.3 8.9 L33.1 8.5 L31.9 7.3 L30.6 5.8 L28.9 4.5 L26.7 4.1 L24.7 4.6 L23.0 5.4 L21.6 5.9 L20.3 6.3 L19.1 6.7 L17.6 7.3 L16.2 8.2 L14.8 9.0 L13.5 9.4 L12.3 9.4 L11.1 9.1 L9.7 8.6 L8.2 8.0 L6.8 7.1 L5.2 5.9 L3.0 5.8 L1.5 7.7Z"/></svg></a></div>
 </div>
 </footer>
 
@@ -1100,51 +1102,83 @@ html.m #contacts .bar a:active{color:var(--accent)}
      was turned by tools/make_hand_t.py into one small map per letter (hand_t/NN.png): for every ink pixel its grey says
      WHEN the pen passes it and its alpha how much of it the pencil's pressure leaves (pressed lightly: thinner, paler).
      A pixel belongs to the first pass of the pen that covers it, so crossings and lines the pen runs back over never show
-     up early. Here each map is thresholded against the letter's clock (one colour matrix per letter, no redrawing).
+     up early. The writing is drawn on a canvas, pixel by pixel as the pen reaches it (the same in every browser; SVG
+     filters inside masks are not drawn by every phone). If the canvas cannot read the pictures, the plain picture shows.
      HAND_T: map box x, y, w, h (picture px), the letter's start and length (ms) */
   var HAND_T=[[4,107,87,66,0,357],[259,7,110,97,577,557],[289,52,102,99,1194,417],[418,65,43,45,1761,160],[495,84,41,43,2071,162],[544,99,47,39,2278,192],[584,108,50,43,2515,164],[632,119,30,37,2724,148],[664,127,48,39,2916,212],[570,187,39,35,3329,95],[594,196,37,35,3468,110],[628,207,41,41,3623,179],[664,193,53,60,3847,289],[697,222,36,43,4181,129],[732,234,28,37,4355,163],[758,241,41,38,4564,203]];
-  var HAND_V=5;   // bump when the maps are made again, so browsers fetch the new ones
+  var HAND_V=6;   // bump when the maps are made again, so browsers fetch the new ones
   function setupHand(){
-    var h=document.getElementById('hand'), ink=document.getElementById('handInk'), mask=document.getElementById('handMask');
-    if(!h||!ink||!mask) return;
-    var NS='http://www.w3.org/2000/svg', SOFT=18, defs=h.querySelector('defs'), L=[];   // SOFT: ms a pixel takes to come in
-    HAND_T.forEach(function(m,i){
-      var f=document.createElementNS(NS,'filter'), cm=document.createElementNS(NS,'feColorMatrix'), im=document.createElementNS(NS,'image');
-      f.id='handT'+i; f.setAttribute('color-interpolation-filters','sRGB'); f.setAttribute('filterUnits','userSpaceOnUse');
-      f.setAttribute('x',m[0]); f.setAttribute('y',m[1]); f.setAttribute('width',m[2]); f.setAttribute('height',m[3]);
-      cm.setAttribute('type','matrix'); f.appendChild(cm); defs.appendChild(f);
-      im.setAttribute('href','hand_t/'+(i<10?'0':'')+i+'.png?v='+HAND_V); im.setAttribute('preserveAspectRatio','none');
-      im.setAttribute('x',m[0]); im.setAttribute('y',m[1]); im.setAttribute('width',m[2]); im.setAttribute('height',m[3]);
-      im.setAttribute('filter','url(#handT'+i+')');
-      // no smoothing: a smoothed map would mix the times of two crossing lines and show the later one early
-      im.setAttribute('image-rendering','optimizeSpeed'); im.style.imageRendering='pixelated'; mask.appendChild(im);
-      L.push({cm:cm,t0:m[4],dur:m[5],K:m[5]/SOFT,u:null});
-    });
-    // u: the letter's clock, 0…1; a pixel shows once u passes its grey (fading in over SOFT ms)
-    function setU(l,u){
-      if(l.u===u) return; l.u=u;
-      var r=(-l.K).toFixed(3)+' 0 0 0 '+(l.K*u).toFixed(4)+' ';
-      l.cm.setAttribute('values',r+r+r+'0 0 0 1 0');
+    var h=document.getElementById('hand'); if(!h) return;
+    var R=2, W=805, H=285, CW=W*R, CH=H*R, SOFT=18, n=HAND_T.length, left=n+1, ims=[];
+    function plain(){ h.style.visibility='visible'; }
+    function load(src,i){ var im=new Image(); im.onload=function(){ if(--left===0) build(); }; im.onerror=plain; im.src=src; ims[i]=im; }
+    function pixels(im,w,hh,smooth){
+      var c=document.createElement('canvas'); c.width=w; c.height=hh;
+      var x=c.getContext('2d'); x.imageSmoothingEnabled=smooth; x.drawImage(im,0,0,w,hh); return x.getImageData(0,0,w,hh).data;
     }
-    L.forEach(function(l){ setU(l,reduce?2:-1); });
-    ink.setAttribute('mask','url(#handMask)');
-    if(reduce) return;
-    function write(){
-      var t0=0;
-      (function step(now){
-        if(!t0) t0=now;
-        var t=now-t0, busy=false;
-        L.forEach(function(l){ var u=(t-l.t0)/l.dur; if(u<1+1/l.K) busy=true; setU(l,u<0?-1:u>1+1/l.K?2:u); });
-        if(busy) requestAnimationFrame(step);
-      })(performance.now());
+    load('hand2.png',n);
+    HAND_T.forEach(function(m,i){ load('hand_t/'+(i<10?'0':'')+i+'.png?v='+HAND_V,i); });
+    function build(){
+      var ink, i, x, y, k;
+      // the letters' maps, laid out on the picture: which letter, when (ms) and how much of each picture pixel
+      var LT=new Float32Array(W*H).fill(-1), LA=new Float32Array(W*H);
+      try{
+        ink=pixels(ims[n],CW,CH,true);
+        HAND_T.forEach(function(m,i){
+          var d=pixels(ims[i],m[2],m[3],false);
+          for(y=0;y<m[3];y++) for(x=0;x<m[2];x++){
+            var q=(y*m[2]+x)*4; if(!d[q+3]) continue;
+            k=(m[1]+y)*W+m[0]+x; LT[k]=m[4]+d[q]/255*m[5]; LA[k]=d[q+3]/255;
+          }
+        });
+      }catch(e){ plain(); return; }
+      var cv=document.createElement('canvas'); cv.width=CW; cv.height=CH; cv.className='hand';
+      cv.setAttribute('role','img'); cv.setAttribute('aria-label',h.getAttribute('aria-label')||'');
+      h.parentNode.insertBefore(cv,h); h.parentNode.removeChild(h);
+      var cx=cv.getContext('2d'), img=cx.createImageData(CW,CH), D=img.data;
+      // pencil grain, as in the rest of the drawings: two layers of soft noise; the ink thins out where the noise is low
+      var seed=11; function rnd(){ seed=seed*16807%2147483647; return seed/2147483647; }
+      function noise(c){
+        var gw=Math.ceil(CW/c)+2, G=new Float32Array(gw*(Math.ceil(CH/c)+2)); for(var j=0;j<G.length;j++) G[j]=rnd();
+        return function(x,y){ var fx=x/c, fy=y/c, ix=fx|0, iy=fy|0, tx=fx-ix, ty=fy-iy; tx=tx*tx*(3-2*tx); ty=ty*ty*(3-2*ty);
+          var a=G[iy*gw+ix], b=G[iy*gw+ix+1], c2=G[(iy+1)*gw+ix], e=G[(iy+1)*gw+ix+1]; return a+(b-a)*tx+(c2-a)*ty+(a-b-c2+e)*tx*ty; };
+      }
+      var n1=noise(2.4), n2=noise(1.2), P=[], T=[], F=[];
+      for(y=0;y<CH;y++) for(x=0;x<CW;x++){
+        k=y*CW+x; var a=ink[k*4+3]/255, s=((y/R)|0)*W+((x/R)|0);
+        if(a<.02||LT[s]<0) continue;
+        var g=.62*n1(x,y)+.38*n2(x,y), mm=Math.max(0,Math.min(1,3.2*g+1.6*a-2.05));
+        var f=.86*a*mm*LA[s]*255; if(f<2) continue;
+        D[k*4]=ink[k*4]; D[k*4+1]=ink[k*4+1]; D[k*4+2]=ink[k*4+2];
+        P.push(k); T.push(LT[s]); F.push(f);
+      }
+      // the pixels in the order the pen reaches them
+      var ord=P.map(function(_,j){ return j; }).sort(function(a,b){ return T[a]-T[b]; });
+      var N=ord.length, done=0;
+      function draw(t){
+        var x0=CW, y0=CH, x1=-1, y1=-1, j=done;
+        for(;j<N&&T[ord[j]]<=t;j++){
+          var o=ord[j], u=(t-T[o])/SOFT, kk=P[o];
+          D[kk*4+3]=u>=1?F[o]:F[o]*u;
+          var px=kk%CW, py=(kk/CW)|0; if(px<x0) x0=px; if(px>x1) x1=px; if(py<y0) y0=py; if(py>y1) y1=py;
+        }
+        while(done<N&&T[ord[done]]<=t-SOFT) done++;
+        if(x1>=0) cx.putImageData(img,0,0,x0,y0,x1-x0+1,y1-y0+1);
+        return done<N;
+      }
+      if(reduce){ draw(1e9); return; }
+      function write(){
+        var t0=0;
+        (function step(now){ if(!t0) t0=now; if(draw(now-t0)) requestAnimationFrame(step); })(performance.now());
+      }
+      // checked on every scroll (cheap: one box) and once now, so it also starts when the page opens right at the footer
+      function check(){
+        var r=cv.getBoundingClientRect(), vh=window.innerHeight;
+        if(r.top<vh*.85&&r.bottom>vh*.15){ window.removeEventListener('scroll',check); write(); }
+      }
+      window.addEventListener('scroll',check,{passive:true});
+      setTimeout(check,100);
     }
-    // checked on every scroll (cheap: one box) and once after load, so it also starts when the page opens right at the footer
-    function check(){
-      var r=h.getBoundingClientRect(), vh=window.innerHeight;
-      if(r.top<vh*.85&&r.bottom>vh*.15){ window.removeEventListener('scroll',check); write(); }
-    }
-    window.addEventListener('scroll',check,{passive:true});
-    setTimeout(check,300);
   }
   function placeStage(){
     var cs=getComputedStyle(root);
