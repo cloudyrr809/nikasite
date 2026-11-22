@@ -233,11 +233,10 @@ a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
    page is zoomed in (html.pz, see the script) the browser takes every gesture on the album, so the zoomed page can be moved
    about with a finger anywhere on it, also when the album fills the whole screen */
 #book{position:absolute;touch-action:pan-y pinch-zoom;cursor:pointer;z-index:2}
-/* the album lying open: a finger on it no longer drags the page up or down on its own (a swipe to turn a page drifts a little
-   up or down, and the browser then took it for a scroll). A clearly vertical swipe still scrolls the page, by the script (see onMove).
-   Closed: as before */
-#book.open{touch-action:pinch-zoom}
-html.pz #book,html.pz #book.open{touch-action:auto}
+/* the album lying open: a swipe that starts mostly sideways turns the page and the page itself stays still (the touchmove
+   handler holds it, see bookTouch); one that starts mostly up or down is the browser's own scroll, as everywhere on the page.
+   (Before, the open album scrolled the page from the script, and on an iPhone that made the page jump about) */
+html.pz #book{touch-action:auto}
 #book.dragging{cursor:grabbing}
 #bookGL{position:absolute;pointer-events:none;z-index:1}
 #hint,#pager{z-index:3}
@@ -2766,7 +2765,9 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
        sharper from the full-size pictures, measured side by side. They are not loaded there at all: their decoding and
        their upload to the graphics card fell right into the turns and made them stutter, and their swap over the small
        copy showed as "blurry first". A pinch zoom (vvZ) or a sharper, bigger screen brings them back */
-    var thOnly=MOB&&book.getBoundingClientRect().height*(window.devicePixelRatio||1)*vvZ<=TH_SIZE*1.1;
+    /* (the line was at 1.1 x 512: an iPhone 12-15 (390 px wide, 3x) draws a page ~550 px tall and stayed on the 512 px
+       copies, blurry, sharp only while zoomed in. Now only a page drawn clearly smaller than the small copy keeps to it) */
+    var thOnly=MOB&&book.getBoundingClientRect().height*(window.devicePixelRatio||1)*vvZ<=TH_SIZE*0.75;
     if(!thOnly) for(var sp=at-back;sp<=at+ahead;sp++) if(sp>=1&&sp<=SPREADS) pgOfSpread(sp).forEach(function(p){ keep[p]=1; });
     // the bytes of a few more spreads ahead (and two back) are fetched in advance; far ones are let go
     if(warmOK&&!thOnly){
@@ -3536,7 +3537,6 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
   function ux(ev){ return ROT?ev.clientY:ev.clientX; }
   function onDown(ev){
     if(ev.button>0||drag) return;
-    cancelAnimationFrame(vsRaf);
     var p=local(ev), x=p[0], k, fwd=x>=0, only=false, now0=performance.now();
     // the closed album (at the start on the right, at the end on the left) opens from a click on either half —
     // but only once it has lain still a moment, so the quick clicks that just closed it do not open it again at once
@@ -3551,31 +3551,32 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
     drag={k:k, only:only, x0:x, y:Math.max(MY,Math.min(BS-MY,p[1])), cx0:ev.clientX, cy0:ev.clientY, t0:performance.now(), fwd:fwd, moved:false, hist:[[performance.now(),x]], a0:leaves[k].a, r:Math.max(BS*0.45,Math.abs(x))};
     try{ book.setPointerCapture(ev.pointerId); }catch(e){}
   }
-  // an open album under a finger: a clearly vertical swipe scrolls the page by hand (the browser does not, see #book.open),
-  // and carries on a little after the finger leaves, like a normal scroll; a swipe that is mostly sideways only turns the page
-  var vsRaf=0;
-  function vsCoast(v){
-    cancelAnimationFrame(vsRaf); var t=performance.now();
-    vsRaf=requestAnimationFrame(function step(n){
-      var dt=Math.min(40,n-t); t=n; window.scrollBy(0,v*dt); v*=Math.exp(-dt/325);
-      if(Math.abs(v)>0.03) vsRaf=requestAnimationFrame(step);
-    });
+  /* an open album under a finger: the first few pixels of a touch decide. Mostly sideways: it turns the page, and the page
+     itself is held still for the whole touch (a turning swipe always drifts a little up or down, and the browser took that
+     for a scroll). Mostly up or down: the browser scrolls the page as usual. Two fingers and a zoomed page are left alone.
+     The same rule as the drum of "what MATTERS" */
+  var bt=null;
+  function bookTouch(){
+    book.addEventListener('touchstart',function(e){
+      bt=null;
+      if(e.touches.length!==1||!book.classList.contains('open')||root.classList.contains('pz')) return;
+      bt={x:e.touches[0].clientX,y:e.touches[0].clientY,m:0};
+    },{passive:true});
+    book.addEventListener('touchmove',function(e){
+      if(!bt) return;
+      if(e.touches.length!==1){ bt=null; return; }
+      if(bt.m===0){
+        var dx=e.touches[0].clientX-bt.x, dy=e.touches[0].clientY-bt.y;
+        if(Math.abs(dx)<4&&Math.abs(dy)<4) return;                   // not yet a direction
+        bt.m=Math.abs(dx)>Math.abs(dy)?1:2;
+      }
+      if(bt.m===1&&e.cancelable) e.preventDefault();
+    },{passive:false});
+    book.addEventListener('touchend',function(){ bt=null; },{passive:true});
+    book.addEventListener('touchcancel',function(){ bt=null; },{passive:true});
   }
   function onMove(ev){
-    if(!drag) return;
-    if(ev.pointerType==='touch'&&!drag.moved&&book.classList.contains('open')){
-      var now1=performance.now();
-      if(!drag.vs){
-        var ddx=ev.clientX-drag.cx0, ddy=ev.clientY-drag.cy0;
-        if(Math.abs(ddy)>14&&Math.abs(ddy)>2*Math.abs(ddx)){ drag.vs=true; drag.ly=ev.clientY; drag.lt=now1; drag.vy=0; }
-      }
-      if(drag.vs){
-        var step=drag.ly-ev.clientY, dt1=Math.max(1,now1-drag.lt);
-        window.scrollBy(0,step); drag.vy=drag.vy*.6+(step/dt1)*.4; drag.ly=ev.clientY; drag.lt=now1;
-        return;
-      }
-    }
-    if(drag.only) return;
+    if(!drag||drag.only) return;
     var p=local(ev), x=p[0], now=performance.now();
     if(!drag.moved){
       if(Math.abs(ux(ev)-(ROT?drag.cy0:drag.cx0))<8) return;
@@ -3587,7 +3588,11 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
     drag.hist.push([now,x]); while(drag.hist.length>2 && now-drag.hist[0][0]>110) drag.hist.shift();
     drag.y=Math.max(MY,Math.min(BS-MY,p[1]));
     var f=function(v){ return Math.acos(Math.max(-1,Math.min(1,v/drag.r)))*180/Math.PI; };
-    var a=drag.a0+(f(x)-f(drag.x0));
+    /* a sheet taken near the spine (closer than drag.r) could not be pulled the whole way: the angle stopped at
+       180 minus the angle of the point taken (e.g. ~115 deg), and the cover stopped half open under the mouse. Now the
+       way left to each side is stretched over the hand's way left to that side, so the far side always means fully over */
+    var f0=f(drag.x0), fx=f(x), a=fx>=f0 ? drag.a0+(fx-f0)*(180-drag.a0)/Math.max(1e-3,180-f0)
+                                       : drag.a0-(f0-fx)*drag.a0/Math.max(1e-3,f0);
     leaves[drag.k].a=leaves[drag.k].af=Math.max(0,Math.min(180,a));
     // how fast the sheet turns in the hand, to hand that speed over when it is let go
     drag.ah=drag.ah||[]; drag.ah.push([now,leaves[drag.k].a]); while(drag.ah.length>2 && now-drag.ah[0][0]>90) drag.ah.shift();
@@ -3597,7 +3602,6 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
   function onUp(ev){
     if(!drag) return;
     var d=drag; drag=null; book.classList.remove('dragging');
-    if(d.vs){ if(ev.type==='pointerup'&&performance.now()-d.lt<80&&Math.abs(d.vy)>0.05) vsCoast(d.vy); return; }
     if(!d.moved){
       if(ev.type==='pointerup'){
         // on a phone: a tap on the left third of the screen goes back, anywhere else forward
@@ -3633,6 +3637,7 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
     book.addEventListener('pointermove',onMove);
     book.addEventListener('pointerup',onUp);
     book.addEventListener('pointercancel',onUp);
+    bookTouch();
     // if the press ends somewhere the book never hears of (window lost focus, capture lost), drop it,
     // otherwise a stuck press blocks every later click on the album
     book.addEventListener('lostpointercapture',function(e){ if(drag) onUp({type:'pointercancel',clientX:e.clientX,clientY:e.clientY}); });
