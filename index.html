@@ -123,19 +123,20 @@
   transition:opacity .35s ease,visibility 0s linear .35s;overscroll-behavior:contain;touch-action:none}
 #getA.on{visibility:visible;opacity:1;transition:opacity .35s ease}
 #getA .gbox{position:relative;text-align:center;padding:20px}
-#getA h2{margin:0 0 34px;font-weight:800;font-size:46px;line-height:1;letter-spacing:-.04em}
+html:not(.m) #getA .gbox{zoom:var(--s)}   /* on a wide screen it grows with the page, like everything else */
+#getA h2{margin:0 0 44px;font-weight:800;font-size:64px;line-height:1;letter-spacing:-.04em}
 #getA h2 i{font-style:normal;color:var(--accent)}
-#getA .gcards{display:flex;gap:44px;justify-content:center}
-#getA .gc{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-weight:700;font-size:21px;letter-spacing:-.01em;line-height:1;
+#getA .gcards{display:flex;gap:64px;justify-content:center}
+#getA .gc{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--ink);text-decoration:none;font-weight:700;font-size:26px;letter-spacing:-.01em;line-height:1;
   opacity:0;transform:translateY(18px);transition:opacity .45s ease,transform .6s cubic-bezier(.2,.8,.2,1),color .2s ease}
 #getA.on .gc{opacity:1;transform:none}
 #getA.on .gc:nth-child(2){transition-delay:.07s,.07s,0s}
 #getA.on .gc:nth-child(3){transition-delay:.14s,.14s,0s}
-#getA .gc svg{width:190px;height:190px;overflow:visible;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+#getA .gc svg{width:260px;height:260px;overflow:visible;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 #getA .gc:hover,#getA .gc:focus-visible{color:var(--accent);outline:none}
 #getA .gc:hover svg,#getA .gc:focus-visible svg{transform:rotate(-2deg) scale(1.04)}
-#getA .gc small{font-weight:500;font-size:13px;color:var(--ink-soft);letter-spacing:0}
-#getA .gx{position:absolute;top:-34px;right:-30px;width:44px;height:44px;padding:0;border:0;background:none;color:var(--ink);cursor:pointer;transition:color .2s ease,transform .3s ease}
+#getA .gc small{font-weight:500;font-size:15px;color:var(--ink-soft);letter-spacing:0}
+#getA .gx{position:absolute;top:-30px;right:-40px;width:54px;height:54px;padding:0;border:0;background:none;color:var(--ink);cursor:pointer;transition:color .2s ease,transform .3s ease}
 #getA .gx:hover,#getA .gx:focus-visible{color:var(--accent);transform:rotate(8deg);outline:none}
 #getA .gx svg{width:100%;height:100%}
 html.m #getA h2{font-size:30px;margin-bottom:26px}
@@ -638,6 +639,7 @@ html.m #hero .h-locm .pin{width:10px;height:15px}
 /* phone: no "получить альбом" buttons on the formats screen and on "what MATTERS" */
 html.m #choice .fmtM .cta,html.m #vCta{display:none!important}
 html.m #faq summary .ha{width:40px;height:9.9px}
+#faq .qa p a{-webkit-tap-highlight-color:transparent}
 #faq .qa p{box-sizing:border-box;overflow:hidden;margin:-6px 0 0;padding:0 60px 24px 0;font-weight:500;font-size:15px;line-height:1.45}
 #faq .qa a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 html.m #faq{margin-top:30px}
@@ -1009,11 +1011,12 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
   /* the phone: the tilt of the floor (#plane, #floor), its scale/shift onto the phone (FK, FTX, FTY) and the slope
      (--fls: the words turned around her feet, the right end going up) put together in one matrix; every letter adds
      its own place and turn to it, so each one is a small layer with its full 3D transform */
-  var flm=document.getElementById('floorM'), spM=null, FPB=null, FPT=new DOMMatrix('perspective(1000px) rotateX(62deg) rotateZ(-13deg) rotateY(-9deg)');
+  var flm=document.getElementById('floorM'), spM=null, FPB=null, FPA=null, PL=new Float64Array(16), PM=new Float64Array(16), FPT=new DOMMatrix('perspective(1000px) rotateX(62deg) rotateZ(-13deg) rotateY(-9deg)');
   function phBase(){
     // #plane: left -380, top 400, origin 40% 40% of 2200×1000 = (880,400); #floor at (-500,-800) inside it
     FPB=new DOMMatrix().translate(FTX,FTY).scale(FK).translate(FLP[0],FLP[1]).rotate(-FLS).translate(-FLP[0],-FLP[1])
       .translate(-380+880,400+400).multiply(FPT).translate(-880-500,-400-800);
+    FPA=FPB.toFloat64Array();
   }
   function makeSprites(){
     fl.textContent=''; flm.textContent=''; spM=MOB;
@@ -1118,16 +1121,31 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
       var lv=r?FXQ:FXV; if(lv){ var l=1-px/FXL; l=l<0?0:l>1?1:l; v+=l*l*(3-2*l)*lv; }
       return v;
     }
-    var qa=FPB.transformPoint(new DOMPoint(X+sp.x0,Y-150)), qb=FPB.transformPoint(new DOMPoint(X+sp.x0+sp.w,Y-150));
-    var s0=sAt(qa.x/qa.w/FDW), s1=sAt(qb.x/qb.w/FDW), pv=r?-300:-20.6;   // the pivot: ROYSE's top edge, VERONIKA's baseline (letter px)
-    var M=FPB.translate(X,Y).rotate(deg).scale(1,FHY).translate(0,pv).translate(sp.x0,0);
-    if(s0!==1||s1!==1){ var g=(s0/s1-1)/sp.w; M=M.multiply(new DOMMatrix([g*sp.w+1,0,0,g, 0,s0,0,0, 0,0,1,0, 0,0,0,1])); }
-    M=M.translate(0,sp.y0-pv); var on=true;
-    for(var c=0;c<4;c++){ var px=c&1?sp.w:0, py=c&2?sp.h:0; if(M.m14*px+M.m24*py+M.m44<0.05){ on=false; break; } }
+    /* (plain arithmetic on two reused arrays instead of new DOMMatrix objects for every letter on every frame: the same
+       numbers, a fraction of the work, which counts in the slower in-app browsers of Telegram and the like) */
+    var F=FPA, ux=X+sp.x0, vy=Y-150;
+    var qa=(F[0]*ux+F[4]*vy+F[12])/(F[3]*ux+F[7]*vy+F[15]); ux+=sp.w;
+    var qb=(F[0]*ux+F[4]*vy+F[12])/(F[3]*ux+F[7]*vy+F[15]);
+    var s0=sAt(qa/FDW), s1=sAt(qb/FDW), pv=r?-300:-20.6;   // the pivot: ROYSE's top edge, VERONIKA's baseline (letter px)
+    // the letter's own place: translate(X,Y) rotate(deg) scale(1,FHY) translate(0,pv) translate(x0,0), as a 2D affine
+    var rd=deg*Math.PI/180, co=Math.cos(rd), si=Math.sin(rd);
+    var a=co, b=si, c=-si*FHY, d=co*FHY, e=X+c*pv+a*sp.x0, f=Y+d*pv+b*sp.x0;
+    var L=PL; L[0]=a;L[1]=b;L[2]=0;L[3]=0; L[4]=c;L[5]=d;L[6]=0;L[7]=0; L[8]=0;L[9]=0;L[10]=1;L[11]=0; L[12]=e;L[13]=f;L[14]=0;L[15]=1;
+    if(s0!==1||s1!==1){
+      // the stretch: [g*w+1,0,0,g, 0,s0,0,0, 0,0,1,0, 0,0,0,1] multiplied on the right (only columns 1 and 2 change)
+      var g=(s0/s1-1)/sp.w, k1=g*sp.w+1;
+      for(var j=0;j<4;j++){ var c0=L[j], c3=L[12+j]; L[j]=c0*k1+c3*g; L[4+j]*=s0; }
+    }
+    var ty0=sp.y0-pv; for(var j2=0;j2<4;j2++) L[12+j2]+=L[4+j2]*ty0;   // translate(0, y0-pv)
+    var M=PM;
+    for(var cc=0;cc<4;cc++) for(var rr=0;rr<4;rr++)
+      M[cc*4+rr]=F[rr]*L[cc*4]+F[4+rr]*L[cc*4+1]+F[8+rr]*L[cc*4+2]+F[12+rr]*L[cc*4+3];
+    var on=true;
+    for(var cn=0;cn<4;cn++){ var px=cn&1?sp.w:0, py=cn&2?sp.h:0; if(M[3]*px+M[7]*py+M[15]<0.05){ on=false; break; } }
     if(on!==sp.on){ sp.on=on; sp.el.style.display=on?'':'none'; }
     if(!on) return;
-    var a=M.toFloat64Array(), tf='matrix3d(';
-    for(var i=0;i<16;i++) tf+=(i?',':'')+(+a[i].toFixed(i===3||i===7||i===11?7:4));
+    var tf='matrix3d(';
+    for(var i=0;i<16;i++) tf+=(i?',':'')+(+M[i].toFixed(i===3||i===7||i===11?7:4));
     tf+=')';
     if(tf!==sp.tf){ sp.tf=tf; sp.el.style.transform=tf; }
   }
@@ -1708,7 +1726,9 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
     ev.preventDefault();
     var y=el.getBoundingClientRect().top+window.scrollY;
     // exactly the ride of "наверх": on a phone the page's own slow ride, on a wide screen the calm glide
-    if(MOB){ if(!rideM(y)) glideTo(y,Math.max(1200,Math.min(2200,700+Math.abs(y-window.scrollY)*0.25)),0.25); }
+    /* a phone: the ride is started at the next frame, right before the screen is drawn, so the jump to the goal and the
+       shift that hides it reach the screen together (started at once from the tap, one frame could show the goal first) */
+    if(MOB){ requestAnimationFrame(function(){ if(!rideM(y)) glideTo(y,Math.max(1200,Math.min(2200,700+Math.abs(y-window.scrollY)*0.25)),0.25); }); }
     else calmRide(y);
   }
   /* ---- the stage: positions are stored on a fixed 1440×900 reference grid (data-x / data-y)
