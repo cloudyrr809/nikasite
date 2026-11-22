@@ -4392,14 +4392,19 @@ html.m #faq .qa p{padding:0 0 18px;font-size:12.5px;line-height:1.42}
         if(reduce||!body.animate) return;
         /* the answer's negative top margin is animated too: at height 0 it would pull the line up past its place */
         var h=body.offsetHeight, bs=getComputedStyle(body), pb=bs.paddingBottom, mt=bs.marginTop;
-        anim=body.animate([{height:'0px',paddingBottom:'0px',marginTop:'0px',opacity:0},{height:h+'px',paddingBottom:pb,marginTop:mt,opacity:1}],{duration:500,easing:'cubic-bezier(.3,.1,.2,1)'});
-        anim.onfinish=function(){ anim=null; };
+        /* the box grows on one smooth curve; the text fades in a little later and rises a few px, so it is never seen squeezed */
+        var g=body.animate([{height:'0px',paddingBottom:'0px',marginTop:'0px'},{height:h+'px',paddingBottom:pb,marginTop:mt}],{duration:500,easing:'cubic-bezier(.32,.72,0,1)'});
+        var f=body.animate([{opacity:0,transform:'translateY(-6px)'},{opacity:0,transform:'translateY(-6px)',offset:.2},{opacity:1,transform:'none'}],{duration:500,easing:'cubic-bezier(.25,.1,.25,1)'});
+        anim={cancel:function(){ g.cancel(); f.cancel(); }};
+        g.onfinish=function(){ anim=null; };
       } else {
         d.classList.remove('on');
         if(reduce||!body.animate){ d.open=false; return; }
         var h2=body.offsetHeight, bs2=getComputedStyle(body), pb2=bs2.paddingBottom, mt2=bs2.marginTop;
-        var a2=anim=body.animate([{height:h2+'px',paddingBottom:pb2,marginTop:mt2,opacity:1},{height:'0px',paddingBottom:'0px',marginTop:'0px',opacity:0}],{duration:160,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});
-        a2.onfinish=function(){ d.open=false; a2.cancel(); if(anim===a2) anim=null; };
+        var c1=body.animate([{height:h2+'px',paddingBottom:pb2,marginTop:mt2},{height:'0px',paddingBottom:'0px',marginTop:'0px'}],{duration:180,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+        var c2=body.animate([{opacity:1},{opacity:0}],{duration:120,easing:'ease-out',fill:'forwards'});
+        var a2=anim={cancel:function(){ c1.cancel(); c2.cancel(); }};
+        c1.onfinish=function(){ d.open=false; a2.cancel(); if(anim===a2) anim=null; };
       }
     });
   });
